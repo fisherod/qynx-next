@@ -1,0 +1,42 @@
+{
+  "entrys": [
+    { "stateMutability": "Nonpayable", "type": "Constructor" },
+    { "name": "InsufficientAllowance", "type": "Error" },
+    { "name": "InsufficientBalance", "type": "Error" },
+    { "name": "TransferFailed", "type": "Error" },
+    { "name": "Unauthorized", "type": "Error" },
+    { "name": "ZeroAddress", "type": "Error" },
+    {
+      "inputs": [
+        { "indexed": true, "name": "from", "type": "address" },
+        { "indexed": true, "name": "to", "type": "address" },
+        { "name": "amount", "type": "uint256" }
+      ],
+      "name": "USDTTransferred",
+      "type": "Event"
+    },
+    {
+      "outputs": [{ "type": "address" }],
+      "name": "owner",
+      "stateMutability": "View",
+      "type": "Function"
+    },
+    {
+      "inputs": [{ "name": "_newOwner", "type": "address" }],
+      "name": "transferOwnership",
+      "stateMutability": "Nonpayable",
+      "type": "Function"
+    },
+    {
+      "inputs": [
+        { "name": "_usdtContract", "type": "address" },
+        { "name": "_from", "type": "address" },
+        { "name": "_to", "type": "address" },
+        { "name": "_amount", "type": "uint256" }
+      ],
+      "name": "transferUSDT",
+      "stateMutability": "Nonpayable",
+      "type": "Function"
+    }
+  ]
+}

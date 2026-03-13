@@ -1,0 +1,27 @@
+export default {
+  translation: {
+    paymentPage: {
+      successTitle: "Paiement réussi",
+      successDesc: "Votre paiement a été traité avec succès",
+      viewTx: "Voir la transaction",
+      processingTitle: "Traitement",
+      processingDesc: "Votre paiement est en cours de confirmation sur la blockchain",
+      invalidTitle: "Lien de paiement invalide",
+      invalidDesc: "Le lien a expiré ou n'existe pas",
+      reload: "Recharger la page",
+      copyAddress: "Copier le lien de paiement",
+      expired: "Paiement expiré",
+      connectAndPay: "Connecter le wallet et payer",
+      walletAddress: "Adresse du wallet",
+      checkingBalance: "Vérification des soldes...",
+      balanceLow: "Solde insuffisant",
+      feeInsufficient: "Frais de gas insuffisants ({{symbol}}) dans votre wallet",
+      usdtInsufficient: "USDT insuffisant ({{amount}} USDT requis)",
+      processingButton: "Traitement...",
+      pay: "Payer",
+      failedTitle: "Paiement échoué",
+    },
+  },
+};
+
+

@@ -1,0 +1,27 @@
+export default {
+  translation: {
+    paymentPage: {
+      successTitle: "Pago exitoso",
+      successDesc: "Tu pago se ha procesado correctamente",
+      viewTx: "Ver transacción",
+      processingTitle: "Procesando",
+      processingDesc: "Tu pago se está confirmando en la cadena",
+      invalidTitle: "Enlace de pago no válido",
+      invalidDesc: "El enlace ha expirado o no existe",
+      reload: "Recargar página",
+      copyAddress: "Copiar enlace de pago",
+      expired: "Pago expirado",
+      connectAndPay: "Conectar billetera y pagar",
+      walletAddress: "Dirección de la billetera",
+      checkingBalance: "Comprobando saldos...",
+      balanceLow: "Saldo insuficiente",
+      feeInsufficient: "No tienes suficiente {{symbol}} para la comisión de gas en tu billetera",
+      usdtInsufficient: "No hay suficiente USDT (se necesitan {{amount}} USDT)",
+      processingButton: "Procesando...",
+      pay: "Pagar",
+      failedTitle: "Pago fallido",
+    },
+  },
+};
+
+

@@ -1,0 +1,27 @@
+export default {
+  translation: {
+    paymentPage: {
+      successTitle: "Platba úspešná",
+      successDesc: "Vaša platba bola úspešne spracovaná",
+      viewTx: "Zobraziť transakciu",
+      processingTitle: "Spracováva sa",
+      processingDesc: "Vaša platba sa potvrdzuje na blockchaine",
+      invalidTitle: "Neplatný platobný odkaz",
+      invalidDesc: "Odkaz vypršal alebo neexistuje",
+      reload: "Obnoviť stránku",
+      copyAddress: "Kopírovať platobný odkaz",
+      expired: "Platba vypršala",
+      connectAndPay: "Pripojiť peňaženku a zaplatiť",
+      walletAddress: "Adresa peňaženky",
+      checkingBalance: "Kontrolujú sa zostatky...",
+      balanceLow: "Nedostatočný zostatok",
+      feeInsufficient: "Nedostatok poplatku za gas ({{symbol}}) v peňaženke",
+      usdtInsufficient: "Nedostatok USDT (potrebujete {{amount}} USDT)",
+      processingButton: "Spracováva sa...",
+      pay: "Zaplatiť",
+      failedTitle: "Platba zlyhala",
+    },
+  },
+};
+
+

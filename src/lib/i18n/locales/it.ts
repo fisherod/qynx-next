@@ -1,0 +1,27 @@
+export default {
+  translation: {
+    paymentPage: {
+      successTitle: "Pagamento riuscito",
+      successDesc: "Il pagamento è stato elaborato con successo",
+      viewTx: "Vedi transazione",
+      processingTitle: "Elaborazione",
+      processingDesc: "Il tuo pagamento è in conferma sulla blockchain",
+      invalidTitle: "Link di pagamento non valido",
+      invalidDesc: "Il link è scaduto o non esiste",
+      reload: "Ricarica pagina",
+      copyAddress: "Copia link di pagamento",
+      expired: "Pagamento scaduto",
+      connectAndPay: "Connetti wallet e paga",
+      walletAddress: "Indirizzo wallet",
+      checkingBalance: "Verifica dei saldi...",
+      balanceLow: "Saldo insufficiente",
+      feeInsufficient: "Commissione di gas insufficiente ({{symbol}}) nel wallet",
+      usdtInsufficient: "USDT insufficiente (servono {{amount}} USDT)",
+      processingButton: "Elaborazione...",
+      pay: "Paga",
+      failedTitle: "Pagamento non riuscito",
+    },
+  },
+};
+
+
