@@ -1,0 +1,143 @@
+/* Section: no solid background so token-ico page background (background.webp) shows through; trend line on top */
+.section {
+  background-image: url('/trend.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  position: relative;
+  background-color: transparent;
+}
+
+/* Coins container: match trend.svg aspect (1251 / 563 ≈ 2.22) so line and positions align */
+.algosCoins {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 1251 / 563;
+  min-height: 320px;
+  margin: 0 auto;
+  z-index: 1;
+}
+
+.coin {
+  width: 100px;
+  max-width: 140px;
+  position: absolute;
+  animation: coinFloat 2s ease infinite;
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 640px) {
+  .algosCoins {
+    min-height: 200px;
+    max-width: 100%;
+  }
+
+  .coin {
+    width: 56px;
+    max-width: 72px;
+  }
+
+  .coinText {
+    top: -36px;
+    height: 32px;
+  }
+
+  .coinTextItem {
+    font-size: 18px;
+  }
+}
+
+/* Coin 1 – lower-left, where trend line rises after dip (+5% / purple–eth) */
+.coin:nth-child(1) {
+  left: 14%;
+  top: 72%;
+  animation-delay: 1s;
+}
+
+/* Coin 2 – lower-middle on rising line (+70% / Solana) */
+.coin:nth-child(2) {
+  left: 28%;
+  top: 58%;
+  animation-delay: 2s;
+}
+
+/* Coin 3 – upper-middle, above the line (Litecoin, no label) */
+.coin:nth-child(3) {
+  left: 46%;
+  top: 38%;
+  animation-delay: 0.5s;
+}
+
+/* Coin 4 – middle-right on ascending line (x3 / Bitcoin) */
+.coin:nth-child(4) {
+  left: 68%;
+  top: 28%;
+  animation-delay: 3.7s;
+}
+
+/* Coin 5 – far right on ascending line (+5% / Tether–green) */
+.coin:nth-child(5) {
+  left: 88%;
+  top: 12%;
+  animation-delay: 0.7s;
+}
+
+.coinImgWrap {
+  position: relative;
+  width: 100%;
+}
+
+.coinImage {
+  position: relative;
+  width: 100% !important;
+  height: auto !important;
+}
+
+.coinLight {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.coinText {
+  font-family: 'Montserrat', system-ui, sans-serif;
+  position: absolute;
+  left: 0;
+  top: -52px;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coinTextItem {
+  position: absolute;
+  text-align: center;
+  white-space: nowrap;
+  color: #3eb67a;
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 700;
+  width: 100%;
+  opacity: 1;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.coinTextItemHidden {
+  opacity: 0;
+  transform: translateY(50px);
+}
+
+@keyframes coinFloat {
+  0%, 100% {
+    transform: translate(-50%, -50%) translateY(0);
+  }
+  50% {
+    transform: translate(-50%, -50%) translateY(8%);
+  }
+}

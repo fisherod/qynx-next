@@ -114,7 +114,7 @@ export function NetworkIndicator({
             isMainnet ? "bg-green-500" : "bg-yellow-500"
           )}
         />
-        {t(`chains.${mode}`, { defaultValue: mode === "mainnet" ? "主网" : "测试网" })}
+        {t(`chains.${mode}`, { defaultValue: mode === "mainnet" ? "Mainnet" : "Testnet" })}
       </div>
     );
   }
@@ -145,7 +145,7 @@ export function NetworkIndicator({
               : "text-yellow-800 dark:text-yellow-400"
           )}
         >
-          {t(`chains.${mode}`, { defaultValue: mode === "mainnet" ? "主网" : "测试网" })}
+          {t(`chains.${mode}`, { defaultValue: mode === "mainnet" ? "Mainnet" : "Testnet" })}
         </h4>
       </div>
 

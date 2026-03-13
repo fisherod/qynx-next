@@ -50,10 +50,10 @@ export default function GeneratePage() {
 
       const data = await response.json();
       setResult(data);
-      setSuccess("支付链接生成成功！");
+      setSuccess("Payment link generated successfully!");
     } catch (error: any) {
       console.error("Payment creation error:", error);
-      setError(error.message || "生成支付链接失败，请重试");
+      setError(error.message || "Failed to generate payment link, please try again");
     } finally {
       setLoading(false);
     }
@@ -62,10 +62,10 @@ export default function GeneratePage() {
   const handleCopy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      setSuccess("链接已复制到剪贴板");
+      setSuccess("Link copied to clipboard");
       setTimeout(() => setSuccess(""), 2000);
     } catch (error) {
-      setError("复制失败，请手动复制");
+      setError("Failed to copy, please copy manually");
     }
   };
 
@@ -78,15 +78,15 @@ export default function GeneratePage() {
             <div className="flex items-center space-x-3">
               <div className="text-2xl">🔗</div>
               <div>
-                <h1 className="text-xl font-bold text-white">生成支付链接</h1>
-                <p className="text-sm text-gray-400">创建USDT支付链接</p>
+                <h1 className="text-xl font-bold text-white">Generate payment link</h1>
+                <p className="text-sm text-gray-400">Create a USDT payment link</p>
               </div>
             </div>
             <Link
               href="/"
               className="text-gray-400 hover:text-white transition-colors"
             >
-              返回首页
+              Return to home
             </Link>
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function GeneratePage() {
           {/* Service Name */}
           <div>
             <label className="block text-white font-medium mb-2">
-              商品/服务名称 *
+              Service/Product name *
             </label>
             <input
               type="text"
@@ -115,12 +115,12 @@ export default function GeneratePage() {
           {/* Description */}
           <div>
             <label className="block text-white font-medium mb-2">
-              商品/服务描述 (可选)
+              Product/Service Description (Optional)
             </label>
             <input
               type="text"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-              placeholder="例如：VIP会员服务"
+              placeholder="For example: VIP membership service"
               value={formData.description}
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
@@ -131,7 +131,7 @@ export default function GeneratePage() {
           {/* Amount */}
           <div>
             <label className="block text-white font-medium mb-2">
-              支付金额 (USDT) *
+              Payment Amount (USDT) *
             </label>
             <input
               type="number"
@@ -140,7 +140,7 @@ export default function GeneratePage() {
               max="10000"
               step="0.01"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-              placeholder="例如：100"
+              placeholder="For example: 100"
               value={formData.amount}
               onChange={(e) =>
                 setFormData({ ...formData, amount: e.target.value })
@@ -151,7 +151,7 @@ export default function GeneratePage() {
           {/* Language */}
           <div>
             <label className="block text-white font-medium mb-2">
-              支付页面语言
+              Payment Page Language
             </label>
             <select
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
@@ -175,7 +175,7 @@ export default function GeneratePage() {
           {/* Webhook URL */}
           <div>
             <label className="block text-white font-medium mb-2">
-              回调地址 (可选)
+              Callback URL (optional)
             </label>
             <input
               type="url"
@@ -187,7 +187,7 @@ export default function GeneratePage() {
               }
             />
             <p className="text-gray-400 text-sm mt-1">
-              支付状态变更时会向此地址发送通知
+              A notification will be sent to this address when the payment status changes.
             </p>
           </div>
 
@@ -197,7 +197,7 @@ export default function GeneratePage() {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white py-3 px-6 rounded-lg font-medium transition-colors"
           >
-            {loading ? "生成中..." : "生成支付链接"}
+            {loading ? "Generating..." : "Generate payment link"}
           </button>
         </form>
 
@@ -218,12 +218,12 @@ export default function GeneratePage() {
         {/* Result */}
         {result && (
           <div className="mt-8 space-y-4">
-            <h3 className="text-xl font-bold text-white">支付链接已生成</h3>
+            <h3 className="text-xl font-bold text-white">Payment link generated</h3>
 
             {/* Payment URL */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
               <label className="block text-gray-300 text-sm mb-2">
-                支付链接:
+                Payment link:
               </label>
               <div className="flex items-center space-x-2">
                 <input
@@ -236,7 +236,7 @@ export default function GeneratePage() {
                   onClick={() => handleCopy(result.payment_url)}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
                 >
-                  复制
+                  Copy
                 </button>
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function GeneratePage() {
             {/* Payment ID */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
               <label className="block text-gray-300 text-sm mb-2">
-                支付ID:
+                Payment ID:
               </label>
               <div className="flex items-center space-x-2">
                 <input
@@ -257,7 +257,7 @@ export default function GeneratePage() {
                   onClick={() => handleCopy(result.payment_id)}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm"
                 >
-                  复制
+                  Copy
                 </button>
               </div>
             </div>
@@ -266,7 +266,7 @@ export default function GeneratePage() {
             {result.qr_code && (
               <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
                 <label className="block text-gray-300 text-sm mb-2">
-                  二维码 (手机扫描):
+                  QR Code (scan with phone):
                 </label>
                 <div className="flex justify-center">
                   <img
@@ -286,7 +286,7 @@ export default function GeneratePage() {
                 className="inline-flex items-center px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium"
               >
                 <span className="mr-2">🔗</span>
-                测试支付链接
+                Test payment link
               </Link>
             </div>
           </div>

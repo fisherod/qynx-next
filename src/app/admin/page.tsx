@@ -52,8 +52,8 @@ export default function AdminLogin() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">🔐 管理后台</h1>
-          <p className="text-gray-400">加密货币支付系统管理</p>
+          <h1 className="text-3xl font-bold text-white mb-2">🔐 Admin Dashboard</h1>
+          <p className="text-gray-400">Cryptocurrency payment system management</p>
         </div>
 
         {/* Login Form */}
@@ -65,7 +65,7 @@ export default function AdminLogin() {
                 htmlFor="username"
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
-                用户名
+                Username
               </label>
               <input
                 id="username"
@@ -77,7 +77,7 @@ export default function AdminLogin() {
                   "text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent",
                   "transition-all duration-200"
                 )}
-                placeholder="请输入用户名"
+                placeholder="Enter username"
                 required
                 disabled={isLoading}
               />
@@ -89,7 +89,7 @@ export default function AdminLogin() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-300 mb-2"
               >
-                密码
+                Password
               </label>
               <input
                 id="password"
@@ -101,7 +101,7 @@ export default function AdminLogin() {
                   "text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent",
                   "transition-all duration-200"
                 )}
-                placeholder="请输入密码"
+                placeholder="Enter password"
                 required
                 disabled={isLoading}
               />
@@ -128,10 +128,10 @@ export default function AdminLogin() {
               {isLoading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>正在登录...</span>
+                  <span>Logging in...</span>
                 </div>
               ) : (
-                "登录"
+                "Login"
               )}
             </button>
           </form>
@@ -139,14 +139,14 @@ export default function AdminLogin() {
           {/* Security Notice */}
           <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
             <p className="text-blue-300 text-xs text-center">
-              🔒 安全访问支付系统管理
+              🔒 Secure access to payment system management
             </p>
           </div>
         </div>
 
         {/* Footer */}
         <div className="text-center mt-6">
-          <p className="text-gray-500 text-sm">加密货币支付平台 v2.0</p>
+          <p className="text-gray-500 text-sm">Cryptocurrency payment platform v2.0</p>
         </div>
       </div>
     </div>
