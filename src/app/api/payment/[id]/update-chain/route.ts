@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/database";
+import { getDatabase } from "@/db/mongodb";
 import { ChainType } from "@/types";
 import { z } from "zod";
 

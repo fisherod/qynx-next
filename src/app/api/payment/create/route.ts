@@ -5,7 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 import QRCode from "qrcode";
-import { getDatabase } from "@/lib/database";
+import { getDatabase } from "@/db/mongodb";
 import { CreatePaymentRequest } from "@/types";
 import { z } from "zod";
 

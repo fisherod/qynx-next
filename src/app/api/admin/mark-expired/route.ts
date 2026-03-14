@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/database";
+import { getDatabase } from "@/db/mongodb";
 import { rateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 
 // Helper function to check authentication

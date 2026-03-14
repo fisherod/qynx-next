@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (result.success) {
       // Update payment status in database
       try {
-        const { getDatabase } = await import("@/lib/database");
+        const { getDatabase } = await import("@/db/mongodb");
         const db = getDatabase();
         await db.updatePaymentStatus(paymentId, "completed", {
           tx_hash: result.txHash,

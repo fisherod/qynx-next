@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/database";
+import { dbConnectionStatus } from "@/db/connection-status";
 import { telegramService } from "@/lib/telegram";
 
 // Define types for health checks
@@ -61,17 +61,21 @@ export async function GET(request: NextRequest) {
   };
 
   try {
-    // Database health check
+    // Database health check (MongoDB via connection-status)
     const dbStart = Date.now();
     try {
-      const db = getDatabase();
-      await db.ensureInitialized();
+      const status = await dbConnectionStatus();
       const dbResponseTime = Date.now() - dbStart;
       health.checks.database = {
-        status: "healthy",
+        status: status === "Database connected" ? "healthy" : "unhealthy",
         responseTime: dbResponseTime,
+        ...(status !== "Database connected" && { error: status }),
       };
-      health.summary.healthyChecks++;
+      if (status === "Database connected") {
+        health.summary.healthyChecks++;
+      } else {
+        health.summary.unhealthyChecks++;
+      }
       health.summary.totalResponseTime += dbResponseTime;
     } catch (error) {
       const dbResponseTime = Date.now() - dbStart;

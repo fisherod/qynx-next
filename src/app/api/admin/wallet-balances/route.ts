@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getWalletBalances } from "../../../../lib/database";
+import { getWalletBalances } from "@/db/mongodb";
 import { logger } from "../../../../lib/logger";
 import { EVMService, safePingService, TronService } from "@/lib/blockchain";
 import { ChainType } from "@/types";

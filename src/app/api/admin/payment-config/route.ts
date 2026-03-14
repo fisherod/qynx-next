@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/database";
+import { getDatabase } from "@/db/mongodb";
 import { balanceService } from "@/lib/blockchain";
 
 // Helper function to check authentication
@@ -134,7 +134,7 @@ export async function DELETE(request: NextRequest) {
     await db.ensureInitialized();
 
     // Delete treasury wallet
-    await db.deleteTreasuryWallet(parseInt(id));
+    await db.deleteTreasuryWallet(id);
 
     return NextResponse.json({
       success: true,
