@@ -54,15 +54,13 @@ function docToPayment(doc: any): Payment {
   return {
     id: doc._id?.toString() ?? doc.id ?? "",
     payment_id: doc.payment_id,
-    service_name: doc.service_name,
-    description: doc.description,
+    user_id: doc.user_id,
+    currency: doc.currency,
     amount: doc.amount,
     chain: doc.chain,
     status: doc.status,
     wallet_address: doc.wallet_address,
     tx_hash: doc.tx_hash,
-    webhook_url: doc.webhook_url,
-    language: doc.language ?? "en",
     created_at: toDate(doc.created_at),
     updated_at: toDate(doc.updated_at),
     expires_at: toDate(doc.expires_at),
@@ -109,11 +107,9 @@ export async function createPayment(
   const now = new Date();
   const doc = {
     payment_id: data.payment_id,
-    service_name: data.service_name,
-    description: data.description ?? null,
+    user_id: data.user_id,
+    currency: data.currency ?? 'usdt',
     amount: data.amount,
-    webhook_url: data.webhook_url ?? null,
-    language: data.language ?? null,
     expires_at: data.expires_at,
     status: "pending",
     created_at: now,
@@ -367,8 +363,9 @@ export async function getWalletBalances(): Promise<AdminWalletBalance[]> {
 export async function saveWallet(walletData: {
   address: string;
   chain: string;
+  currency: string;
   amount?: string;
-  usdtBalance?: string;
+  tokenBalance?: string;
 }): Promise<void> {
   const db = await getDb();
   const now = new Date();
@@ -376,7 +373,7 @@ export async function saveWallet(walletData: {
     { address: walletData.address, chain: walletData.chain },
     {
       $set: {
-        usdt_balance: walletData.usdtBalance ?? "0.00",
+        token_balance: walletData.tokenBalance ?? "0.00",
         amount: walletData.amount ?? "0.00",
         last_activity: now,
         status: "active",
@@ -384,6 +381,7 @@ export async function saveWallet(walletData: {
       $setOnInsert: {
         address: walletData.address,
         chain: walletData.chain,
+        currency: walletData.currency,
         connected_at: now,
       },
       $inc: { payment_count: 1 },
@@ -397,11 +395,11 @@ export async function getWalletByAddress(address: string): Promise<any | null> {
   return db.collection("wallets").findOne({ address });
 }
 
-export async function updateWalletBalance(address: string, usdtBalance: string): Promise<void> {
+export async function updateWalletBalance(address: string, currency: string, tokenBalance: string): Promise<void> {
   const db = await getDb();
   await db.collection("wallets").updateOne(
     { address },
-    { $set: { usdt_balance: usdtBalance, last_activity: new Date() } }
+    { $set: { currency, token_balance: tokenBalance, last_activity: new Date() } }
   );
 }
 

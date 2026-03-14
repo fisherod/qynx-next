@@ -21,16 +21,16 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "加密货币支付平台",
-  description: "安全的USDT多链支付平台，支持BSC、以太坊和波场网络",
+  title: "QYNX",
+  description: "Secure USDT multi-chain payment platform supporting BSC, Ethereum and Tron networks",
   keywords: [
-    "加密货币",
-    "数字货币支付",
+    "cryptocurrency",
+    "digital currency payment",
     "USDT",
     "BSC",
-    "以太坊",
-    "波场",
-    "区块链支付",
+    "Ethereum",
+    "Tron",
+    "blockchain payment",
     "crypto",
     "payment",
   ],
@@ -38,10 +38,10 @@ export const metadata: Metadata = {
 
   robots: "index, follow",
   openGraph: {
-    title: "加密货币支付平台",
-    description: "安全的USDT多链支付平台，支持多个区块链网络",
+    title: "Crypto Payment Platform",
+    description: "Secure USDT multi-chain payment platform supporting multiple blockchain networks",
     type: "website",
-    locale: "zh_CN",
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
@@ -57,7 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-CN" className="h-full" suppressHydrationWarning>
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
 
         {/* Favicon and app icons */}

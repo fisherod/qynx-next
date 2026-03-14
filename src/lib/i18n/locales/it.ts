@@ -16,12 +16,10 @@ export default {
       checkingBalance: "Verifica dei saldi...",
       balanceLow: "Saldo insufficiente",
       feeInsufficient: "Commissione di gas insufficiente ({{symbol}}) nel wallet",
-      usdtInsufficient: "USDT insufficiente (servono {{amount}} USDT)",
+      tokenInsufficient: "{{symbol}} insufficiente (servono {{amount}} {{symbol}})",
       processingButton: "Elaborazione...",
       pay: "Paga",
       failedTitle: "Pagamento non riuscito",
     },
   },
 };
-
-

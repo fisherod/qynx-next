@@ -16,12 +16,10 @@ export default {
       checkingBalance: "Bakiyeler kontrol ediliyor...",
       balanceLow: "Yetersiz bakiye",
       feeInsufficient: "Cüzdanınızda yeterli gas ücreti ({{symbol}}) yok",
-      usdtInsufficient: "Yeterli USDT yok ({{amount}} USDT gerekli)",
+      tokenInsufficient: "Yeterli {{symbol}} yok ({{amount}} {{symbol}} gerekli)",
       processingButton: "İşleniyor...",
       pay: "Öde",
       failedTitle: "Ödeme başarısız",
     },
   },
 };
-
-

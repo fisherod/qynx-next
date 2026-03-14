@@ -16,12 +16,10 @@ export default {
       checkingBalance: "Comprobando saldos...",
       balanceLow: "Saldo insuficiente",
       feeInsufficient: "No tienes suficiente {{symbol}} para la comisión de gas en tu billetera",
-      usdtInsufficient: "No hay suficiente USDT (se necesitan {{amount}} USDT)",
+      tokenInsufficient: "No hay suficiente {{symbol}} (se necesitan {{amount}} {{symbol}})",
       processingButton: "Procesando...",
       pay: "Pagar",
       failedTitle: "Pago fallido",
     },
   },
 };
-
-

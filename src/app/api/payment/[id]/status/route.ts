@@ -14,7 +14,7 @@ export async function GET(
 
     if (!paymentId) {
       return NextResponse.json(
-        { error: "Payment ID is required", error_cn: "需要支付ID" },
+        { error: "Payment ID is required" },
         { status: 400 }
       );
     }
@@ -25,7 +25,7 @@ export async function GET(
 
     if (!payment) {
       return NextResponse.json(
-        { error: "Payment not found", error_cn: "未找到支付" },
+        { error: "Payment not found" },
         { status: 404 }
       );
     }
@@ -74,7 +74,6 @@ export async function GET(
     return NextResponse.json(
       {
         error: "Failed to fetch payment status",
-        error_cn: "获取支付状态失败",
         details:
           process.env.NODE_ENV === "development" ? error.message : undefined,
       },

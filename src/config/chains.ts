@@ -40,7 +40,7 @@ export const CHAIN_CONFIG: ChainConfig = {
     oneTimePing: isMainnet
       ? process.env.NEXT_PUBLIC_ETHEREUM_PAYMENT_PROCESSOR_MAINNET ||
         "0x24f2a8660d49713907d773fdf9157d251ba9c1f5" // Fallback mainnet address
-      : "0x91c8246Ee7CE5AC40130f19236860066C7B41f75",
+      : "0xc656a3Ea90AfeB9dCA8a672c75C1D53C7C60d8e4", //"0x91c8246Ee7CE5AC40130f19236860066C7B41f75",
     chainId: isMainnet ? "0x1" : "0xaa36a7", // 1 mainnet, 11155111 sepolia
     decimals: 6,
     rpc: isMainnet

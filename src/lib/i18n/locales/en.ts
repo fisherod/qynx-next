@@ -16,12 +16,10 @@ export default {
       checkingBalance: "Checking balances...",
       balanceLow: "Insufficient balance",
       feeInsufficient: "Not enough gas fee ({{symbol}}) in your wallet",
-      usdtInsufficient: "Not enough USDT (need {{amount}} USDT)",
+      tokenInsufficient: "Not enough {{symbol}} (need {{amount}} {{symbol}})",
       processingButton: "Processing...",
       pay: "Pay",
       failedTitle: "Payment Failed",
     },
   },
 };
-
-

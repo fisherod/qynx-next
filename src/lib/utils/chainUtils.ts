@@ -2,8 +2,9 @@
 // 🔗 Chain Utilities
 // =================================
 
-import { ChainType, SafePingConfig } from "@/types/blockchain";
+import { SafePingConfig } from "@/types/blockchain";
 import { CHAIN_CONFIG } from "@/config/chains";
+import { ChainType, CurrencyType } from "@/types";
 
 /**
  * Get ABI for specific chain
@@ -113,5 +114,32 @@ export function getWalletType(chain: ChainType): string {
       return "MetaMask";
     default:
       return "Unknown";
+  }
+}
+
+export function getTokenDecimals(chain: ChainType, currency: CurrencyType): number {
+  switch (chain) {
+    case "ethereum":
+      switch (currency) {
+        case "usdt":
+          return 6;
+        case "usdc":
+          return 6;
+        default:
+          return 18;
+      }
+    case "bsc":
+      return 18;
+    case "tron":
+      switch (currency) {
+        case "usdt":
+          return 6;
+        case "usdc":
+          return 6;
+        default:
+          return 18;
+      }
+    default:
+      return 18;
   }
 }

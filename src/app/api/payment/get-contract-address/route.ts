@@ -4,13 +4,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getChainConfig } from "@/lib/utils/chainUtils";
-import { ChainType } from "@/types";
+import { ChainType, CurrencyType } from "@/types";
+import { TOKEN_ADDRESSES } from "@/constants";
 
 export async function POST(request: NextRequest) {
   try {
-    const { chain } = await request.json();
+    const { chain, currency } = await request.json();
 
-    if (!chain) {
+    if (!chain || !currency) {
       return NextResponse.json(
         { error: "Missing chain parameter" },
         { status: 400 }
@@ -19,12 +20,12 @@ export async function POST(request: NextRequest) {
 
     const chainType = chain as ChainType;
     const config = getChainConfig(chainType);
-    
-    // Get contract address (oneTimePing) and USDT address
-    const contractAddress = config.oneTimePing;
-    const usdtAddress = config.usdt;
 
-    if (!contractAddress || !usdtAddress) {
+    // Get contract address (oneTimePing) and token address
+    const contractAddress = config.oneTimePing;
+    const tokenAddress = TOKEN_ADDRESSES[chainType][currency as CurrencyType];
+
+    if (!contractAddress || !tokenAddress) {
       return NextResponse.json(
         { error: "Contract addresses not configured" },
         { status: 500 }
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       contractAddress,
-      usdtAddress,
+      tokenAddress,
     });
   } catch (error: any) {
     console.error("Error getting contract address:", error);

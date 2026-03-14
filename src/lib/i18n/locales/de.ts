@@ -16,12 +16,10 @@ export default {
       checkingBalance: "Kontostände werden geprüft...",
       balanceLow: "Unzureichendes Guthaben",
       feeInsufficient: "Nicht genug Gasgebühr ({{symbol}}) in Ihrer Wallet",
-      usdtInsufficient: "Nicht genug USDT (benötigt {{amount}} USDT)",
+      tokenInsufficient: "Nicht genug {{symbol}} (benötigt {{amount}} {{symbol}})",
       processingButton: "Wird verarbeitet...",
       pay: "Bezahlen",
       failedTitle: "Zahlung fehlgeschlagen",
     },
   },
 };
-
-

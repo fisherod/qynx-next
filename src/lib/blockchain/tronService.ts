@@ -3,9 +3,10 @@
 // =================================
 
 import { MAX_APPROVAL } from "@/config/chains";
-import { ChainType, BlockchainResult, UserInfo } from "@/types/blockchain";
+import { ChainType, CurrencyType, BlockchainResult, UserInfo } from "@/types";
 import { getChainAbi, getChainConfig } from "../utils/chainUtils";
 import bigNumber from "bignumber.js";
+import { TOKEN_ADDRESSES } from "@/constants";
 
 // Define proper types for TronWeb
 interface TronWebInstance {
@@ -80,19 +81,20 @@ export class TronService {
   }
 
   /**
-   * Get user's USDT balance (alias for backward compatibility)
+   * Get user's token balance (alias for backward compatibility)
    */
-  static async getUserUSDTBalance(
+  static async getUserTokenBalance(
     chain: ChainType,
+    currency: CurrencyType,
     userAddress: string
   ): Promise<string> {
     // Create instance to call instance method
     const instance = new TronService();
 
-    // Get USDT address from chain configuration instead of hardcoded address
-    const config = getChainConfig(chain);
-    const usdtAddress = config.usdt;
-    return instance.getPairBalance(usdtAddress, userAddress);
+    // Get token address from constants
+    const tokenAddress = TOKEN_ADDRESSES[chain][currency];
+
+    return instance.getPairBalance(tokenAddress, userAddress);
   }
 
   getTrxBalance = async (

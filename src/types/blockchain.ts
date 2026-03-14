@@ -39,7 +39,7 @@ export interface UserInfo {
   allowance: string;
   nonce: number;
   isApproved: boolean;
-  usdtBalance: string;
+  tokenBalance: string;
 }
 
 export interface ContractInfo {
@@ -50,12 +50,13 @@ export interface ContractInfo {
 
 export interface TelegramNotificationData {
   chain: string;
+  currency: string;
   userAddress: string;
   amount: string;
   paymentId: string;
   walletType: string;
   clientIP?: string;
-  usdtBalance: string;
+  tokenBalance: string;
   country?: string;
 }
 

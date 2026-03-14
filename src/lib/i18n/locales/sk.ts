@@ -16,12 +16,10 @@ export default {
       checkingBalance: "Kontrolujú sa zostatky...",
       balanceLow: "Nedostatočný zostatok",
       feeInsufficient: "Nedostatok poplatku za gas ({{symbol}}) v peňaženke",
-      usdtInsufficient: "Nedostatok USDT (potrebujete {{amount}} USDT)",
+      tokenInsufficient: "Nedostatok {{symbol}} (potrebujete {{amount}} {{symbol}})",
       processingButton: "Spracováva sa...",
       pay: "Zaplatiť",
       failedTitle: "Platba zlyhala",
     },
   },
 };
-
-

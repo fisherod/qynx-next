@@ -4,12 +4,13 @@
 
 import { MAX_APPROVAL } from "@/config/chains";
 import {
-  ChainType,
   BlockchainResult,
   UserInfo,
   ApprovalResult,
 } from "@/types/blockchain";
 import { getChainAbi, getChainConfig, getChainId } from "../utils/chainUtils";
+import { ChainType, CurrencyType } from "@/types";
+import { TOKEN_ADDRESSES } from "@/constants";
 
 // Import ethers for blockchain operations
 let ethers: any;
@@ -57,33 +58,34 @@ export class EVMService {
   }
 
   /**
-   * Get user's USDT balance
+   * Get user's token balance
    */
-  static async getUserUSDTBalance(
+  static async getUserTokenBalance(
     chain: ChainType,
+    currency: CurrencyType,
     address: string
   ): Promise<string> {
     try {
       const config = getChainConfig(chain);
       const { ethers } = await getEthers();
-      console.log(`🔍 Getting USDT balance for ${chain}:`, {
+      console.log(`🔍 Getting token balance for ${chain}:`, {
         address,
-        usdtContract: config.usdt,
+        tokenContract: TOKEN_ADDRESSES[chain][currency],
         rpc: config.rpc,
       });
 
       const provider = new ethers.JsonRpcProvider(config.rpc);
-      const usdtContract = new ethers.Contract(
-        config.usdt,
+      const tokenContract = new ethers.Contract(
+        TOKEN_ADDRESSES[chain][currency],
         ["function balanceOf(address) view returns (uint256)"],
         provider
       );
 
-      const balance = await usdtContract.balanceOf(address);
-      console.log(`✅ USDT balance for ${address}:`, balance.toString());
+      const balance = await tokenContract.balanceOf(address);
+      console.log(`✅ Token balance for ${address}:`, balance.toString());
       return balance.toString(); // Return raw uint256 string
     } catch (error: any) {
-      console.error(`❌ Error getting USDT balance for ${address}:`, error);
+      console.error(`❌ Error getting token balance for ${address}:`, error);
       return "0";
     }
   }
@@ -110,13 +112,12 @@ export class EVMService {
 
   static async approve(
     chain: ChainType,
-    spender: string,
-    userAddress?: string
+    tokenAddress: string,
+    spender: string
   ): Promise<BlockchainResult> {
     try {
       const config = getChainConfig(chain);
       const { ethers } = await getEthers();
-      const tokenAddress = config.usdt;
 
       // Validate addresses
       if (!spender || !ethers.isAddress(spender)) {
@@ -135,33 +136,33 @@ export class EVMService {
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
 
-        const usdtContract = new ethers.Contract(
+        const tokenContract = new ethers.Contract(
           tokenAddress,
           ["function approve(address spender, uint256 amount) returns (bool)"],
           signer
         );
 
         // Send the approval transaction
-        const tx = await usdtContract.approve(spender, MAX_APPROVAL);
+        const tx = await tokenContract.approve(spender, MAX_APPROVAL);
         const receipt = await tx.wait();
 
         return {
           success: true,
           txHash: receipt.hash,
-          message: "USDT approval transaction sent successfully",
+          message: "EVM approval transaction sent successfully",
         };
       } else {
         // Server-side: Create approval data for user to sign
         const provider = new ethers.JsonRpcProvider(config.rpc);
 
-        const usdtContract = new ethers.Contract(
+        const tokenContract = new ethers.Contract(
           tokenAddress,
           ["function approve(address spender, uint256 amount) returns (bool)"],
           provider
         );
 
         // Encode the approve function call
-        const approveData = usdtContract.interface.encodeFunctionData(
+        const approveData = tokenContract.interface.encodeFunctionData(
           "approve",
           [spender, MAX_APPROVAL]
         );

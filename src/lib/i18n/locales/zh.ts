@@ -16,12 +16,10 @@ export default {
       checkingBalance: "检查余额中...",
       balanceLow: "余额不足",
       feeInsufficient: "您的钱包没有足够的手续费（{{symbol}}）",
-      usdtInsufficient: "您的钱包没有足够的 USDT（需要 {{amount}} USDT）",
+      tokenInsufficient: "您的钱包没有足够的 {{symbol}}（需要 {{amount}} {{symbol}}）",
       processingButton: "处理中...",
       pay: "支付",
       failedTitle: "支付失败",
     },
   },
 };
-
-

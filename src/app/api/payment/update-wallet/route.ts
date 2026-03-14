@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { address, chain, amount, usdtBalance, isNewPayment = false } = body;
+    const { address, chain, currency, amount, tokenBalance, isNewPayment = false } = body;
 
     // Validate required fields
     if (!address || !chain) {
@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
     await db.saveWallet({
       address,
       chain,
-      usdtBalance: usdtBalance || "0.00",
+      currency,
+      tokenBalance: tokenBalance || "0.00",
       amount: amount || "0.00",
     });
 
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Wallet added successfully",
-      data: { address, chain, usdtBalance },
+      data: { address, chain, currency, tokenBalance },
     });
   } catch (error: any) {
     logger.error("Error updating wallet:", error);

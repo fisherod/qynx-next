@@ -11,11 +11,9 @@ import { z } from "zod";
 
 // Validation schema
 const createPaymentSchema = z.object({
-  service_name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  amount: z.number().min(0.01).max(10000),
-  webhook_url: z.string().url().optional(),
-  language: z.string().optional(),
+  user_id: z.string().min(1).max(100),
+  currency: z.string().min(1).max(20),
+  amount: z.number().min(0.0001).max(10000),
 });
 
 export async function POST(request: NextRequest) {
@@ -28,7 +26,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Validation failed",
-          error_cn: "验证失败",
           details: validationResult.error.issues,
         },
         { status: 400 }
@@ -46,6 +43,7 @@ export async function POST(request: NextRequest) {
     const db = getDatabase();
     const payment = await db.createPayment({
       ...data,
+      currency: data.currency.toLowerCase(),
       payment_id: paymentId,
       expires_at: expiresAt,
     });
@@ -78,8 +76,6 @@ export async function POST(request: NextRequest) {
       qr_code: qrCode,
       expires_at: expiresAt.toISOString(),
       amount: data.amount,
-      service_name: data.service_name,
-      description: data.description,
     });
   } catch (error: any) {
     console.error("Payment creation error:", error);
@@ -87,7 +83,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to create payment",
-        error_cn: "创建支付失败",
         details:
           process.env.NODE_ENV === "development" ? error.message : undefined,
       },

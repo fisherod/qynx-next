@@ -5,6 +5,9 @@
 // Blockchain Networks
 export type ChainType = "ethereum" | "bsc" | "tron";
 
+// Currency Types
+export type CurrencyType = "usdt" | "usdc";
+
 // Wallet Types
 export type WalletType = "metamask" | "tronlink" | "imtoken";
 
@@ -20,18 +23,13 @@ export type PaymentStatus =
 export interface Payment {
   id: string;
   payment_id: string;
-  service_name: string;
-  service_name_cn?: string;
-  description?: string;
-  description_cn?: string;
+  user_id: string;
+  currency: string;
   amount: number;
   chain?: ChainType;
   status: PaymentStatus;
   wallet_address?: string;
   tx_hash?: string;
-  webhook_url?: string;
-  metadata?: string;
-  language: string;
   created_at: string;
   updated_at: string;
   expires_at: string;
@@ -57,11 +55,9 @@ export interface WebhookLog {
 
 // API Request/Response Types
 export interface CreatePaymentRequest {
-  service_name: string;
-  description?: string;
+  user_id: string;
+  currency: string;
   amount: number;
-  webhook_url?: string;
-  language?: string;
 }
 
 export interface CreatePaymentResponse {
