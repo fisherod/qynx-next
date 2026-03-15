@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const username = searchParams.get("username");
     const password = searchParams.get("password");
     const chain = searchParams.get("chain");
+    const token = searchParams.get("token");
     const address = searchParams.get("address");
 
     // Check credentials against environment variables
@@ -22,17 +23,16 @@ export async function GET(request: NextRequest) {
       password !== process.env.ADMIN_PASSWORD
     ) {
       return NextResponse.json(
-        { error: "Unauthorized", error_cn: "未授权" },
+        { error: "Unauthorized" },
         { status: 401 }
       );
     }
 
     // Validate required parameters
-    if (!chain || !address) {
+    if (!chain || !token || !address) {
       return NextResponse.json(
         {
           error: "Missing required parameters",
-          error_cn: "缺少必需参数",
           details: "chain and address are required",
         },
         { status: 400 }
@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Invalid chain",
-          error_cn: "无效的区块链",
           details: `Supported chains: ${validChains.join(", ")}`,
         },
         { status: 400 }
@@ -62,16 +61,17 @@ export async function GET(request: NextRequest) {
         chain as any
       );
 
-      // Get USDT balance
-      const usdtBalance = await balanceService.getRealTimeUSDTBalance(
+      // Get token balance
+      const tokenBalance = await balanceService.getRealTimeTokenBalance(
         address,
-        chain as any
+        chain as any,
+        token
       );
 
       return NextResponse.json({
         success: true,
         nativeBalance: nativeBalance || "0.000000",
-        usdtBalance: usdtBalance || "0.00",
+        tokenBalance: tokenBalance || "0.00",
         chain,
         address,
       });
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         nativeBalance: "0.000000",
-        usdtBalance: "0.00",
+        tokenBalance: "0.00",
         chain,
         address,
         warning: "Failed to fetch real-time balances, using default values",
@@ -97,7 +97,6 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: error.message || "Failed to fetch owner balances",
-        error_cn: "获取所有者余额失败",
       },
       { status: 500 }
     );

@@ -6,8 +6,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { ChainType } from "@/types";
 import { usePayment } from "@/hooks/usePayment";
-import { CHAIN_CONFIG, CHAIN_NAMES, EXPLORERS, NATIVE_CURRENCIES } from "@/config/chains";
-import { PaymentTimer } from "@/components/payment/PaymentTimer";
+import { CHAIN_ID_HEX, CHAIN_NAMES, EXPLORER_URLS, NATIVE_CURRENCIES, RPC_URLS } from "@/constants";
 import { QRCode } from "@/components/ui/QRCode";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
@@ -227,8 +226,7 @@ function PaymentPageContent() {
   // Switch EVM wallet to the selected chain before approve
   const ensureEVMChain = async (chain: ChainType): Promise<void> => {
     if (chain === "tron" || !window.ethereum) return;
-    const config = CHAIN_CONFIG[chain];
-    const chainIdHex = config.chainId;
+    const chainIdHex = CHAIN_ID_HEX[chain];
     try {
       const currentChainId = await window.ethereum.request({ method: "eth_chainId" });
       if (currentChainId === chainIdHex) return;
@@ -246,8 +244,8 @@ function PaymentPageContent() {
               {
                 chainId: chainIdHex,
                 chainName: CHAIN_NAMES[chain],
-                rpcUrls: [config.rpc],
-                blockExplorerUrls: [EXPLORERS[chain]],
+                rpcUrls: [RPC_URLS[chain]],
+                blockExplorerUrls: [EXPLORER_URLS[chain]],
                 nativeCurrency: {
                   name: native.name,
                   symbol: native.symbol,

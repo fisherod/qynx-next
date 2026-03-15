@@ -2,8 +2,7 @@
 // 🔗 Chain Utilities
 // =================================
 
-import { SafePingConfig } from "@/types/blockchain";
-import { CHAIN_CONFIG } from "@/config/chains";
+import { CHAIN_ID, EXPLORER_URLS } from "@/constants";
 import { ChainType, CurrencyType } from "@/types";
 
 /**
@@ -24,68 +23,14 @@ export function getChainAbi(chain: ChainType) {
 }
 
 /**
- * Get chain configuration
- */
-export function getChainConfig(chain: ChainType): SafePingConfig {
-  const config = CHAIN_CONFIG[chain];
-  if (!config) {
-    throw new Error(`No configuration found for chain: ${chain}`);
-  }
-
-  return {
-    usdt: config.usdt,
-    oneTimePing: config.oneTimePing,
-    rpc: config.rpc || "", // Provide default empty string if rpc is undefined
-    decimals: config.decimals || 6,
-    chainId: getChainId(chain),
-  };
-}
-
-/**
  * Get numeric chain ID
  */
 export function getChainId(chain: ChainType): number {
-  // Get chainId directly from CHAIN_CONFIG to avoid circular dependency
-  const config = CHAIN_CONFIG[chain];
-  if (!config) {
-    throw new Error(`No configuration found for chain: ${chain}`);
+  const chainId = CHAIN_ID[chain];
+  if (!chainId) {
+    throw new Error(`Unsupported chain: ${chain}`);
   }
-
-  // Parse chainId from config (it's stored as hex string)
-  if (config.chainId) {
-    // Check if it's already a number
-    if (typeof config.chainId === "number") {
-      return config.chainId;
-    }
-
-    // Check if it's a hex string
-    if (typeof config.chainId === "string" && config.chainId.startsWith("0x")) {
-      return parseInt(config.chainId, 16);
-    }
-
-    // For TRON, the chainId might be "mainnet" or "shasta" - use fallback
-    if (chain === "tron") {
-      return 728126428; // TRON mainnet chainId
-    }
-
-    // Try to parse as decimal string
-    const parsed = parseInt(config.chainId, 10);
-    if (!isNaN(parsed)) {
-      return parsed;
-    }
-  }
-
-  // Fallback to hardcoded values if config parsing fails
-  switch (chain) {
-    case "ethereum":
-      return 1;
-    case "bsc":
-      return 56;
-    case "tron":
-      return 728126428;
-    default:
-      throw new Error(`Unsupported chain: ${chain}`);
-  }
+  return chainId;
 }
 
 /**
@@ -141,5 +86,56 @@ export function getTokenDecimals(chain: ChainType, currency: CurrencyType): numb
       }
     default:
       return 18;
+  }
+}
+
+/**
+ * Get explorer URL for transaction
+ */
+export function getExplorerUrl(chain: ChainType, txHash: string): string {
+  const baseUrl = EXPLORER_URLS[chain];
+  if (chain === "tron") {
+      return `${baseUrl}/#/transaction/${txHash}`;
+  }
+  return `${baseUrl}/tx/${txHash}`;
+}
+
+/**
+* Get explorer URL for address
+*/
+export function getExplorerAddressUrl(chain: ChainType, address: string): string {
+  const baseUrl = EXPLORER_URLS[chain];
+  if (chain === "tron") {
+      return `${baseUrl}/#/address/${address}`;
+  }
+  return `${baseUrl}/address/${address}`;
+}
+
+export function formatAddress(
+  address: string,
+  startChars = 6,
+  endChars = 4
+): string {
+  if (address.length <= startChars + endChars) {
+    return address;
+  }
+
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
+}
+
+export function isValidAddress(address: string, chain: ChainType): boolean {
+  if (!address) return false;
+
+  switch (chain) {
+    case "bsc":
+    case "ethereum":
+      return /^0x[a-fA-F0-9]{40}$/.test(address);
+    case "tron":
+      // Use the new Tron address validation that handles both hex and base58 formats
+      return Boolean(
+        address && address.length === 34 && address.startsWith("T")
+      );
+    default:
+      return false;
   }
 }

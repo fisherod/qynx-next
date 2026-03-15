@@ -1,5 +1,3 @@
-// Global constants used across the app
-
 // Auth/session keys
 export const AUTH_SESSION_KEY = 'qynx_auth'
 export const AUTH_TOKEN_KEY = 'qynx_auth_token'
@@ -16,7 +14,6 @@ export const EVM_WALLET_DISCONNECTED_KEY = 'qynx_evm_wallet_disconnected'
 
 // Selected network
 export const SELECTED_NETWORK_KEY = 'qynx_selected_network'
-export type SelectedNetwork = 'bsc' | 'ethereum' | 'bitcoin'
 
 // Bitcoin wallet storage keys
 export const BITCOIN_WALLET_ADDRESS_KEY = 'qynx_bitcoin_wallet_address'

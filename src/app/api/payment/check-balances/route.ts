@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { EVMService } from "@/lib/blockchain/evmService";
 import { TronService } from "@/lib/blockchain/tronService";
 import { ChainType } from "@/types";
-import { getChainConfig, getTokenDecimals } from "@/lib/utils/chainUtils";
+import { getTokenDecimals } from "@/utils/chainUtils";
 import { ethers } from "ethers";
 
 export async function POST(request: NextRequest) {
@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
     }
 
     const chainType = chain as ChainType;
-    const config = getChainConfig(chainType);
     const decimals = getTokenDecimals(chainType, currency);
     
     // Minimum native token required for gas (approximate)

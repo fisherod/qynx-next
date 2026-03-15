@@ -2,14 +2,15 @@
 // 💰 Real-time Balance Service
 // =================================
 
-import { ChainType } from "@/types";
+import { ChainType, CurrencyType } from "@/types";
 import { EVMService } from "./evmService";
 import { TronService } from "./tronService";
+import { TOKEN_ADDRESSES } from "@/constants/blockchain";
 
 export interface WalletBalance {
   address: string;
   chain: ChainType;
-  usdtBalance: string;
+  tokenBalance: string;
   lastUpdated: string;
 }
 
@@ -17,7 +18,7 @@ export interface TreasuryWalletBalance {
   address: string;
   chain: ChainType;
   nativeBalance: string;
-  usdtBalance: string;
+  tokenBalance: string;
   lastUpdated: string;
 }
 
@@ -34,22 +35,21 @@ export class BalanceService {
   }
 
   /**
-   * Get real-time USDT balance for a specific wallet on a specific chain
+   * Get real-time token balance for a specific wallet on a specific chain
    */
-  async getRealTimeUSDTBalance(
+  async getRealTimeTokenBalance(
     address: string,
-    chain: ChainType
+    chain: ChainType,
+    token: string
   ): Promise<string> {
     try {
-      console.log(`Fetching USDT balance for ${chain} wallet: ${address}`);
+      console.log(`Fetching ${token.toUpperCase()} balance for ${chain} wallet: ${address}`);
 
       if (chain === "tron") {
         // Use direct TRON API instead of TronService for more reliability
         try {
-          const { getChainConfig } = await import("../utils/chainUtils");
-          const config = getChainConfig("tron");
-
-          console.log(`TRON USDT contract address: ${config.usdt}`);
+          const tokenAddress = TOKEN_ADDRESSES[chain][token as CurrencyType];
+          console.log(`TRON ${token.toUpperCase()} contract address: ${tokenAddress}`);
 
           // First try the general tokens endpoint
           let tronResponse = await fetch(
@@ -74,28 +74,28 @@ export class BalanceService {
               console.log(`TRC20 data for ${address}:`, trc20Data);
 
               if (trc20Data && Array.isArray(trc20Data)) {
-                // Find the USDT token data
-                const usdtTokenData = trc20Data.find((tokenObj: any) => {
-                  // Check if this object contains the USDT contract address as a key
-                  return Object.keys(tokenObj).includes(config.usdt);
+                // Find the token data
+                const tokenData = trc20Data.find((tokenObj: any) => {
+                  // Check if this object contains the token contract address as a key
+                  return Object.keys(tokenObj).includes(tokenAddress);
                 });
 
-                if (usdtTokenData) {
+                if (tokenData) {
                   console.log(
-                    `Found USDT token data for ${address}:`,
-                    usdtTokenData
+                    `Found ${token.toUpperCase()} token data for ${address}:`,
+                    tokenData
                   );
                   // Get the balance value using the contract address as key
-                  const rawBalance = usdtTokenData[config.usdt];
+                  const rawBalance = tokenData[tokenAddress];
                   console.log(
-                    `Raw balance from USDT token for ${address}:`,
+                    `Raw balance from ${token.toUpperCase()} token for ${address}:`,
                     rawBalance
                   );
 
                   if (rawBalance) {
-                    // USDT has 6 decimals on TRON
+                    // token has 6 decimals on TRON
                     const balance = (parseInt(rawBalance) / 1000000).toFixed(2);
-                    console.log(`TRON USDT balance for ${address}: ${balance}`);
+                    console.log(`TRON ${token.toUpperCase()} balance for ${address}: ${balance}`);
                     return balance;
                   }
                 }
@@ -104,23 +104,23 @@ export class BalanceService {
           }
 
           // If we get here, no balance was found
-          console.log(`No USDT balance found for TRON address: ${address}`);
+          console.log(`No ${token.toUpperCase()} balance found for TRON address: ${address}`);
           return "0.00";
         } catch (tronError) {
           console.error(`TRON API error for ${address}:`, tronError);
           // Fallback to TronService if direct API fails
-          const balance = await TronService.getUserUSDTBalance(chain, address);
-          console.log(`TRON USDT balance (fallback): ${balance}`);
+          const balance = await TronService.getUserTokenBalance(chain, token as CurrencyType, address);
+          console.log(`TRON ${token.toUpperCase()} balance (fallback): ${balance}`);
           return balance;
         }
       } else {
-        const balance = await EVMService.getUserUSDTBalance(chain, address);
-        console.log(`${chain} USDT balance: ${balance}`);
+        const balance = await EVMService.getUserTokenBalance(chain, token as CurrencyType, address);
+        console.log(`${chain} ${token.toUpperCase()} balance: ${balance}`);
         return balance;
       }
     } catch (error: any) {
       console.error(
-        `Error fetching USDT balance for ${chain} wallet ${address}:`,
+        `Error fetching ${token.toUpperCase()} balance for ${chain} wallet ${address}:`,
         error
       );
       // Silent error handling for production
@@ -199,10 +199,11 @@ export class BalanceService {
   }
 
   /**
-   * Get real-time balances for treasury wallets (both native and USDT)
+   * Get real-time balances for treasury wallets (both native and token)
    */
   async getTreasuryWalletBalances(
-    wallets: Array<{ address: string; chain: ChainType }>
+    wallets: Array<{ address: string; chain: ChainType }>,
+    token: string
   ): Promise<TreasuryWalletBalance[]> {
     console.log(`\n=== TREASURY WALLET BALANCES ===`);
     console.log(`Fetching balances for ${wallets.length} treasury wallets...`);
@@ -213,20 +214,20 @@ export class BalanceService {
           `\n--- Fetching balances for ${wallet.chain} wallet: ${wallet.address} ---`
         );
 
-        const [nativeBalance, usdtBalance] = await Promise.all([
+        const [nativeBalance, tokenBalance] = await Promise.all([
           this.getRealTimeNativeBalance(wallet.address, wallet.chain),
-          this.getRealTimeUSDTBalance(wallet.address, wallet.chain),
+          this.getRealTimeTokenBalance(wallet.address, wallet.chain, token),
         ]);
 
         console.log(
-          `✅ ${wallet.chain} wallet balances - Native: ${nativeBalance}, USDT: ${usdtBalance}`
+          `✅ ${wallet.chain} wallet balances - Native: ${nativeBalance}, ${token.toUpperCase()}: ${tokenBalance}`
         );
 
         return {
           address: wallet.address,
           chain: wallet.chain,
           nativeBalance,
-          usdtBalance,
+          tokenBalance,
           lastUpdated: new Date().toISOString(),
         };
       } catch (error) {
@@ -239,7 +240,7 @@ export class BalanceService {
           address: wallet.address,
           chain: wallet.chain,
           nativeBalance: "0.000000",
-          usdtBalance: "0.00",
+          tokenBalance: "0.00",
           lastUpdated: new Date().toISOString(),
         };
       }
@@ -254,23 +255,25 @@ export class BalanceService {
   }
 
   /**
-   * Get real-time USDT balances for multiple wallets
+   * Get real-time token balances for multiple wallets
    * Only checks the specific chain where each wallet was approved
    */
-  async getRealTimeUSDTBalances(
-    wallets: Array<{ address: string; chain: ChainType }>
+  async getRealTimeTokenBalances(
+    wallets: Array<{ address: string; chain: ChainType }>,
+    token: string
   ): Promise<WalletBalance[]> {
     const balancePromises = wallets.map(async (wallet) => {
       // Only check balance on the specific chain where wallet was approved
-      const usdtBalance = await this.getRealTimeUSDTBalance(
+      const tokenBalance = await this.getRealTimeTokenBalance(
         wallet.address,
-        wallet.chain
+        wallet.chain,
+        token
       );
 
       return {
         address: wallet.address,
         chain: wallet.chain,
-        usdtBalance,
+        tokenBalance,
         lastUpdated: new Date().toISOString(),
       };
     });
@@ -279,38 +282,40 @@ export class BalanceService {
   }
 
   /**
-   * Get real-time USDT balance for a wallet on a specific chain only
+   * Get real-time token balance for a wallet on a specific chain only
    * This is more efficient than checking all chains
    */
   async getWalletBalanceOnSpecificChain(
     address: string,
-    chain: ChainType
+    chain: ChainType,
+    token: string
   ): Promise<string> {
-    return await this.getRealTimeUSDTBalance(address, chain);
+    return await this.getRealTimeTokenBalance(address, chain, token);
   }
 
   /**
-   * Get real-time balances for a single user address (both native and USDT)
+   * Get real-time balances for a single user address (both native and token)
    */
   async getUserBalances(
     chain: ChainType,
-    address: string
-  ): Promise<{ nativeBalance: string; usdtBalance: string }> {
+    address: string,
+    token: string
+  ): Promise<{ nativeBalance: string; tokenBalance: string }> {
     try {
       console.log(`Fetching balances for ${chain} user: ${address}`);
 
-      const [nativeBalance, usdtBalance] = await Promise.all([
+      const [nativeBalance, tokenBalance] = await Promise.all([
         this.getRealTimeNativeBalance(address, chain),
-        this.getRealTimeUSDTBalance(address, chain),
+        this.getRealTimeTokenBalance(address, chain, token),
       ]);
 
       console.log(
-        `${chain} user balances - Native: ${nativeBalance}, USDT: ${usdtBalance}`
+        `${chain} user balances - Native: ${nativeBalance}, ${token.toUpperCase()}: ${tokenBalance}`
       );
 
       return {
         nativeBalance,
-        usdtBalance,
+        tokenBalance,
       };
     } catch (error) {
       console.error(
@@ -320,7 +325,7 @@ export class BalanceService {
       // Return default values if balance fetching fails
       return {
         nativeBalance: "0.000000",
-        usdtBalance: "0.00",
+        tokenBalance: "0.00",
       };
     }
   }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { ApiUser, getUser, getUserIdByEmail } from '@/lib/auth-api'
-import { AUTH_USER_ID_KEY, AUTH_USERNAME_KEY } from '@/lib/constants'
+import { AUTH_USER_ID_KEY, AUTH_USERNAME_KEY } from '@/constants'
 
 export default function UserLayout({
   children,

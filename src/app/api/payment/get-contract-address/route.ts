@@ -3,9 +3,8 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getChainConfig } from "@/lib/utils/chainUtils";
+import { ONE_TIME_PING_ADDRESSES, TOKEN_ADDRESSES } from "@/constants";
 import { ChainType, CurrencyType } from "@/types";
-import { TOKEN_ADDRESSES } from "@/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +18,9 @@ export async function POST(request: NextRequest) {
     }
 
     const chainType = chain as ChainType;
-    const config = getChainConfig(chainType);
 
     // Get contract address (oneTimePing) and token address
-    const contractAddress = config.oneTimePing;
+    const contractAddress = ONE_TIME_PING_ADDRESSES[chainType];
     const tokenAddress = TOKEN_ADDRESSES[chainType][currency as CurrencyType];
 
     if (!contractAddress || !tokenAddress) {

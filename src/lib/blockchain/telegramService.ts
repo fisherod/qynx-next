@@ -3,7 +3,7 @@
 // =================================
 
 import { TelegramNotificationData } from "@/types/blockchain";
-import { formatAmount } from "../utils/chainUtils";
+import { formatAmount } from "../../utils/chainUtils";
 
 export class TelegramService {
   /**

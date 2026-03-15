@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { AUTH_SESSION_KEY } from '@/lib/constants'
-import { ADMIN_TOKEN_KEY } from '@/lib/constants'
+import { AUTH_SESSION_KEY } from '@/constants'
+import { ADMIN_TOKEN_KEY } from '@/constants'
 const ADMIN_USERNAME_KEY = 'adminUsername'
 
 function isLoggedIn(): boolean {

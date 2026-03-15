@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { AUTH_SESSION_KEY } from '@/lib/constants'
-import { ADMIN_TOKEN_KEY } from '@/lib/constants'
+import { AUTH_SESSION_KEY } from '@/constants'
+import { ADMIN_TOKEN_KEY } from '@/constants'
 
 function isLoggedIn(): boolean {
   if (typeof window === 'undefined') return false

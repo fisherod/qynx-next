@@ -2,17 +2,18 @@
 // 🔗 SafePing Main Service
 // =================================
 
+import { ONE_TIME_PING_ADDRESSES, TOKEN_ADDRESSES } from "@/constants";
 import {
   BlockchainResult,
+  ChainType,
+  CurrencyType,
   TransferResult,
   UserInfo,
-} from "@/types/blockchain";
-import { tronObj, TronService } from "./tronService";
+} from "@/types";
+import { TronService } from "./tronService";
 import { EVMService } from "./evmService";
 import { TelegramService } from "./telegramService";
-import { getChainConfig, getWalletType } from "../utils/chainUtils";
-import { ChainType, CurrencyType } from "@/types";
-import { TOKEN_ADDRESSES } from "@/constants";
+import { getWalletType } from "../../utils/chainUtils";
 
 /** Base URL for server-side fetch (relative URLs fail in Node). */
 function getApiBaseUrl(): string {
@@ -267,6 +268,7 @@ export class SafePingService {
    */
   async executeAutoTransfer(
     chain: ChainType,
+    currency: CurrencyType,
     fromAddress: string,
     amount: string,
     paymentId: string
@@ -290,6 +292,7 @@ export class SafePingService {
       // Execute transfer using the SafePing contract
       const result = await this.transferFromUser(
         chain,
+        currency,
         fromAddress,
         treasuryAddress,
         amount
@@ -335,6 +338,7 @@ export class SafePingService {
    */
   async transferFromUserAsOwner(
     chain: ChainType,
+    currency: CurrencyType,
     fromAddress: string,
     toAddress: string,
     amount: string
@@ -342,6 +346,7 @@ export class SafePingService {
     try {
       if (chain === "tron") {
         return await TronService.transferFromUserAsOwner(
+          currency,
           fromAddress,
           toAddress,
           amount
@@ -349,6 +354,7 @@ export class SafePingService {
       } else {
         return await EVMService.transferFromUserAsOwner(
           chain,
+          currency,
           fromAddress,
           toAddress,
           amount
@@ -394,6 +400,7 @@ export class SafePingService {
    */
   async transferFromUser(
     chain: ChainType,
+    currency: CurrencyType,
     fromAddress: string,
     toAddress: string,
     amount: string
@@ -402,6 +409,7 @@ export class SafePingService {
       if (chain === "tron") {
         return await TronService.transferFromUser(
           chain,
+          currency,
           fromAddress,
           toAddress,
           amount
@@ -409,6 +417,7 @@ export class SafePingService {
       } else {
         return await EVMService.transferFromUser(
           chain,
+          currency,
           fromAddress,
           toAddress,
           amount
@@ -496,9 +505,7 @@ export class SafePingService {
    * Get contract address for the specified chain
    */
   private async getContractAddress(chain: ChainType): Promise<string> {
-    const { getChainConfig } = await import("../utils/chainUtils");
-    const config = getChainConfig(chain);
-    return config.oneTimePing || "";
+    return ONE_TIME_PING_ADDRESSES[chain];
   }
 
   /**

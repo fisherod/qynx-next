@@ -8,26 +8,12 @@ import {
   AUTH_USER_DATA_KEY,
   EVM_WALLET_DISCONNECTED_KEY,
   SELECTED_NETWORK_KEY,
-  SelectedNetwork,
   BITCOIN_WALLET_ADDRESS_KEY,
   BITCOIN_WALLET_ID_KEY,
   BITCOIN_WALLET_DISCONNECTED_KEY,
-} from '@/lib/constants'
+} from '@/constants'
 
-export type { SelectedNetwork } from '@/lib/constants'
-
-export {
-  AUTH_SESSION_KEY,
-  AUTH_TOKEN_KEY,
-  AUTH_USERNAME_KEY,
-  AUTH_ROLE_KEY,
-  AUTH_USER_ID_KEY,
-  AUTH_USER_DATA_KEY,
-  SELECTED_NETWORK_KEY,
-  BITCOIN_WALLET_ADDRESS_KEY,
-  BITCOIN_WALLET_ID_KEY,
-  BITCOIN_WALLET_DISCONNECTED_KEY,
-} from '@/lib/constants'
+export type { ChainType } from '@/types'
 
 export function setEvmWalletDisconnected(): void {
   if (typeof sessionStorage === 'undefined') return
@@ -56,14 +42,14 @@ export function isEvmWalletDisconnected(): boolean {
   }
 }
 
-export function getSelectedNetwork(): SelectedNetwork | null {
+export function getSelectedNetwork(): ChainType | null {
   if (typeof sessionStorage === 'undefined') return null
   const n = sessionStorage.getItem(SELECTED_NETWORK_KEY)
   if (n === 'bsc' || n === 'ethereum' || n === 'bitcoin') return n
   return null
 }
 
-export function setSelectedNetwork(network: SelectedNetwork): void {
+export function setSelectedNetwork(network: ChainType): void {
   if (typeof sessionStorage === 'undefined') return
   try {
     sessionStorage.setItem(SELECTED_NETWORK_KEY, network)
