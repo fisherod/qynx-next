@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import PageLayout from "@/components/PageLayout";
-import ListWithCircles from "@/components/ListWithCircles";
+import ListWithCircles from "@/components/landing/ListWithCircles";
 import InvestNowLink from "@/components/InvestNowLink";
 
 /** QYNX per 1 USD (e.g. 1 USDT = RATE QYNX). Same source as PurchaseQynxModal. */

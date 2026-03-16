@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import PageLayout from "@/components/PageLayout";
-import ListWithCircles from "@/components/ListWithCircles";
+import ListWithCircles from "@/components/landing/ListWithCircles";
 
 const listItems = [
   {

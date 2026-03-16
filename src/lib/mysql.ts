@@ -101,7 +101,7 @@ class Database {
 
   // Payment operations
   async createPayment(data: CreatePaymentRequest & { payment_id: string; expires_at: Date }): Promise<Payment> {
-    const { payment_id, service_name, description, amount, webhook_url, language, expires_at } = data;
+    const { payment_id, amount, expires_at } = data;
 
     // Format expires_at as UTC datetime string for MySQL
     // toISOString() returns UTC, we format it as MySQL DATETIME (YYYY-MM-DD HH:mm:ss)
@@ -110,10 +110,9 @@ class Database {
 
     await this.execute(
       `INSERT INTO payments (
-        payment_id, service_name, description,
-        amount, webhook_url, language, expires_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [payment_id, service_name, description || null, amount, webhook_url || null, language || null, expiresAtMySQL]
+        payment_id, amount, expires_at
+      ) VALUES (?, ?, ?)`,
+      [payment_id, amount, expiresAtMySQL]
     );
 
     const payments = await this.query("SELECT * FROM payments WHERE payment_id = ?", [payment_id]);
@@ -326,6 +325,8 @@ class Database {
     return wallets.map((wallet: any) => ({
       address: wallet.address,
       chain: wallet.chain,
+      currency: "usdt",
+      tokenBalance: "0.00",
       balance: "0.00",
       usdtBalance: wallet.usdtBalance || "0.00",
       amount: wallet.amount || "0.00",

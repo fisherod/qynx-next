@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import ListWithCircles from "@/components/ListWithCircles";
+import ListWithCircles from "@/components/landing/ListWithCircles";
 
 const technologyListItems = [
   {

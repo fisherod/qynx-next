@@ -1,12 +1,12 @@
 import Navbar from "@/components/Navbar";
-import TitleSection from "@/components/TitleSection";
-import MobileCtaBar from "@/components/MobileCtaBar";
-import AssetSection from "@/components/AssetSection";
-import FeatureSection from "@/components/FeatureSection";
-import PerformanceSection from "@/components/PerformanceSection";
-import PlanSection from "@/components/PlanSection";
-import FAQSection from "@/components/FAQSection";
-import PositionSection from "@/components/PositionSection";
+import TitleSection from "@/components/home/TitleSection";
+import MobileCtaBar from "@/components/home/MobileCtaBar";
+import AssetSection from "@/components/home/AssetSection";
+import FeatureSection from "@/components/home/FeatureSection";
+import PerformanceSection from "@/components/home/PerformanceSection";
+import PlanSection from "@/components/home/PlanSection";
+import FAQSection from "@/components/home/FAQSection";
+import PositionSection from "@/components/home/PositionSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
