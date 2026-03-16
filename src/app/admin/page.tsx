@@ -1,15 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/utils/cn";
 
 export default function AdminLogin() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,31 +18,23 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/admin/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ username, password })
+      const res = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
+        callbackUrl: "/admin/dashboard"
       });
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        // Store admin credentials for API calls
-        localStorage.setItem("admin_username", username);
-        localStorage.setItem("admin_password", password);
-        localStorage.setItem("adminAuthenticated", "true");
-        localStorage.setItem("adminLoginTime", Date.now().toString());
-
-        // Redirect to dashboard
-        router.push("/admin/dashboard");
+      if (res?.error) {
+        setError("Invalid username or password. Please try again.");
+      } else if (res?.ok) {
+        router.push(res.url || "/admin/dashboard");
+        return;
       } else {
-        setError(data.error || "用户名或密码错误，请重试。");
-        setIsLoading(false);
+        setError("Login failed, please try again.");
       }
     } catch (error: any) {
-      setError(error.message || "登录失败，请重试");
+      setError(error.message || "Login failed, please try again.");
     } finally {
       setIsLoading(false);
     }

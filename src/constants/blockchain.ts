@@ -3,9 +3,11 @@ import { ChainType, CurrencyType } from "@/types";
 // Network mode detection - default to testnet for now to avoid mainnet contract issues
 const isMainnet = process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet";
 
+export const CHAINS: ChainType[] = ["ethereum", "bsc", "tron"];
+
 export const CHAIN_NAMES: Record<ChainType, string> = {
-  bsc: "BSC",
   ethereum: "Ethereum",
+  bsc: "BSC",
   tron: "TRON"
 };
 
@@ -22,35 +24,13 @@ export const CHAIN_ID_HEX: Record<ChainType, string> = {
 };
 
 export const NATIVE_CURRENCIES: Record<ChainType, { name: string; symbol: string; decimals: number }> = {
-  bsc: { name: "BNB", symbol: "BNB", decimals: 18 },
   ethereum: { name: "Ether", symbol: "ETH", decimals: 18 },
+  bsc: { name: "BNB", symbol: "BNB", decimals: 18 },
   tron: { name: "TRON", symbol: "TRX", decimals: 6 }
 };
 
 // Chain-specific maximum approval amounts for unlimited USDT spending
 export const MAX_APPROVAL = "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"; // 2^256 - 1 (TRON uint256 max)
-
-// Gas limits for different operations
-export const GAS_LIMITS = {
-  bsc: {
-    approve: 60000,
-    transfer: 60000
-  },
-  ethereum: {
-    approve: 80000,
-    transfer: 80000
-  },
-  tron: {
-    feeLimit: 100000000 // 100 TRX
-  }
-};
-
-// RPC endpoints (fallbacks)
-export const RPC_ENDPOINTS = {
-  bsc: ["https://bsc-dataseed1.binance.org", "https://bsc-dataseed2.binance.org", "https://bsc-dataseed3.binance.org"],
-  ethereum: ["https://mainnet.infura.io/v3/", "https://eth-mainnet.alchemyapi.io/v2/"],
-  tron: ["https://api.trongrid.io", "https://api.tronstack.io"]
-};
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || "";
 
@@ -80,6 +60,8 @@ export const EXPLORER_URLS: Record<ChainType, string> = {
   bsc: isMainnet ? "https://bscscan.com" : "https://testnet.bscscan.com",
   tron: isMainnet ? "https://tronscan.org" : "https://shasta.tronscan.org"
 };
+
+export const TOKENS: CurrencyType[] = ["usdt", "usdc"];
 
 export const MAINNET_TOKEN_ADDRESSES: Record<ChainType, Record<CurrencyType, string>> = {
   ethereum: {

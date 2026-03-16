@@ -232,8 +232,7 @@ export class BlockchainService {
    * Get real-time balances for treasury wallets (both native and token)
    */
   async getTreasuryWalletBalances(
-    wallets: Array<{ address: string; chain: ChainType }>,
-    currency: string
+    wallets: Array<{ address: string; chain: ChainType }>
   ): Promise<TreasuryWalletBalance[]> {
     console.log(`\n=== TREASURY WALLET BALANCES ===`);
     console.log(`Fetching balances for ${wallets.length} treasury wallets...`);
@@ -244,12 +243,10 @@ export class BlockchainService {
 
         const [nativeBalance, tokenBalance] = await Promise.all([
           this.getUserNativeBalance(wallet.chain, wallet.address),
-          this.getUserTokenBalance(wallet.chain, currency as CurrencyType, wallet.address)
+          this.getUserTokenBalance(wallet.chain, "usdt" as CurrencyType, wallet.address)
         ]);
 
-        console.log(
-          `✅ ${wallet.chain} wallet balances - Native: ${nativeBalance}, ${currency.toUpperCase()}: ${tokenBalance}`
-        );
+        console.log(`✅ ${wallet.chain} wallet balances - Native: ${nativeBalance}, USDT: ${tokenBalance}`);
 
         return {
           address: wallet.address,

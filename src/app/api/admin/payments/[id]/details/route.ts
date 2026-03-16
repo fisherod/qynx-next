@@ -14,16 +14,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return createRateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.reset);
     }
 
-    // Check authentication using query parameters
-    const { searchParams } = new URL(request.url);
-    const username = searchParams.get("username");
-    const password = searchParams.get("password");
-
-    // Check credentials against environment variables
-    if (!username || !password || username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
-    }
-
     const { id: paymentId } = await params;
 
     if (!paymentId) {

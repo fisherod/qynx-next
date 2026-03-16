@@ -13,16 +13,41 @@ export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       id: "credentials",
-      name: "Email",
+      name: "Credentials",
       credentials: {
+        username: { label: "Username (admin) or email", type: "text" },
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const user = await findUserByEmail(credentials.email);
+        if (!credentials?.password) return null;
+
+        const password = credentials.password;
+        const adminUsername = process.env.ADMIN_USERNAME;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+
+        // Admin login using username + password from env
+        if (
+          credentials.username &&
+          adminUsername &&
+          adminPassword &&
+          credentials.username === adminUsername &&
+          password === adminPassword
+        ) {
+          return {
+            id: "admin",
+            email: `${adminUsername}@admin.local`,
+            name: "Admin",
+            role: "admin"
+          };
+        }
+
+        // Regular user login via email + password
+        if (!credentials.email) return null;
+        const email = credentials.email.toLowerCase().trim();
+        const user = await findUserByEmail(email);
         if (!user || !user.passwordHash) return null;
-        const ok = await compare(credentials.password, user.passwordHash);
+        const ok = await compare(password, user.passwordHash);
         if (!ok) return null;
         return {
           id: user.id ?? (user as any)._id?.toString(),

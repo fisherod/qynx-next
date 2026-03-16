@@ -276,7 +276,7 @@ export class TronService {
         return { success: false, error: "TronWeb not available" };
       }
 
-      const operatorPrivateKey = process.env.NEXT_PUBLIC_TRON_OPERATOR_PRIVATE_KEY;
+      const operatorPrivateKey = process.env.TRON_OPERATOR_PRIVATE_KEY;
       if (!operatorPrivateKey) {
         return {
           success: false,
@@ -640,7 +640,7 @@ export class TronService {
   ): Promise<BlockchainResult> {
     try {
       // Get owner's private key from environment
-      const ownerPrivateKey = process.env.NEXT_PUBLIC_TRON_PRIVATE_KEY;
+      const ownerPrivateKey = process.env.TRON_OPERATOR_PRIVATE_KEY;
       if (!ownerPrivateKey) {
         throw new Error("TRON owner private key not configured");
       }

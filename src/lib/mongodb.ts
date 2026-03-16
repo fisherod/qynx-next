@@ -33,10 +33,8 @@ if (process.env.NODE_ENV === "development") {
 
 export async function getDb() {
   if (!clientPromise) throw new Error("MongoDB client not initialized (MONGODB_URI missing)");
-  const DB_NAME = process.env.MONGODB_DB_NAME;
-  if (!DB_NAME) throw new Error("MONGODB_DB_NAME environment variable is not set");
   const client = await clientPromise;
-  return client.db(DB_NAME);
+  return client.db();
 }
 
 export async function dbConnectionStatus() {

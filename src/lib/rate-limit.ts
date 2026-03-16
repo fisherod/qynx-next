@@ -2,6 +2,8 @@
 // 🚦 Rate Limiting Middleware
 // =================================
 
+import { RATE_LIMIT_WINDOW_MS, RATE_LIMIT_MAX_REQUESTS } from "@/constants";
+
 interface RateLimitOptions {
   interval: number; // Time window in ms
   uniqueTokenPerInterval?: number; // Max requests per IP
@@ -78,8 +80,8 @@ class RateLimiter {
 
 // Create rate limiter instances
 const apiRateLimiter = new RateLimiter({
-  interval: Number(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-  uniqueTokenPerInterval: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
+  interval: RATE_LIMIT_WINDOW_MS,
+  uniqueTokenPerInterval: RATE_LIMIT_MAX_REQUESTS
 });
 
 const paymentRateLimiter = new RateLimiter({

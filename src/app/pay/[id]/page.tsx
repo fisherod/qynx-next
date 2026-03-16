@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { ChainType } from "@/types";
 import { usePayment } from "@/hooks/usePayment";
-import { CHAIN_ID_HEX, CHAIN_NAMES, EXPLORER_URLS, NATIVE_CURRENCIES, RPC_URLS } from "@/constants";
+import { CHAIN_ID_HEX, CHAIN_NAMES, DEFAULT_LANGUAGE, EXPLORER_URLS, NATIVE_CURRENCIES, RPC_URLS } from "@/constants";
 import { QRCode } from "@/components/ui/QRCode";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
@@ -29,7 +29,7 @@ function PaymentPageContent() {
   const initialLang = (() => {
     const langParam = searchParams.get("lang");
     if (langParam && supportedLanguages.includes(langParam)) return langParam;
-    return "en";
+    return DEFAULT_LANGUAGE;
   })();
   const [preferredLanguage, setPreferredLanguage] = useState<string>(initialLang);
 
@@ -371,7 +371,7 @@ function PaymentPageContent() {
 
   useEffect(() => {
     try {
-      const targetLanguage = preferredLanguage || "en";
+      const targetLanguage = preferredLanguage || DEFAULT_LANGUAGE;
       if (i18n.language !== targetLanguage) {
         i18n.changeLanguage(targetLanguage);
       }

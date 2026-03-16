@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error: any) {
-    // Silent error handling for production
+    console.error("Failed to load payments", error);
     return NextResponse.json({ error: "Failed to load payments" }, { status: 500 });
   }
 }

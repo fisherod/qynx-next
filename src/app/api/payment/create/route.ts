@@ -9,6 +9,7 @@ import QRCode from "qrcode";
 import { z } from "zod";
 import { getDatabase } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
+import { PAYMENT_EXPIRY_MINUTES } from "@/constants";
 
 // Validation schema
 const createPaymentSchema = z.object({
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     // Generate payment ID and expiration
     const paymentId = uuidv4();
-    const expiryMinutes = Number(process.env.PAYMENT_EXPIRY_MINUTES) || 30;
+    const expiryMinutes = PAYMENT_EXPIRY_MINUTES;
     const expiresAt = new Date(Date.now() + expiryMinutes * 60 * 1000);
 
     // Create payment in database

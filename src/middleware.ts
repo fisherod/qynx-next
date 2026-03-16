@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
 
-  // Protect /user/* routes – require NextAuth session
+  // Protect /user/* routes – require any authenticated user
   if (pathname.startsWith("/user")) {
     const token = await getToken({
       req: request,
@@ -19,6 +19,18 @@ export async function middleware(request: NextRequest) {
       const signInUrl = new URL("/sign-in", request.url);
       signInUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(signInUrl);
+    }
+  }
+
+  // Protect /admin/* routes – require admin role (but allow /admin login page)
+  if (pathname.startsWith("/admin/")) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET
+    });
+    if (!token || token.role !== "admin") {
+      const adminUrl = new URL("/admin", request.url);
+      return NextResponse.redirect(adminUrl);
     }
   }
 

@@ -4,12 +4,6 @@ import { blockchainService } from "@/lib/blockchain";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const currency = searchParams.get("currency");
-    if (!currency) {
-      return NextResponse.json({ error: "Currency is required" }, { status: 400 });
-    }
-
     const db = getDatabase();
 
     // Get treasury wallets from database
@@ -20,8 +14,7 @@ export async function GET(request: NextRequest) {
       treasuryWallets.map(wallet => ({
         chain: wallet.chain,
         address: wallet.address
-      })),
-      currency
+      }))
     );
 
     // Merge database data with real-time balances

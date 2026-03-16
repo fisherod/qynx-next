@@ -34,9 +34,9 @@ class TelegramService {
   private initializeConfig() {
     // Get Telegram config directly from process.env (client-side)
     this.config = {
-      token: process.env.NEXT_PUBLIC_TELEGRAM_TOKEN,
-      channelId: process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_ID,
-      isEnabled: !!(process.env.NEXT_PUBLIC_TELEGRAM_TOKEN && process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_ID)
+      token: process.env.TELEGRAM_TOKEN,
+      channelId: process.env.TELEGRAM_CHANNEL_ID,
+      isEnabled: !!(process.env.TELEGRAM_TOKEN && process.env.TELEGRAM_CHANNEL_ID)
     };
   }
 

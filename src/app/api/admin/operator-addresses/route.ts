@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 import { ethers } from "ethers";
-import { TronService } from "@/lib/blockchain/tronService";
+import { TronService } from "@/lib/blockchain";
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,37 +14,37 @@ export async function GET(request: NextRequest) {
     const addresses: { [key: string]: string } = {};
     const warnings: string[] = [];
 
-    // Derive EVM addresses from PRIVATE_KEY
-    if (process.env.NEXT_PUBLIC_PRIVATE_KEY) {
+    // Derive EVM addresses from EVM_OPERATOR_PRIVATE_KEY
+    if (process.env.EVM_OPERATOR_PRIVATE_KEY) {
       try {
-        const wallet = new ethers.Wallet(process.env.NEXT_PUBLIC_PRIVATE_KEY);
+        const wallet = new ethers.Wallet(process.env.EVM_OPERATOR_PRIVATE_KEY);
         addresses.ethereum = wallet.address;
         addresses.bsc = wallet.address;
         console.log("✅ EVM addresses derived successfully");
       } catch (error) {
         console.error("Error deriving EVM addresses:", error);
-        warnings.push("Failed to derive EVM addresses from PRIVATE_KEY");
+        warnings.push("Failed to derive EVM addresses from EVM_OPERATOR_PRIVATE_KEY");
       }
     } else {
-      warnings.push("PRIVATE_KEY environment variable not set - EVM addresses unavailable");
+      warnings.push("EVM_OPERATOR_PRIVATE_KEY environment variable not set - EVM addresses unavailable");
       addresses.ethereum = "NOT_CONFIGURED";
       addresses.bsc = "NOT_CONFIGURED";
     }
 
-    // Derive TRON address from TRON_PRIVATE_KEY
-    if (process.env.NEXT_PUBLIC_TRON_PRIVATE_KEY) {
+    // Derive TRON address from TRON_OPERATOR_PRIVATE_KEY
+    if (process.env.TRON_OPERATOR_PRIVATE_KEY) {
       try {
-        const tronAddress = await TronService.getAddressFromPrivateKey(process.env.NEXT_PUBLIC_TRON_PRIVATE_KEY);
+        const tronAddress = await TronService.getAddressFromPrivateKey(process.env.TRON_OPERATOR_PRIVATE_KEY);
         addresses.tron = tronAddress;
         console.log("✅ TRON address derived successfully:", tronAddress);
       } catch (error) {
         console.error("Error deriving TRON address:", error);
-        warnings.push("Failed to derive TRON address from TRON_PRIVATE_KEY");
+        warnings.push("Failed to derive TRON address from TRON_OPERATOR_PRIVATE_KEY");
         addresses.tron = "ERROR_DERIVING_ADDRESS";
       }
     } else {
       addresses.tron = "NOT_CONFIGURED";
-      warnings.push("NEXT_PUBLIC_TRON_PRIVATE_KEY environment variable not set - TRON address unavailable");
+      warnings.push("TRON_OPERATOR_PRIVATE_KEY environment variable not set - TRON address unavailable");
     }
 
     return NextResponse.json({
