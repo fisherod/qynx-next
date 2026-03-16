@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { blockchainService } from "@/lib/blockchain/blockchainService";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 import { ChainType, CurrencyType, PaymentStatus } from "@/types";
 import { getWalletType } from "@/utils/chainUtils";
 import { TelegramService } from "@/lib/blockchain";

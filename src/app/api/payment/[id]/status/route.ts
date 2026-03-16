@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

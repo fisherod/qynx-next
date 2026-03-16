@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 import { logger } from "../../../../lib/logger";
 import { blockchainService } from "@/lib/blockchain";
 import { ChainType, CurrencyType } from "@/types";

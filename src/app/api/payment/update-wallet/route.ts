@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {

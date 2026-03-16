@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 import { rateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

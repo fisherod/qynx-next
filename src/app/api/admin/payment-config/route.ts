@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 import { blockchainService } from "@/lib/blockchain";
 
 export async function GET(request: NextRequest) {

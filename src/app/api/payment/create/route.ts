@@ -7,7 +7,7 @@ import { getServerSession } from "next-auth";
 import { v4 as uuidv4 } from "uuid";
 import QRCode from "qrcode";
 import { z } from "zod";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
 
 // Validation schema

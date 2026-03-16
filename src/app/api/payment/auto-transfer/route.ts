@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { blockchainService } from "@/lib/blockchain";
-import { getDatabase } from "@/lib/api";
+import { getDatabase } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {

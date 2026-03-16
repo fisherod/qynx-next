@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
-import { findUserByEmail, createUser } from "@/lib/api/auth";
+import { findUserByEmail, createUser } from "@/lib/db/auth";
 
 const MIN_PASSWORD_LENGTH = 8;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

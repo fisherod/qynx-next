@@ -7,7 +7,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
 import { compare } from "bcryptjs";
-import { findUserByEmail, upsertUserByOAuth } from "@/lib/api/auth";
+import { findUserByEmail, upsertUserByOAuth } from "@/lib/db/auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
