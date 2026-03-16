@@ -27,7 +27,7 @@ export class ErrorBoundary extends Component<Props, State> {
     this.setState({
       hasError: true,
       error,
-      errorInfo,
+      errorInfo
     });
   }
 
@@ -41,12 +41,8 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen bg-gradient-to-br from-red-500 via-red-600 to-red-700 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-md w-full text-center">
             <div className="text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">
-              应用程序遇到错误
-            </h1>
-            <p className="text-gray-600 mb-6">
-              很抱歉，应用程序遇到了一个意外错误。请尝试刷新页面或联系客服。
-            </p>
+            <h1 className="text-2xl font-bold text-gray-800 mb-4">应用程序遇到错误</h1>
+            <p className="text-gray-600 mb-6">很抱歉，应用程序遇到了一个意外错误。请尝试刷新页面或联系客服。</p>
             <div className="space-y-3">
               <button
                 onClick={() => window.location.reload()}

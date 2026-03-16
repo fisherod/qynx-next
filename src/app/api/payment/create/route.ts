@@ -7,23 +7,20 @@ import { getServerSession } from "next-auth";
 import { v4 as uuidv4 } from "uuid";
 import QRCode from "qrcode";
 import { z } from "zod";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 import { authOptions } from "@/lib/auth";
 
 // Validation schema
 const createPaymentSchema = z.object({
   user_id: z.string().min(1).max(100),
   currency: z.string().min(1).max(20),
-  amount: z.number().min(0.0001).max(10000),
+  amount: z.number().min(0.0001).max(10000)
 });
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !session.user.id) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
@@ -35,7 +32,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Validation failed",
-          details: validationResult.error.issues,
+          details: validationResult.error.issues
         },
         { status: 400 }
       );
@@ -55,7 +52,7 @@ export async function POST(request: NextRequest) {
       user_id: session.user.id,
       currency: data.currency.toLowerCase(),
       payment_id: paymentId,
-      expires_at: expiresAt,
+      expires_at: expiresAt
     });
 
     // Get base URL from environment configuration
@@ -70,9 +67,9 @@ export async function POST(request: NextRequest) {
         margin: 2,
         color: {
           dark: "#000000",
-          light: "#FFFFFF",
+          light: "#FFFFFF"
         },
-        width: 256,
+        width: 256
       });
     } catch (qrError) {
       console.error("QR code generation failed:", qrError);
@@ -85,7 +82,7 @@ export async function POST(request: NextRequest) {
       base_url: baseUrl,
       qr_code: qrCode,
       expires_at: expiresAt.toISOString(),
-      amount: data.amount,
+      amount: data.amount
     });
   } catch (error: any) {
     console.error("Payment creation error:", error);
@@ -93,8 +90,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: "Failed to create payment",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );
@@ -106,6 +102,6 @@ export async function GET() {
   return NextResponse.json({
     endpoint: "payment/create",
     status: "operational",
-    timestamp: new Date().toISOString(),
+    timestamp: new Date().toISOString()
   });
 }

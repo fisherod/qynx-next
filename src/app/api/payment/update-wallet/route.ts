@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
@@ -13,15 +13,11 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!address || !chain) {
-      return NextResponse.json(
-        { error: "Missing required fields: address and chain" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields: address and chain" }, { status: 400 });
     }
 
     // Get database instance (server-side only)
     const db = getDatabase();
-    await db.ensureInitialized();
 
     // Add wallet (no need to check if it exists)
     await db.saveWallet({
@@ -29,7 +25,7 @@ export async function POST(request: NextRequest) {
       chain,
       currency,
       tokenBalance: tokenBalance || "0.00",
-      amount: amount || "0.00",
+      amount: amount || "0.00"
     });
 
     logger.info(`Wallet added: ${address} on ${chain}`);
@@ -37,13 +33,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: "Wallet added successfully",
-      data: { address, chain, currency, tokenBalance },
+      data: { address, chain, currency, tokenBalance }
     });
   } catch (error: any) {
     logger.error("Error updating wallet:", error);
-    return NextResponse.json(
-      { error: "Failed to update wallet", details: error.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update wallet", details: error.message }, { status: 500 });
   }
 }

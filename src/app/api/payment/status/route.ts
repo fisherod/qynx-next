@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,10 +8,7 @@ export async function GET(request: NextRequest) {
 
     // Validate input
     if (!payment_id) {
-      return NextResponse.json(
-        { error: "Payment ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Payment ID is required" }, { status: 400 });
     }
 
     // Get database connection
@@ -33,14 +30,11 @@ export async function GET(request: NextRequest) {
         tx_hash: payment.tx_hash,
         created_at: payment.created_at,
         updated_at: payment.updated_at,
-        expires_at: payment.expires_at,
-      },
+        expires_at: payment.expires_at
+      }
     });
   } catch (error: any) {
     console.error("Payment status check error:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

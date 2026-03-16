@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "Not enough {{symbol}} (need {{amount}} {{symbol}})",
       processingButton: "Processing...",
       pay: "Pay",
-      failedTitle: "Payment Failed",
-    },
-  },
+      failedTitle: "Payment Failed"
+    }
+  }
 };

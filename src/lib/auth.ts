@@ -7,7 +7,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
 import { compare } from "bcryptjs";
-import { findUserByEmail, upsertUserByOAuth } from "@/lib/auth-db";
+import { findUserByEmail, upsertUserByOAuth } from "@/lib/api/auth";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
       name: "Email",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -29,29 +29,29 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name ?? undefined,
           image: user.image ?? undefined,
-          role: user.role ?? "user",
+          role: user.role ?? "user"
         };
-      },
+      }
     }),
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-      allowDangerousEmailAccountLinking: true,
+      allowDangerousEmailAccountLinking: true
     }),
     AppleProvider({
       clientId: process.env.APPLE_ID ?? "",
       clientSecret: process.env.APPLE_SECRET ?? "",
-      allowDangerousEmailAccountLinking: true,
-    }),
+      allowDangerousEmailAccountLinking: true
+    })
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 30 * 24 * 60 * 60 // 30 days
   },
   pages: {
     signIn: "/sign-in",
     signOut: "/sign-in",
-    error: "/sign-in",
+    error: "/sign-in"
   },
   callbacks: {
     async signIn({ user, account }) {
@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name ?? undefined,
           image: user.image ?? undefined,
           provider: account.provider,
-          providerAccountId: account.providerAccountId,
+          providerAccountId: account.providerAccountId
         });
       }
       return true;
@@ -92,8 +92,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).role = token.role ?? "user";
       }
       return session;
-    },
+    }
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === "development"
 };

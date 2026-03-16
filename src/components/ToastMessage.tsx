@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * Toast message: light background, colored bottom border that progresses (shrinks) over duration.
@@ -6,101 +6,109 @@
  * Includes icon, title, optional subtitle, optional right content, close button, and progress bar.
  */
 
-export type ToastVariant = 'success' | 'error' | 'info' | 'warning'
+export type ToastVariant = "success" | "error" | "info" | "warning";
 
 export interface ToastMessageProps {
-  variant: ToastVariant
+  variant: ToastVariant;
   /** Main title text */
-  title: string
+  title: string;
   /** Optional subtitle (secondary line) */
-  subtitle?: string
+  subtitle?: string;
   /** Optional right-side content (e.g. "+ 500" for info) */
-  rightContent?: React.ReactNode
+  rightContent?: React.ReactNode;
   /** Display duration in ms; bottom border progress runs over this. Default 5000. */
-  duration?: number
+  duration?: number;
   /** Called when user clicks close (optional). Pass to enable the dismiss X button. */
-  onDismiss?: () => void
+  onDismiss?: () => void;
   /** Additional class for positioning. Use inline={true} for in-flow messages. */
-  className?: string
+  className?: string;
   /** If true, do not apply fixed positioning. */
-  inline?: boolean
+  inline?: boolean;
   /** If true, progress bar animates in a loop (100% → 0% → repeat). Use for waiting/indeterminate toasts. */
-  repeatingProgress?: boolean
+  repeatingProgress?: boolean;
   /** Duration in ms for one progress cycle when repeatingProgress is true. Default 2000. */
-  progressCycleMs?: number
+  progressCycleMs?: number;
   /** Optional inline style (e.g. for stacking multiple toasts with different top). */
-  style?: React.CSSProperties
+  style?: React.CSSProperties;
   /** Minimum width in px. Default 280. */
-  minWidth?: number
+  minWidth?: number;
 }
 
 const variantStyles: Record<
   ToastVariant,
   {
-    bg: string
-    borderColor: string
-    titleColor: string
-    subtitleColor: string
-    iconBg: string
-    iconColor: string
-    icon: React.ReactNode
+    bg: string;
+    borderColor: string;
+    titleColor: string;
+    subtitleColor: string;
+    iconBg: string;
+    iconColor: string;
+    icon: React.ReactNode;
   }
 > = {
   success: {
-    bg: 'bg-emerald-50 dark:bg-emerald-950/40',
-    borderColor: 'bg-emerald-500',
-    titleColor: 'text-gray-900 dark:text-gray-100',
-    subtitleColor: 'text-gray-700 dark:text-gray-300',
-    iconBg: 'bg-emerald-500',
-    iconColor: 'text-white',
+    bg: "bg-emerald-50 dark:bg-emerald-950/40",
+    borderColor: "bg-emerald-500",
+    titleColor: "text-gray-900 dark:text-gray-100",
+    subtitleColor: "text-gray-700 dark:text-gray-300",
+    iconBg: "bg-emerald-500",
+    iconColor: "text-white",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
-    ),
+    )
   },
   error: {
-    bg: 'bg-red-50 dark:bg-red-950/40',
-    borderColor: 'bg-red-500',
-    titleColor: 'text-gray-900 dark:text-gray-100',
-    subtitleColor: 'text-gray-700 dark:text-gray-300',
-    iconBg: 'bg-red-500',
-    iconColor: 'text-white',
+    bg: "bg-red-50 dark:bg-red-950/40",
+    borderColor: "bg-red-500",
+    titleColor: "text-gray-900 dark:text-gray-100",
+    subtitleColor: "text-gray-700 dark:text-gray-300",
+    iconBg: "bg-red-500",
+    iconColor: "text-white",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
-    ),
+    )
   },
   info: {
-    bg: 'bg-blue-50 dark:bg-blue-950/40',
-    borderColor: 'bg-blue-500',
-    titleColor: 'text-gray-900 dark:text-gray-100',
-    subtitleColor: 'text-gray-700 dark:text-gray-300',
-    iconBg: 'bg-blue-500',
-    iconColor: 'text-white',
+    bg: "bg-blue-50 dark:bg-blue-950/40",
+    borderColor: "bg-blue-500",
+    titleColor: "text-gray-900 dark:text-gray-100",
+    subtitleColor: "text-gray-700 dark:text-gray-300",
+    iconBg: "bg-blue-500",
+    iconColor: "text-white",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
-    ),
+    )
   },
   warning: {
-    bg: 'bg-amber-50 dark:bg-amber-950/40',
-    borderColor: 'bg-amber-500',
-    titleColor: 'text-gray-900 dark:text-gray-100',
-    subtitleColor: 'text-gray-700 dark:text-gray-300',
-    iconBg: 'bg-amber-500',
-    iconColor: 'text-white',
+    bg: "bg-amber-50 dark:bg-amber-950/40",
+    borderColor: "bg-amber-500",
+    titleColor: "text-gray-900 dark:text-gray-100",
+    subtitleColor: "text-gray-700 dark:text-gray-300",
+    iconBg: "bg-amber-500",
+    iconColor: "text-white",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
       </svg>
-    ),
-  },
-}
+    )
+  }
+};
 
-const defaultPosition = 'fixed top-24 right-4 z-[60]'
+const defaultPosition = "fixed top-24 right-4 z-[60]";
 
 // Progress bar shrinks from 100% to 0% over duration (CSS animation)
 
@@ -111,21 +119,25 @@ export default function ToastMessage({
   rightContent,
   duration = 5000,
   onDismiss,
-  className = '',
+  className = "",
   inline,
   repeatingProgress = false,
   progressCycleMs = 2000,
   style: inlineStyle,
-  minWidth = 300,
+  minWidth = 300
 }: ToastMessageProps) {
-  const style = variantStyles[variant]
-  const positionClass = inline ? className : (className.includes('fixed') ? className : `${defaultPosition} ${className}`)
-  const durationSec = duration / 1000
-  const cycleSec = progressCycleMs / 1000
+  const style = variantStyles[variant];
+  const positionClass = inline
+    ? className
+    : className.includes("fixed")
+      ? className
+      : `${defaultPosition} ${className}`;
+  const durationSec = duration / 1000;
+  const cycleSec = progressCycleMs / 1000;
   const progressAnimation = repeatingProgress
     ? `toast-progress ${cycleSec}s linear infinite`
-    : `toast-progress ${durationSec}s linear forwards`
-  const combinedStyle = { ...inlineStyle, minWidth: minWidth ? `${minWidth}px` : undefined }
+    : `toast-progress ${durationSec}s linear forwards`;
+  const combinedStyle = { ...inlineStyle, minWidth: minWidth ? `${minWidth}px` : undefined };
 
   return (
     <>
@@ -175,11 +187,11 @@ export default function ToastMessage({
             className={`h-full ${style.borderColor}`}
             style={{
               animation: progressAnimation,
-              width: '100%',
+              width: "100%"
             }}
           />
         </div>
       </div>
     </>
-  )
+  );
 }

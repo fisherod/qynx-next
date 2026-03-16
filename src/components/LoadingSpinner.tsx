@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
 /** Circular loading spinner in a dark rounded rectangle, centered in the viewport. */
-export default function LoadingSpinner({ className = '' }: { className?: string }) {
+export default function LoadingSpinner({ className = "" }: { className?: string }) {
   return (
     <div
       className={`fixed inset-0 z-50 flex items-center justify-center ${className}`}
@@ -16,5 +16,5 @@ export default function LoadingSpinner({ className = '' }: { className?: string 
         />
       </div>
     </div>
-  )
+  );
 }

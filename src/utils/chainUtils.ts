@@ -95,27 +95,23 @@ export function getTokenDecimals(chain: ChainType, currency: CurrencyType): numb
 export function getExplorerUrl(chain: ChainType, txHash: string): string {
   const baseUrl = EXPLORER_URLS[chain];
   if (chain === "tron") {
-      return `${baseUrl}/#/transaction/${txHash}`;
+    return `${baseUrl}/#/transaction/${txHash}`;
   }
   return `${baseUrl}/tx/${txHash}`;
 }
 
 /**
-* Get explorer URL for address
-*/
+ * Get explorer URL for address
+ */
 export function getExplorerAddressUrl(chain: ChainType, address: string): string {
   const baseUrl = EXPLORER_URLS[chain];
   if (chain === "tron") {
-      return `${baseUrl}/#/address/${address}`;
+    return `${baseUrl}/#/address/${address}`;
   }
   return `${baseUrl}/address/${address}`;
 }
 
-export function formatAddress(
-  address: string,
-  startChars = 6,
-  endChars = 4
-): string {
+export function formatAddress(address: string, startChars = 6, endChars = 4): string {
   if (address.length <= startChars + endChars) {
     return address;
   }
@@ -132,9 +128,7 @@ export function isValidAddress(address: string, chain: ChainType): boolean {
       return /^0x[a-fA-F0-9]{40}$/.test(address);
     case "tron":
       // Use the new Tron address validation that handles both hex and base58 formats
-      return Boolean(
-        address && address.length === 34 && address.startsWith("T")
-      );
+      return Boolean(address && address.length === 34 && address.startsWith("T"));
     default:
       return false;
   }

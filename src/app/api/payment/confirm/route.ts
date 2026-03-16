@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 
 export async function POST(request: NextRequest) {
   try {
-    const { payment_id, amount } = await request.json();
+    const { payment_id } = await request.json();
 
     // Validate input
     if (!payment_id) {
-      return NextResponse.json(
-        { error: "Payment ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Payment ID is required" }, { status: 400 });
     }
 
     // Get database connection
@@ -33,8 +30,8 @@ export async function POST(request: NextRequest) {
           amount: payment.amount,
           status: payment.status,
           tx_hash: payment.tx_hash,
-          created_at: payment.created_at,
-        },
+          created_at: payment.created_at
+        }
       });
     }
 
@@ -44,7 +41,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: "Payment is still being processed",
-          status: payment.status,
+          status: payment.status
         },
         { status: 202 } // 202 Accepted - processing
       );
@@ -56,7 +53,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: `Payment ${payment.status}`,
-          status: payment.status,
+          status: payment.status
         },
         { status: 400 }
       );
@@ -67,15 +64,12 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: "Unknown payment status",
-        status: payment.status,
+        status: payment.status
       },
       { status: 400 }
     );
   } catch (error: any) {
     console.error("Payment confirmation error:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }

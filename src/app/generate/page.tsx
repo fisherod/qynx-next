@@ -13,7 +13,7 @@ export default function GeneratePage() {
     description: "",
     amount: "",
     language: "en",
-    webhook_url: "",
+    webhook_url: ""
   });
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -34,13 +34,13 @@ export default function GeneratePage() {
         description: formData.description,
         amount: parseFloat(formData.amount),
         language: formData.language,
-        webhook_url: formData.webhook_url || undefined,
+        webhook_url: formData.webhook_url || undefined
       };
 
       const response = await fetch("/api/payment/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentData),
+        body: JSON.stringify(paymentData)
       });
 
       if (!response.ok) {
@@ -82,10 +82,7 @@ export default function GeneratePage() {
                 <p className="text-sm text-gray-400">Create a USDT payment link</p>
               </div>
             </div>
-            <Link
-              href="/"
-              className="text-gray-400 hover:text-white transition-colors"
-            >
+            <Link href="/" className="text-gray-400 hover:text-white transition-colors">
               Return to home
             </Link>
           </div>
@@ -97,42 +94,32 @@ export default function GeneratePage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Service Name */}
           <div>
-            <label className="block text-white font-medium mb-2">
-              Service/Product name *
-            </label>
+            <label className="block text-white font-medium mb-2">Service/Product name *</label>
             <input
               type="text"
               required
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
               placeholder="例如：VIP会员"
               value={formData.service_name}
-              onChange={(e) =>
-                setFormData({ ...formData, service_name: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, service_name: e.target.value })}
             />
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-white font-medium mb-2">
-              Product/Service Description (Optional)
-            </label>
+            <label className="block text-white font-medium mb-2">Product/Service Description (Optional)</label>
             <input
               type="text"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
               placeholder="For example: VIP membership service"
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, description: e.target.value })}
             />
           </div>
 
           {/* Amount */}
           <div>
-            <label className="block text-white font-medium mb-2">
-              Payment Amount (USDT) *
-            </label>
+            <label className="block text-white font-medium mb-2">Payment Amount (USDT) *</label>
             <input
               type="number"
               required
@@ -142,23 +129,17 @@ export default function GeneratePage() {
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
               placeholder="For example: 100"
               value={formData.amount}
-              onChange={(e) =>
-                setFormData({ ...formData, amount: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, amount: e.target.value })}
             />
           </div>
 
           {/* Language */}
           <div>
-            <label className="block text-white font-medium mb-2">
-              Payment Page Language
-            </label>
+            <label className="block text-white font-medium mb-2">Payment Page Language</label>
             <select
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white focus:border-blue-500 focus:outline-none"
               value={formData.language}
-              onChange={(e) =>
-                setFormData({ ...formData, language: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, language: e.target.value })}
             >
               <option value="en">English</option>
               <option value="de">Deutsch</option>
@@ -174,17 +155,13 @@ export default function GeneratePage() {
 
           {/* Webhook URL */}
           <div>
-            <label className="block text-white font-medium mb-2">
-              Callback URL (optional)
-            </label>
+            <label className="block text-white font-medium mb-2">Callback URL (optional)</label>
             <input
               type="url"
               className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
               placeholder="https://your-site.com/webhook"
               value={formData.webhook_url}
-              onChange={(e) =>
-                setFormData({ ...formData, webhook_url: e.target.value })
-              }
+              onChange={e => setFormData({ ...formData, webhook_url: e.target.value })}
             />
             <p className="text-gray-400 text-sm mt-1">
               A notification will be sent to this address when the payment status changes.
@@ -222,9 +199,7 @@ export default function GeneratePage() {
 
             {/* Payment URL */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-              <label className="block text-gray-300 text-sm mb-2">
-                Payment link:
-              </label>
+              <label className="block text-gray-300 text-sm mb-2">Payment link:</label>
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
@@ -243,9 +218,7 @@ export default function GeneratePage() {
 
             {/* Payment ID */}
             <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-              <label className="block text-gray-300 text-sm mb-2">
-                Payment ID:
-              </label>
+              <label className="block text-gray-300 text-sm mb-2">Payment ID:</label>
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
@@ -265,9 +238,7 @@ export default function GeneratePage() {
             {/* QR Code */}
             {result.qr_code && (
               <div className="bg-gray-800 border border-gray-600 rounded-lg p-4">
-                <label className="block text-gray-300 text-sm mb-2">
-                  QR Code (scan with phone):
-                </label>
+                <label className="block text-gray-300 text-sm mb-2">QR Code (scan with phone):</label>
                 <div className="flex justify-center">
                   <img
                     src={result.qr_code}

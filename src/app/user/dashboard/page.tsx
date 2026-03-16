@@ -12,11 +12,10 @@ export default function DashboardPage() {
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-6 py-12">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Blockchain payment API service
-            </h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Blockchain payment API service</h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-              Provides a simple, secure, and reliable USDT payment API interface, supporting functions such as creating payment links, status queries, and callback notifications.
+              Provides a simple, secure, and reliable USDT payment API interface, supporting functions such as creating
+              payment links, status queries, and callback notifications.
             </p>
           </div>
 
@@ -24,55 +23,43 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="text-2xl mb-3">🔗</div>
-              <h3 className="text-lg font-semibold text-white mb-2">
-                Create payment link
-              </h3>
+              <h3 className="text-lg font-semibold text-white mb-2">Create payment link</h3>
               <p className="text-gray-400 text-sm mb-4">
                 Quickly create USDT payment links via API, supporting custom amounts and callback addresses.
               </p>
-              <code className="text-xs text-green-400 bg-gray-900 px-2 py-1 rounded">
-                POST /api/payment/create
-              </code>
+              <code className="text-xs text-green-400 bg-gray-900 px-2 py-1 rounded">POST /api/payment/create</code>
             </div>
 
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="text-2xl mb-3">📊</div>
               <h3 className="text-lg font-semibold text-white mb-2">Status query</h3>
               <p className="text-gray-400 text-sm mb-4">
-                  Real-time payment status tracking, supporting statuses such as pending payment, processing, completed, and failed.
+                Real-time payment status tracking, supporting statuses such as pending payment, processing, completed,
+                and failed.
               </p>
-              <code className="text-xs text-blue-400 bg-gray-900 px-2 py-1 rounded">
-                GET /api/payment/[id]/status
-              </code>
+              <code className="text-xs text-blue-400 bg-gray-900 px-2 py-1 rounded">GET /api/payment/[id]/status</code>
             </div>
 
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="text-2xl mb-3">🔄</div>
               <h3 className="text-lg font-semibold text-white mb-2">Automatic callback</h3>
               <p className="text-gray-400 text-sm mb-4">
-                  Automatic notifications to your system when payment status changes ensure timely response in business processes.
+                Automatic notifications to your system when payment status changes ensure timely response in business
+                processes.
               </p>
-              <code className="text-xs text-purple-400 bg-gray-900 px-2 py-1 rounded">
-                POST /webhook/callback
-              </code>
+              <code className="text-xs text-purple-400 bg-gray-900 px-2 py-1 rounded">POST /webhook/callback</code>
             </div>
 
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <div className="text-2xl mb-3">🌐</div>
               <h3 className="text-lg font-semibold text-white mb-2">Multi-chain support</h3>
               <p className="text-gray-400 text-sm mb-4">
-                  Supports USDT payments on the three major blockchain networks: BSC, Ethereum, and Tron.
+                Supports USDT payments on the three major blockchain networks: BSC, Ethereum, and Tron.
               </p>
               <div className="flex space-x-2">
-                <span className="text-xs text-yellow-400 bg-gray-900 px-2 py-1 rounded">
-                  BSC
-                </span>
-                <span className="text-xs text-blue-400 bg-gray-900 px-2 py-1 rounded">
-                  ETH
-                </span>
-                <span className="text-xs text-red-400 bg-gray-900 px-2 py-1 rounded">
-                  TRON
-                </span>
+                <span className="text-xs text-yellow-400 bg-gray-900 px-2 py-1 rounded">BSC</span>
+                <span className="text-xs text-blue-400 bg-gray-900 px-2 py-1 rounded">ETH</span>
+                <span className="text-xs text-red-400 bg-gray-900 px-2 py-1 rounded">TRON</span>
               </div>
             </div>
           </div>
@@ -156,8 +143,8 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
-      
+
       <BscPriceTicker />
     </PageLayout>
-  )
+  );
 }

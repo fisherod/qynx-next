@@ -3,31 +3,21 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 import { rateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Apply rate limiting
     const rateLimitResult = rateLimit(request, "api");
     if (!rateLimitResult.success) {
-      return createRateLimitResponse(
-        rateLimitResult.limit,
-        rateLimitResult.remaining,
-        rateLimitResult.reset
-      );
+      return createRateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.reset);
     }
 
     // Basic auth check (in production, implement proper authentication)
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -38,15 +28,13 @@ export async function PUT(
     if (!validStatuses.includes(status)) {
       return NextResponse.json(
         {
-          error:
-            "Invalid status. Must be one of: pending, completed, failed, expired",
+          error: "Invalid status. Must be one of: pending, completed, failed, expired"
         },
         { status: 400 }
       );
     }
 
     const db = getDatabase();
-    await db.ensureInitialized();
 
     // First get the payment to access the old status
     const existingPayment = await db.getPayment(id);
@@ -62,7 +50,7 @@ export async function PUT(
       oldStatus: existingPayment.status,
       newStatus: status,
       updatedBy: "admin",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     });
 
     // Get the updated payment to return
@@ -71,7 +59,7 @@ export async function PUT(
     return NextResponse.json({
       success: true,
       payment: updatedPayment,
-      message: `Payment status updated to ${status}`,
+      message: `Payment status updated to ${status}`
     });
   } catch (error: any) {
     console.error("Admin payment status update API error:", error);
@@ -79,8 +67,7 @@ export async function PUT(
     return NextResponse.json(
       {
         error: "Failed to update payment status",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );
@@ -93,7 +80,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       "Access-Control-Allow-Methods": "PUT, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
   });
 }

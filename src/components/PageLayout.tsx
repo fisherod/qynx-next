@@ -1,14 +1,14 @@
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function PageLayout({
   children,
   showFooter = true,
-  showNavbar = true,
+  showNavbar = true
 }: {
-  children: React.ReactNode
-  showFooter?: boolean
-  showNavbar?: boolean
+  children: React.ReactNode;
+  showFooter?: boolean;
+  showNavbar?: boolean;
 }) {
   return (
     <main className="relative w-full max-w-[100vw] min-h-screen overflow-x-hidden bg-[#0a0a12]">
@@ -26,5 +26,5 @@ export default function PageLayout({
         {showFooter && <Footer />}
       </div>
     </main>
-  )
+  );
 }

@@ -10,13 +10,13 @@ const CURRENCY_OPTIONS = [
   {
     value: "usdt",
     label: "USDT",
-    icon: "/usdt.png",
+    icon: "/usdt.png"
   },
   {
     value: "usdc",
     label: "USDC",
-    icon: "/usdc.png",
-  },
+    icon: "/usdc.png"
+  }
 ] as const;
 
 export default function InvestmentPage() {
@@ -29,7 +29,7 @@ export default function InvestmentPage() {
   }>({
     user_id: "1234567890",
     currency: CURRENCY_OPTIONS[0].value,
-    amount: "",
+    amount: ""
   });
 
   useEffect(() => {
@@ -58,13 +58,13 @@ export default function InvestmentPage() {
       const paymentData = {
         user_id: formData.user_id,
         currency: formData.currency,
-        amount: parseFloat(formData.amount),
+        amount: parseFloat(formData.amount)
       };
 
       const response = await fetch("/api/payment/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paymentData),
+        body: JSON.stringify(paymentData)
       });
 
       if (!response.ok) {
@@ -101,9 +101,7 @@ export default function InvestmentPage() {
       <div className="min-h-screen">
         <main className="max-w-4xl mx-auto px-6 py-12">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">
-              Generate payment link
-            </h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Generate payment link</h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto">
               Create a USDT payment link with custom amount and callback options.
             </p>
@@ -113,46 +111,71 @@ export default function InvestmentPage() {
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 space-y-6">
               {/* Currency / Network */}
               <div>
-                <label className="block text-white font-medium mb-2">
-                  Currency
-                </label>
+                <label className="block text-white font-medium mb-2">Currency</label>
                 <div className="relative" ref={dropdownRef}>
                   <button
                     type="button"
-                    onClick={() => setDropdownOpen((o) => !o)}
+                    onClick={() => setDropdownOpen(o => !o)}
                     className={`w-full px-4 py-3 rounded-lg border bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/30 flex items-center justify-between gap-3 ${dropdownOpen ? "border-purple-500 ring-2 ring-purple-500/30" : "border-gray-700 focus:border-purple-500"}`}
                   >
                     {(() => {
-                      const opt = CURRENCY_OPTIONS.find((o) => o.value === formData.currency) ?? CURRENCY_OPTIONS[0];
+                      const opt = CURRENCY_OPTIONS.find(o => o.value === formData.currency) ?? CURRENCY_OPTIONS[0];
                       return (
                         <span className="flex items-center gap-3">
                           <span className="relative w-8 h-8 rounded-full overflow-hidden bg-[#26A17B] flex-shrink-0 flex items-center justify-center">
-                            <Image src={opt.icon} alt="" width={32} height={32} className="object-cover relative z-10" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                            <span className="absolute inset-0 z-0 flex items-center justify-center text-white font-bold text-sm pointer-events-none">T</span>
+                            <Image
+                              src={opt.icon}
+                              alt=""
+                              width={32}
+                              height={32}
+                              className="object-cover relative z-10"
+                              onError={e => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                            <span className="absolute inset-0 z-0 flex items-center justify-center text-white font-bold text-sm pointer-events-none">
+                              T
+                            </span>
                           </span>
                           <span className="font-medium">{opt.label}</span>
                         </span>
                       );
                     })()}
-                    <svg className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg
+                      className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   {dropdownOpen && (
                     <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-700 bg-gray-800 shadow-xl overflow-hidden">
-                      {CURRENCY_OPTIONS.map((opt) => (
+                      {CURRENCY_OPTIONS.map(opt => (
                         <button
                           key={opt.value}
                           type="button"
                           onClick={() => {
-                            setFormData((f) => ({ ...f, currency: opt.value }));
+                            setFormData(f => ({ ...f, currency: opt.value }));
                             setDropdownOpen(false);
                           }}
                           className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-700/80  text-white transition-colors ${formData.currency === opt.value ? "bg-gray-700/50" : ""}`}
                         >
                           <span className="relative w-8 h-8 rounded-full overflow-hidden bg-[#26A17B] flex-shrink-0 flex items-center justify-center">
-                            <Image src={opt.icon} alt="" width={32} height={32} className="object-cover relative z-10" onError={(e) => { e.currentTarget.style.display = "none"; }} />
-                            <span className="absolute inset-0 z-0 flex items-center justify-center text-white font-bold text-sm pointer-events-none">T</span>
+                            <Image
+                              src={opt.icon}
+                              alt=""
+                              width={32}
+                              height={32}
+                              className="object-cover relative z-10"
+                              onError={e => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                            <span className="absolute inset-0 z-0 flex items-center justify-center text-white font-bold text-sm pointer-events-none">
+                              T
+                            </span>
                           </span>
                           <span className="font-medium">{opt.label}</span>
                         </button>
@@ -164,9 +187,7 @@ export default function InvestmentPage() {
 
               {/* Amount */}
               <div>
-                <label className="block text-white font-medium mb-2">
-                  Amount *
-                </label>
+                <label className="block text-white font-medium mb-2">Amount *</label>
                 <input
                   type="number"
                   required
@@ -176,9 +197,7 @@ export default function InvestmentPage() {
                   className={inputClass}
                   placeholder="e.g. 100"
                   value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
-                  }
+                  onChange={e => setFormData({ ...formData, amount: e.target.value })}
                 />
               </div>
 
@@ -213,9 +232,7 @@ export default function InvestmentPage() {
               {/* QR Code */}
               {result.qr_code && (
                 <div className="bg-gray-800 border border-gray-700 rounded-lg p-6">
-                  <label className="block text-gray-300 text-sm mb-2">
-                    QR code (scan with phone):
-                  </label>
+                  <label className="block text-gray-300 text-sm mb-2">QR code (scan with phone):</label>
                   <div className="flex justify-center">
                     <img
                       src={result.qr_code}

@@ -11,10 +11,7 @@ export async function POST(request: NextRequest) {
     const { address, chain, currency, amount } = await request.json();
 
     if (!address || !chain || !currency || !amount) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
     }
 
     const chainType = chain as ChainType;
@@ -35,7 +32,7 @@ export async function POST(request: NextRequest) {
       nativeBalance,
       tokenBalance,
       requiredAmount: amount,
-      minNativeToken: MIN_NATIVE_TOKEN,
+      minNativeToken: MIN_NATIVE_TOKEN
     });
   } catch (error: any) {
     console.error("Error checking balances:", error);
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
         hasEnoughNative: false,
         hasEnoughToken: false,
         nativeBalance: "0",
-        tokenBalance: "0",
+        tokenBalance: "0"
       },
       { status: 500 }
     );

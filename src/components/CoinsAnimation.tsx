@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 /**
  * AlgosOne-style coins animation: crypto coins with performance labels (+70%, +35%, +5%, x8, x3).
@@ -6,15 +6,15 @@
  */
 
 const COINS = [
-  { id: 'eth', label: 'ETH', color: '#627EEA', visibleText: '+35%', textYellow: false },
-  { id: 'btc', label: 'B', color: '#F7931A', visibleText: 'x3', textYellow: true },
-  { id: 'ltc', label: 'Ł', color: '#BFBBBB', visibleText: '+35%', textYellow: false },
-  { id: 'sol', label: 'S', color: '#9945FF', visibleText: '+5%', textYellow: false },
-  { id: 'usdt', label: '₮', color: '#26A17B', visibleText: null, textYellow: false },
-  { id: 'qynx', label: 'Q', color: '#A78BFA', visibleText: '+70%', textYellow: false },
-] as const
+  { id: "eth", label: "ETH", color: "#627EEA", visibleText: "+35%", textYellow: false },
+  { id: "btc", label: "B", color: "#F7931A", visibleText: "x3", textYellow: true },
+  { id: "ltc", label: "Ł", color: "#BFBBBB", visibleText: "+35%", textYellow: false },
+  { id: "sol", label: "S", color: "#9945FF", visibleText: "+5%", textYellow: false },
+  { id: "usdt", label: "₮", color: "#26A17B", visibleText: null, textYellow: false },
+  { id: "qynx", label: "Q", color: "#A78BFA", visibleText: "+70%", textYellow: false }
+] as const;
 
-const TEXT_ITEMS = ['', '', '+70%', '+35%', '+5%', 'x8', 'x3'] as const
+const TEXT_ITEMS = ["", "", "+70%", "+35%", "+5%", "x8", "x3"] as const;
 
 function CoinSvg({ label, color }: { label: string; color: string }) {
   return (
@@ -28,18 +28,41 @@ function CoinSvg({ label, color }: { label: string; color: string }) {
           <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000" floodOpacity={0.4} />
         </filter>
       </defs>
-      <circle cx="32" cy="32" r="28" fill={`url(#coin-${label})`} filter={`url(#shadow-${label})`} stroke="rgba(255,255,255,0.2)" strokeWidth="1" />
-      <text x="32" y="42" textAnchor="middle" fill="white" fontSize="24" fontWeight="700" fontFamily="system-ui, sans-serif">{label}</text>
+      <circle
+        cx="32"
+        cy="32"
+        r="28"
+        fill={`url(#coin-${label})`}
+        filter={`url(#shadow-${label})`}
+        stroke="rgba(255,255,255,0.2)"
+        strokeWidth="1"
+      />
+      <text
+        x="32"
+        y="42"
+        textAnchor="middle"
+        fill="white"
+        fontSize="24"
+        fontWeight="700"
+        fontFamily="system-ui, sans-serif"
+      >
+        {label}
+      </text>
     </svg>
-  )
+  );
 }
 
 function CoinCard({
   label,
   color,
   visibleText,
-  textYellow,
-}: { label: string; color: string; visibleText: string | null; textYellow: boolean }) {
+  textYellow
+}: {
+  label: string;
+  color: string;
+  visibleText: string | null;
+  textYellow: boolean;
+}) {
   return (
     <div className="coins-animation__coin">
       <div className="coins-animation__coin-image-wrap">
@@ -47,27 +70,27 @@ function CoinCard({
       </div>
       <div className="coins-animation__coin-text">
         {TEXT_ITEMS.map((text, i) => {
-          const isVisible = text === visibleText
-          const isYellow = text === 'x8' || text === 'x3'
+          const isVisible = text === visibleText;
+          const isYellow = text === "x8" || text === "x3";
           return (
             <div
               key={i}
-              className={`coins-animation__coin-text-item ${!isVisible ? 'coins-animation__coin-text-item_hidden' : ''}`}
-              style={isYellow ? { color: '#FBDF7C' } : undefined}
+              className={`coins-animation__coin-text-item ${!isVisible ? "coins-animation__coin-text-item_hidden" : ""}`}
+              style={isYellow ? { color: "#FBDF7C" } : undefined}
             >
               {text}
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
 export default function CoinsAnimation() {
   return (
     <div className="coins-animation mt-10 sm:mt-12">
-      {COINS.map((coin) => (
+      {COINS.map(coin => (
         <CoinCard
           key={coin.id}
           label={coin.label}
@@ -77,5 +100,5 @@ export default function CoinsAnimation() {
         />
       ))}
     </div>
-  )
+  );
 }

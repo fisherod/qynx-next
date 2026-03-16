@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "您的钱包没有足够的 {{symbol}}（需要 {{amount}} {{symbol}}）",
       processingButton: "处理中...",
       pay: "支付",
-      failedTitle: "支付失败",
-    },
-  },
+      failedTitle: "支付失败"
+    }
+  }
 };

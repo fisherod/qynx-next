@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "Nicht genug {{symbol}} (benötigt {{amount}} {{symbol}})",
       processingButton: "Wird verarbeitet...",
       pay: "Bezahlen",
-      failedTitle: "Zahlung fehlgeschlagen",
-    },
-  },
+      failedTitle: "Zahlung fehlgeschlagen"
+    }
+  }
 };

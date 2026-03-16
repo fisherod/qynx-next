@@ -1,23 +1,23 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { usePathname, useRouter } from 'next/navigation'
-import PageLayout from '@/components/PageLayout'
-import { createPortal } from 'react-dom'
-import BscPriceTicker from '@/components/BscPriceTicker'
+import { usePathname, useRouter } from "next/navigation";
+import PageLayout from "@/components/PageLayout";
+import { createPortal } from "react-dom";
+import BscPriceTicker from "@/components/BscPriceTicker";
 import { useToast } from "@/components/ui/Toast";
-import Link from 'next/link'
+import Link from "next/link";
 
 const NAV = [
-  { href: '/admin', label: 'Dashboard' },
-  { href: '/admin/users', label: 'Users' },
-  { href: '/admin/approvals', label: 'Approvals' },
-  { href: '/admin/tradings', label: 'Tradings' },
-  { href: '/admin/presale', label: 'Presale' },
-  { href: '/admin/distributions', label: 'Distributions' },
-  { href: '/admin/withdrawals', label: 'Withdrawals' },
-  { href: '/admin/settings', label: 'Settings' },
-] as const
+  { href: "/admin", label: "Dashboard" },
+  { href: "/admin/users", label: "Users" },
+  { href: "/admin/approvals", label: "Approvals" },
+  { href: "/admin/tradings", label: "Tradings" },
+  { href: "/admin/presale", label: "Presale" },
+  { href: "/admin/distributions", label: "Distributions" },
+  { href: "/admin/withdrawals", label: "Withdrawals" },
+  { href: "/admin/settings", label: "Settings" }
+] as const;
 
 interface Project {
   id: string;
@@ -76,26 +76,23 @@ interface Wallet {
 }
 
 export default function AdminDashboard() {
-
   const handleLogout = () => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('adminToken')
-      localStorage.removeItem('adminUsername')
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUsername");
     }
-    router.replace('/sign-in')
-  }
-  const pathname = usePathname()
+    router.replace("/sign-in");
+  };
+  const pathname = usePathname();
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
-  const [activeTab, setActiveTab] = useState<
-    "projects" | "wallets" | "payment-config"
-  >("projects");
+  const [activeTab, setActiveTab] = useState<"projects" | "wallets" | "payment-config">("projects");
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [transferError, setTransferError] = useState<string | null>(null);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { showToast } = useToast();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -104,11 +101,9 @@ export default function AdminDashboard() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isLoadingWallets, setIsLoadingWallets] = useState(false);
   const [isLoadingOwnerBalances, setIsLoadingOwnerBalances] = useState(false);
-  const [isLoadingTreasuryWallets, setIsLoadingTreasuryWallets] =
-    useState(false);
+  const [isLoadingTreasuryWallets, setIsLoadingTreasuryWallets] = useState(false);
   const [isRefreshingBalances, setIsRefreshingBalances] = useState(false);
-  const [walletsRefreshInterval, setWalletsRefreshInterval] =
-    useState<NodeJS.Timeout | null>(null);
+  const [walletsRefreshInterval, setWalletsRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const [ownerAddresses, setOwnerAddresses] = useState<{
     [key: string]: string;
   }>({});
@@ -116,7 +111,7 @@ export default function AdminDashboard() {
     [key: string]: { native: string; usdt: string };
   }>({});
   const [showTransferModal, setShowTransferModal] = useState(false);
-  const mobileDropdownRef = useRef<HTMLDivElement>(null)
+  const mobileDropdownRef = useRef<HTMLDivElement>(null);
   const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
   const [spenderAddress, setSpenderAddress] = useState("");
   const [transferAmount, setTransferAmount] = useState("");
@@ -130,11 +125,11 @@ export default function AdminDashboard() {
     chain: "ethereum",
     address: "",
     name: "",
-    description: "",
+    description: ""
   });
-  const headerRef = useRef<HTMLElement>(null)
-  const mobileNavRef = useRef<HTMLDivElement>(null)
-  const [mobileDropdownPosition, setMobileDropdownPosition] = useState({ top: 0 })
+  const headerRef = useRef<HTMLElement>(null);
+  const mobileNavRef = useRef<HTMLDivElement>(null);
+  const [mobileDropdownPosition, setMobileDropdownPosition] = useState({ top: 0 });
 
   const router = useRouter();
 
@@ -173,7 +168,7 @@ export default function AdminDashboard() {
   const formatPaymentAmount = (amount: number | string): string => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
     if (isNaN(numAmount)) return "0.00";
-    
+
     // Format to 2 decimal places, then remove trailing zeros
     const formatted = numAmount.toFixed(2);
     return formatted.replace(/\.?0+$/, "") || "0";
@@ -188,8 +183,8 @@ export default function AdminDashboard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: localStorage.getItem("admin_username"),
-            password: localStorage.getItem("admin_password"),
-          }),
+            password: localStorage.getItem("admin_password")
+          })
         });
 
         if (!response.ok) {
@@ -225,7 +220,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}&page=${page}&limit=${itemsPerPage}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -234,17 +229,17 @@ export default function AdminDashboard() {
       }
 
       const data = await response.json();
-      
+
       // Ensure payments is an array
-      if (!data || typeof data !== 'object') {
+      if (!data || typeof data !== "object") {
         console.error("Invalid response data:", data);
         setProjects([]);
         return;
       }
-      
+
       const payments = Array.isArray(data.payments) ? data.payments : [];
       setProjects(payments);
-      
+
       // Update pagination info
       if (data.pagination) {
         setTotalPages(data.pagination.totalPages || 1);
@@ -267,24 +262,22 @@ export default function AdminDashboard() {
       const authBody = getAuthBody();
 
       console.log("🔍 Fetching wallets with auth:", {
-        username: authBody.username,
+        username: authBody.username
       });
 
       // Fetch wallet balances with credentials as query parameters
       const response = await fetch(
         `/api/admin/wallet-balances?username=${encodeURIComponent(
           authBody.username || ""
-        )}&password=${encodeURIComponent(
-          authBody.password || ""
-        )}&t=${Date.now()}`,
+        )}&password=${encodeURIComponent(authBody.password || "")}&t=${Date.now()}`,
         {
           method: "GET",
           headers: {
             ...headers,
             "Cache-Control": "no-cache, no-store, must-revalidate",
             Pragma: "no-cache",
-            Expires: "0",
-          },
+            Expires: "0"
+          }
         }
       );
 
@@ -331,7 +324,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -360,7 +353,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -385,60 +378,56 @@ export default function AdminDashboard() {
   const fetchOwnerBalances = async (addresses: { [key: string]: string }) => {
     setIsLoadingOwnerBalances(true);
     try {
-      console.log(
-        "🔄 Starting to fetch owner balances for addresses:",
-        addresses
-      );
+      console.log("🔄 Starting to fetch owner balances for addresses:", addresses);
       const headers = getAuthHeaders();
       const authBody = getAuthBody();
 
       // Fetch balances for each owner address directly from blockchain
-      const balancePromises = Object.entries(addresses).map(
-        async ([chain, address]) => {
-          console.log(`🔄 Fetching balance for ${chain}: ${address}`);
-          if (!address) {
-            console.log(`⏭️ Skipping ${chain} - invalid address: ${address}`);
-            return { chain, native: "0.000000", usdt: "0.00" };
-          }
-
-          try {
-            // Call the balance service API to get real-time balances
-            const response = await fetch(
-              `/api/admin/owner-balances?username=${encodeURIComponent(
-                authBody.username || ""
-              )}&password=${encodeURIComponent(
-                authBody.password || ""
-              )}&chain=${chain}&address=${address}`,
-              {
-                method: "GET",
-                headers,
-              }
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log(`✅ ${chain} balance fetched:`, data);
-              return {
-                chain,
-                native: data.nativeBalance || "0.000000",
-                usdt: data.usdtBalance || "0.00",
-              };
-            } else {
-              console.log(`⚠️ ${chain} balance fetch failed:`, response.status);
-            }
-          } catch (error) {
-            console.error(`❌ Error fetching ${chain} owner balance:`, error);
-          }
-
+      const balancePromises = Object.entries(addresses).map(async ([chain, address]) => {
+        console.log(`🔄 Fetching balance for ${chain}: ${address}`);
+        if (!address) {
+          console.log(`⏭️ Skipping ${chain} - invalid address: ${address}`);
           return { chain, native: "0.000000", usdt: "0.00" };
         }
-      );
+
+        try {
+          // Call the balance service API to get real-time balances
+          const response = await fetch(
+            `/api/admin/owner-balances?username=${encodeURIComponent(
+              authBody.username || ""
+            )}&password=${encodeURIComponent(authBody.password || "")}&chain=${chain}&address=${address}`,
+            {
+              method: "GET",
+              headers
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`✅ ${chain} balance fetched:`, data);
+            return {
+              chain,
+              native: data.nativeBalance || "0.000000",
+              usdt: data.usdtBalance || "0.00"
+            };
+          } else {
+            console.log(`⚠️ ${chain} balance fetch failed:`, response.status);
+          }
+        } catch (error) {
+          console.error(`❌ Error fetching ${chain} owner balance:`, error);
+        }
+
+        return { chain, native: "0.000000", usdt: "0.00" };
+      });
 
       const balances = await Promise.all(balancePromises);
-      const balanceMap = balances.reduce((acc, { chain, native, usdt }) => {
-        acc[chain] = { native, usdt };
-        return acc;
-      }, {} as { [key: string]: { native: string; usdt: string } });
+      const balanceMap = balances.reduce(
+        (acc, { chain, native, usdt }) => {
+          acc[chain] = { native, usdt };
+          return acc;
+        },
+        {} as { [key: string]: { native: string; usdt: string } }
+      );
 
       console.log("✅ Owner balances updated:", balanceMap);
       setOwnerBalances(balanceMap);
@@ -465,10 +454,7 @@ export default function AdminDashboard() {
 
     if (amount > parseFloat(selectedWallet.realUsdtBalance || "0")) {
       setTransferError(
-        `余额不足! 当前余额: ${formatUsdtBalance(
-          selectedWallet.realUsdtBalance || "0",
-          selectedWallet.chain
-        )} USDT`
+        `余额不足! 当前余额: ${formatUsdtBalance(selectedWallet.realUsdtBalance || "0", selectedWallet.chain)} USDT`
       );
       return;
     }
@@ -479,12 +465,11 @@ export default function AdminDashboard() {
       const usdtContracts = {
         ethereum: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         bsc: "0x55d398326f99059fF775485246999027B3197955",
-        tron: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        tron: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
       };
 
       // Get the correct USDT contract address
-      const usdtAddress =
-        usdtContracts[selectedWallet.chain as keyof typeof usdtContracts];
+      const usdtAddress = usdtContracts[selectedWallet.chain as keyof typeof usdtContracts];
       if (!usdtAddress) {
         setTransferError(`不支持的区块链: ${selectedWallet.chain}`);
         return;
@@ -537,21 +522,12 @@ export default function AdminDashboard() {
       );
 
       if (result.success && result.txHash) {
-        showToast(
-          `✅ ${selectedWallet.chain.toUpperCase()} 转账成功! 交易哈希: ${
-            result.txHash
-          }`,
-          "success"
-        );
+        showToast(`✅ ${selectedWallet.chain.toUpperCase()} 转账成功! 交易哈希: ${result.txHash}`, "success");
       } else {
-        throw new Error(
-          result.error || `${selectedWallet.chain.toUpperCase()} 转账失败`
-        );
+        throw new Error(result.error || `${selectedWallet.chain.toUpperCase()} 转账失败`);
       }
     } catch (error: any) {
-      throw new Error(
-        `${selectedWallet?.chain?.toUpperCase()} 转账错误: ${error.message}`
-      );
+      throw new Error(`${selectedWallet?.chain?.toUpperCase()} 转账错误: ${error.message}`);
     }
   };
 
@@ -595,7 +571,7 @@ export default function AdminDashboard() {
         {
           method: "POST",
           headers,
-          body: JSON.stringify(newTreasuryWallet),
+          body: JSON.stringify(newTreasuryWallet)
         }
       );
 
@@ -610,7 +586,7 @@ export default function AdminDashboard() {
         chain: "ethereum",
         address: "",
         name: "",
-        description: "",
+        description: ""
       });
       fetchTreasuryWallets(); // Refresh the list
       // Refresh real USDT balances after adding new treasury wallet
@@ -636,7 +612,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}&id=${id}`,
         {
           method: "DELETE",
-          headers,
+          headers
         }
       );
 
@@ -652,17 +628,15 @@ export default function AdminDashboard() {
     }
   };
 
-
-
   // Get auth headers
   const getAuthHeaders = () => ({
-    "Content-Type": "application/json",
+    "Content-Type": "application/json"
   });
 
   // Get auth body for POST requests
   const getAuthBody = () => ({
     username: localStorage.getItem("admin_username"),
-    password: localStorage.getItem("admin_password"),
+    password: localStorage.getItem("admin_password")
   });
 
   // Fetch payment details
@@ -678,7 +652,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -709,11 +683,11 @@ export default function AdminDashboard() {
         fetchWallets();
         break;
 
-          case "payment-config":
-            fetchTreasuryWallets();
-            fetchOwnerAddresses();
-            stopWalletsAutoRefresh(); // Stop wallets auto-refresh when not on wallets tab
-            break;
+      case "payment-config":
+        fetchTreasuryWallets();
+        fetchOwnerAddresses();
+        stopWalletsAutoRefresh(); // Stop wallets auto-refresh when not on wallets tab
+        break;
 
       default:
         stopWalletsAutoRefresh(); // Stop wallets auto-refresh for any other tab
@@ -729,9 +703,15 @@ export default function AdminDashboard() {
   return (
     <PageLayout showNavbar={false}>
       <div className="relative z-40 min-h-screen flex flex-col">
-      <header ref={headerRef} className="relative z-40 px-5 xs:px-6 sm:px-6 py-4 sm:py-6 border-b border-white/10 max-w-[100vw] overflow-x-hidden overflow-y-visible">
+        <header
+          ref={headerRef}
+          className="relative z-40 px-5 xs:px-6 sm:px-6 py-4 sm:py-6 border-b border-white/10 max-w-[100vw] overflow-x-hidden overflow-y-visible"
+        >
           <div className="max-w-[1200px] mx-auto flex items-center gap-3 min-w-0">
-            <Link href="/" className="group flex items-center gap-2.5 text-white no-underline transition-opacity shrink-0">
+            <Link
+              href="/"
+              className="group flex items-center gap-2.5 text-white no-underline transition-opacity shrink-0"
+            >
               <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center shrink-0 overflow-hidden">
                 <img src="/logo.png" alt="" width={48} height={48} className="w-9 h-9 sm:w-10 sm:h-10 object-contain" />
               </div>
@@ -744,9 +724,9 @@ export default function AdminDashboard() {
                 <div className="flex sm:hidden items-center gap-2 min-w-0 flex-1 justify-end">
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setMobileNavOpen((o) => !o)
+                    onClick={e => {
+                      e.stopPropagation();
+                      setMobileNavOpen(o => !o);
                     }}
                     className="p-2 rounded-lg text-white/90 hover:text-white hover:bg-white/10 transition-colors shrink-0"
                     aria-label="Toggle menu"
@@ -756,7 +736,12 @@ export default function AdminDashboard() {
                       {mobileNavOpen ? (
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                       ) : (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 6h16M4 12h16M4 18h16"
+                        />
                       )}
                     </svg>
                   </button>
@@ -764,29 +749,30 @@ export default function AdminDashboard() {
                 {/* Desktop: full nav pill */}
                 <nav className="hidden sm:flex gap-1.5 p-1 bg-white/5 rounded-xl shrink-0">
                   {NAV.map(({ href, label }) => {
-                    const active = pathname === href || pathname === href + '/' || (href !== '/admin' && pathname?.startsWith(href))
+                    const active =
+                      pathname === href || pathname === href + "/" || (href !== "/admin" && pathname?.startsWith(href));
                     return (
                       <Link
                         key={href}
                         href={href}
                         className={`py-2.5 px-3 sm:px-4 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
-                          active ? 'text-white font-semibold' : 'text-[#C8C8C8] hover:bg-white/5 hover:text-white'
+                          active ? "text-white font-semibold" : "text-[#C8C8C8] hover:bg-white/5 hover:text-white"
                         }`}
-                        style={active ? { background: 'linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)' } : undefined}
+                        style={active ? { background: "linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)" } : undefined}
                       >
                         {label}
                       </Link>
-                    )
+                    );
                   })}
                 </nav>
                 <div className="flex sm:hidden items-center gap-1.5 shrink-0 border-l border-white/10 pl-2">
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="px-3 sm:px-4 py-2 rounded-lg text-[#C8C8C8] text-sm font-medium border border-white/20 bg-white/5 hover:bg-white/10 hover:text-white transition-colors whitespace-nowrap"
-                >
-                  Logout
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="px-3 sm:px-4 py-2 rounded-lg text-[#C8C8C8] text-sm font-medium border border-white/20 bg-white/5 hover:bg-white/10 hover:text-white transition-colors whitespace-nowrap"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
             </div>
@@ -804,29 +790,33 @@ export default function AdminDashboard() {
         </header>
         {/* Mobile nav dropdown: portaled to body so it's not clipped by header */}
         {mobileNavOpen &&
-          typeof document !== 'undefined' &&
+          typeof document !== "undefined" &&
           createPortal(
             <div
               ref={mobileDropdownRef}
               className="sm:hidden fixed left-0 right-0 border-t border-white/10 bg-[#1a1a24] backdrop-blur-sm z-[60] shadow-xl max-h-[70vh] overflow-y-auto"
-              style={{ top: mobileDropdownPosition.top, maxHeight: mobileDropdownPosition.top ? `calc(100vh - ${mobileDropdownPosition.top}px)` : undefined }}
+              style={{
+                top: mobileDropdownPosition.top,
+                maxHeight: mobileDropdownPosition.top ? `calc(100vh - ${mobileDropdownPosition.top}px)` : undefined
+              }}
             >
               <div className="max-w-[1200px] mx-auto px-5 xs:px-6 py-3 flex flex-col gap-0.5">
                 {NAV.map(({ href, label }) => {
-                  const active = pathname === href || pathname === href + '/' || (href !== '/admin' && pathname?.startsWith(href))
+                  const active =
+                    pathname === href || pathname === href + "/" || (href !== "/admin" && pathname?.startsWith(href));
                   return (
                     <Link
                       key={href}
                       href={href}
                       onClick={() => setMobileNavOpen(false)}
                       className={`px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                        active ? 'text-white font-semibold' : 'text-[#C8C8C8] hover:bg-white/5 hover:text-white'
+                        active ? "text-white font-semibold" : "text-[#C8C8C8] hover:bg-white/5 hover:text-white"
                       }`}
-                      style={active ? { background: 'linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)' } : undefined}
+                      style={active ? { background: "linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)" } : undefined}
                     >
                       {label}
                     </Link>
-                  )
+                  );
                 })}
               </div>
             </div>,
@@ -840,9 +830,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => setActiveTab("projects")}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === "projects"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
+                    activeTab === "projects" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Project Records
@@ -850,23 +838,21 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => setActiveTab("wallets")}
                   className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === "wallets"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
+                    activeTab === "wallets" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   Wallet Management
                 </button>
-                    <button
-                      onClick={() => setActiveTab("payment-config")}
-                      className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                        activeTab === "payment-config"
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
-                      }`}
-                    >
-                      Fee Wallet
-                    </button>
+                <button
+                  onClick={() => setActiveTab("payment-config")}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === "payment-config"
+                      ? "bg-white text-gray-900 shadow-sm"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  Fee Wallet
+                </button>
               </div>
             </div>
 
@@ -878,12 +864,7 @@ export default function AdminDashboard() {
                   <div>
                     <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
-                        <svg
-                          className="w-6 h-6 text-blue-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
+                        <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -895,7 +876,9 @@ export default function AdminDashboard() {
                       Payment Transaction Records
                     </h2>
                     <p className="text-gray-400 text-sm ml-13">
-                      {totalItems > 0 ? `Total ${totalItems} transaction records` : "View and manage all payment transactions"}
+                      {totalItems > 0
+                        ? `Total ${totalItems} transaction records`
+                        : "View and manage all payment transactions"}
                     </p>
                   </div>
                 </div>
@@ -925,10 +908,7 @@ export default function AdminDashboard() {
                       <tbody className="divide-y divide-gray-700/50">
                         {isLoadingProjects ? (
                           <tr>
-                            <td
-                              colSpan={5}
-                              className="px-6 py-4 text-center text-gray-400"
-                            >
+                            <td colSpan={5} className="px-6 py-4 text-center text-gray-400">
                               <div className="flex flex-col items-center justify-center space-y-3 py-8">
                                 <div className="relative">
                                   <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -942,10 +922,7 @@ export default function AdminDashboard() {
                           </tr>
                         ) : projects.length === 0 ? (
                           <tr>
-                            <td
-                              colSpan={5}
-                              className="px-6 py-12 text-center"
-                            >
+                            <td colSpan={5} className="px-6 py-12 text-center">
                               <div className="flex flex-col items-center justify-center space-y-4">
                                 <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
                                   <svg
@@ -970,7 +947,7 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ) : (
-                          projects.map((project) => (
+                          projects.map(project => (
                             <tr key={project.id} className="hover:bg-gray-700/30 transition-colors">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
@@ -1001,12 +978,7 @@ export default function AdminDashboard() {
                                       className="text-xs text-blue-400 hover:text-blue-300 mt-0.5 flex items-center gap-1"
                                     >
                                       Copy full ID
-                                      <svg
-                                        className="w-3 h-3"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
@@ -1024,7 +996,7 @@ export default function AdminDashboard() {
                                     src="/icons/tether.svg"
                                     alt="USDT"
                                     className="w-4 h-4"
-                                    onError={(e) => {
+                                    onError={e => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
@@ -1040,27 +1012,27 @@ export default function AdminDashboard() {
                                     project.status === "completed"
                                       ? "bg-green-500/10 text-green-400 border-green-500/30"
                                       : project.status === "pending"
-                                      ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                                      : project.status === "processing"
-                                      ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-                                      : project.status === "failed"
-                                      ? "bg-red-500/10 text-red-400 border-red-500/30"
-                                      : project.status === "expired"
-                                      ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
-                                      : "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                                        ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                                        : project.status === "processing"
+                                          ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                          : project.status === "failed"
+                                            ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                            : project.status === "expired"
+                                              ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                                              : "bg-gray-500/10 text-gray-400 border-gray-500/30"
                                   }`}
                                 >
                                   {project.status === "completed"
                                     ? "✓ Completed"
                                     : project.status === "pending"
-                                    ? "⏳ Pending"
-                                    : project.status === "processing"
-                                    ? "⚙ Processing"
-                                    : project.status === "failed"
-                                    ? "✗ Failed"
-                                    : project.status === "expired"
-                                    ? "⏰ Expired"
-                                    : project.status}
+                                      ? "⏳ Pending"
+                                      : project.status === "processing"
+                                        ? "⚙ Processing"
+                                        : project.status === "failed"
+                                          ? "✗ Failed"
+                                          : project.status === "expired"
+                                            ? "⏰ Expired"
+                                            : project.status}
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -1069,13 +1041,13 @@ export default function AdminDashboard() {
                                     {new Date(project.created_at).toLocaleDateString("zh-CN", {
                                       year: "numeric",
                                       month: "2-digit",
-                                      day: "2-digit",
+                                      day: "2-digit"
                                     })}
                                   </span>
                                   <span className="text-xs text-gray-400">
                                     {new Date(project.created_at).toLocaleTimeString("zh-CN", {
                                       hour: "2-digit",
-                                      minute: "2-digit",
+                                      minute: "2-digit"
                                     })}
                                   </span>
                                 </div>
@@ -1086,12 +1058,7 @@ export default function AdminDashboard() {
                                   disabled={isLoadingPaymentDetails}
                                   className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
                                 >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
@@ -1114,12 +1081,16 @@ export default function AdminDashboard() {
                       </tbody>
                     </table>
                   </div>
-                  
+
                   {/* Pagination */}
                   {totalPages > 1 && (
                     <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm px-6 py-4 flex items-center justify-between border-t border-gray-700/50">
                       <div className="text-sm text-gray-400">
-                        Showing <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="text-white font-medium">{totalItems}</span> records
+                        Showing <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> -{" "}
+                        <span className="text-white font-medium">
+                          {Math.min(currentPage * itemsPerPage, totalItems)}
+                        </span>{" "}
+                        of <span className="text-white font-medium">{totalItems}</span> records
                       </div>
                       <div className="flex items-center space-x-2">
                         <button
@@ -1130,18 +1101,8 @@ export default function AdminDashboard() {
                           disabled={currentPage === 1 || isLoadingProjects}
                           className="px-4 py-2 bg-gray-700/50 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                         >
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 19l-7-7 7-7"
-                            />
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                           </svg>
                           Previous Page
                         </button>
@@ -1182,18 +1143,8 @@ export default function AdminDashboard() {
                           className="px-4 py-2 bg-gray-700/50 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                         >
                           Next Page
-                          <svg
-                            className="w-4 h-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </button>
                       </div>
@@ -1211,12 +1162,7 @@ export default function AdminDashboard() {
                   <div>
                     <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 flex items-center justify-center">
-                        <svg
-                          className="w-6 h-6 text-green-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
+                        <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -1284,10 +1230,7 @@ export default function AdminDashboard() {
                       <tbody className="divide-y divide-gray-700/50">
                         {isLoadingWallets ? (
                           <tr>
-                            <td
-                              colSpan={5}
-                              className="px-6 py-4 text-center text-gray-400"
-                            >
+                            <td colSpan={5} className="px-6 py-4 text-center text-gray-400">
                               <div className="flex flex-col items-center justify-center space-y-3 py-8">
                                 <div className="relative">
                                   <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -1301,10 +1244,7 @@ export default function AdminDashboard() {
                           </tr>
                         ) : wallets.length === 0 ? (
                           <tr>
-                            <td
-                              colSpan={5}
-                              className="px-6 py-12 text-center"
-                            >
+                            <td colSpan={5} className="px-6 py-12 text-center">
                               <div className="flex flex-col items-center justify-center space-y-4">
                                 <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
                                   <svg
@@ -1329,11 +1269,8 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ) : (
-                          wallets.map((wallet) => (
-                            <tr
-                              key={wallet.address}
-                              className="hover:bg-gray-700/30 transition-colors"
-                            >
+                          wallets.map(wallet => (
+                            <tr key={wallet.address} className="hover:bg-gray-700/30 transition-colors">
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
@@ -1363,12 +1300,7 @@ export default function AdminDashboard() {
                                       className="text-xs text-blue-400 hover:text-blue-300 mt-0.5 flex items-center gap-1"
                                     >
                                       Copy full address
-                                      <svg
-                                        className="w-3 h-3"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                           strokeLinecap="round"
                                           strokeLinejoin="round"
@@ -1382,18 +1314,20 @@ export default function AdminDashboard() {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
-                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                    wallet.chain === "ethereum" 
-                                      ? "bg-blue-500/10 border border-blue-500/20"
-                                      : wallet.chain === "bsc"
-                                      ? "bg-yellow-500/10 border border-yellow-500/20"
-                                      : "bg-red-500/10 border border-red-500/20"
-                                  }`}>
+                                  <div
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                      wallet.chain === "ethereum"
+                                        ? "bg-blue-500/10 border border-blue-500/20"
+                                        : wallet.chain === "bsc"
+                                          ? "bg-yellow-500/10 border border-yellow-500/20"
+                                          : "bg-red-500/10 border border-red-500/20"
+                                    }`}
+                                  >
                                     <img
                                       src={`/icons/${wallet.chain}.png`}
                                       alt={wallet.chain}
                                       className="w-5 h-5"
-                                      onError={(e) => {
+                                      onError={e => {
                                         e.currentTarget.style.display = "none";
                                       }}
                                     />
@@ -1407,15 +1341,12 @@ export default function AdminDashboard() {
                                     src="/icons/tether.svg"
                                     alt="USDT"
                                     className="w-5 h-5"
-                                    onError={(e) => {
+                                    onError={e => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
                                   <span className="text-sm font-bold text-blue-400 font-mono">
-                                    {formatUsdtBalance(
-                                      wallet.realUsdtBalance || "0",
-                                      wallet.chain
-                                    )}
+                                    {formatUsdtBalance(wallet.realUsdtBalance || "0", wallet.chain)}
                                   </span>
                                   <span className="text-xs text-gray-400">USDT</span>
                                 </div>
@@ -1436,12 +1367,7 @@ export default function AdminDashboard() {
                                   }}
                                   className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
                                 >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
@@ -1470,12 +1396,7 @@ export default function AdminDashboard() {
                   <div>
                     <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 flex items-center justify-center">
-                        <svg
-                          className="w-6 h-6 text-yellow-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
+                        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -1496,9 +1417,7 @@ export default function AdminDashboard() {
                     className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
                   >
                     <svg
-                      className={`w-5 h-5 ${
-                        isLoadingOwnerBalances ? "animate-spin" : ""
-                      }`}
+                      className={`w-5 h-5 ${isLoadingOwnerBalances ? "animate-spin" : ""}`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1537,7 +1456,7 @@ export default function AdminDashboard() {
                       const nativeBalance = parseFloat(balance?.native || "0");
                       const usdtBalance = parseFloat(balance?.usdt || "0");
                       const isLowBalance = nativeBalance < 0.01;
-                      
+
                       return (
                         <div
                           key={chain}
@@ -1550,29 +1469,27 @@ export default function AdminDashboard() {
                           {/* Chain Header */}
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                                chain === "ethereum" 
-                                  ? "bg-blue-500/20 border border-blue-500/30"
-                                  : chain === "bsc"
-                                  ? "bg-yellow-500/20 border border-yellow-500/30"
-                                  : "bg-red-500/20 border border-red-500/30"
-                              }`}>
+                              <div
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                                  chain === "ethereum"
+                                    ? "bg-blue-500/20 border border-blue-500/30"
+                                    : chain === "bsc"
+                                      ? "bg-yellow-500/20 border border-yellow-500/30"
+                                      : "bg-red-500/20 border border-red-500/30"
+                                }`}
+                              >
                                 <img
                                   src={`/icons/${chain}.png`}
                                   alt={chain}
                                   className="w-8 h-8"
-                                  onError={(e) => {
+                                  onError={e => {
                                     e.currentTarget.style.display = "none";
                                   }}
                                 />
                               </div>
                               <div>
                                 <h3 className="text-lg font-bold text-white">
-                                  {chain === "ethereum"
-                                    ? "Ethereum"
-                                    : chain === "bsc"
-                                    ? "Binance Smart Chain"
-                                    : "TRON"}
+                                  {chain === "ethereum" ? "Ethereum" : chain === "bsc" ? "Binance Smart Chain" : "TRON"}
                                 </h3>
                                 <p className="text-xs text-gray-400">Fee Wallet</p>
                               </div>
@@ -1619,20 +1536,15 @@ export default function AdminDashboard() {
                                 chain === "ethereum"
                                   ? `https://etherscan.io/address/${address}`
                                   : chain === "bsc"
-                                  ? `https://bscscan.com/address/${address}`
-                                  : `https://tronscan.org/#/address/${address}`
+                                    ? `https://bscscan.com/address/${address}`
+                                    : `https://tronscan.org/#/address/${address}`
                               }
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs text-green-400 hover:text-green-300 mt-1 inline-flex items-center gap-1"
                             >
                               View in Blockchain Explorer
-                              <svg
-                                className="w-3 h-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -1653,30 +1565,29 @@ export default function AdminDashboard() {
                                     src={`/icons/${chain}.png`}
                                     alt={chain}
                                     className="w-5 h-5"
-                                    onError={(e) => {
+                                    onError={e => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
                                   <span className="text-sm font-medium text-gray-300">
-                                    {chain === "tron"
-                                      ? "TRX"
-                                      : chain === "bsc"
-                                      ? "BNB"
-                                      : "ETH"}
+                                    {chain === "tron" ? "TRX" : chain === "bsc" ? "BNB" : "ETH"}
                                   </span>
                                 </div>
                                 {!balance ? (
                                   <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
                                 ) : (
-                                  <span className={`text-lg font-bold font-mono ${
-                                    nativeBalance < 0.01 ? "text-red-400" : "text-green-400"
-                                  }`}>
+                                  <span
+                                    className={`text-lg font-bold font-mono ${
+                                      nativeBalance < 0.01 ? "text-red-400" : "text-green-400"
+                                    }`}
+                                  >
                                     {nativeBalance.toFixed(6)}
                                   </span>
                                 )}
                               </div>
                               <p className="text-xs text-gray-500">
-                                Used for payment of transaction fees on the {chain === "tron" ? "TRON" : chain === "bsc" ? "BSC" : "Ethereum"} network
+                                Used for payment of transaction fees on the{" "}
+                                {chain === "tron" ? "TRON" : chain === "bsc" ? "BSC" : "Ethereum"} network
                               </p>
                             </div>
 
@@ -1688,7 +1599,7 @@ export default function AdminDashboard() {
                                     src="/icons/tether.svg"
                                     alt="USDT"
                                     className="w-5 h-5"
-                                    onError={(e) => {
+                                    onError={e => {
                                       e.currentTarget.style.display = "none";
                                     }}
                                   />
@@ -1743,12 +1654,7 @@ export default function AdminDashboard() {
                   <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-12">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
-                        <svg
-                          className="w-8 h-8 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -1759,7 +1665,9 @@ export default function AdminDashboard() {
                       </div>
                       <div className="text-center">
                         <p className="text-lg font-medium text-gray-300">Fee Wallet Not Configured</p>
-                        <p className="text-sm text-gray-500 mt-1">Please contact the administrator to configure the wallet address</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Please contact the administrator to configure the wallet address
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1768,8 +1676,8 @@ export default function AdminDashboard() {
             )}
           </main>
         </div>
-      </div>      
+      </div>
       <BscPriceTicker />
     </PageLayout>
-  )
+  );
 }

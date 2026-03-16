@@ -3,39 +3,26 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getWalletBalances } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 import { logger } from "../../../../lib/logger";
-import { EVMService, safePingService, TronService } from "@/lib/blockchain";
-import { ChainType } from "@/types";
+import { blockchainService } from "@/lib/blockchain";
+import { ChainType, CurrencyType } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication using query parameters
-    const { searchParams } = new URL(request.url);
-    const username = searchParams.get("username");
-    const password = searchParams.get("password");
-
-    // Check credentials against environment variables
-    if (
-      !username ||
-      !password ||
-      username !== process.env.ADMIN_USERNAME ||
-      password !== process.env.ADMIN_PASSWORD
-    ) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     logger.info("Fetching wallet balances");
 
+    const db = getDatabase();
+
     // Get basic wallet info from database
-    const wallets = await getWalletBalances();
+    const wallets = await db.getWalletBalances();
 
     if (!wallets || wallets.length === 0) {
       return NextResponse.json({
         balances: [],
         timestamp: new Date().toISOString(),
         totalWallets: 0,
-        message: "No wallets found",
+        message: "No wallets found"
       });
     }
 
@@ -46,35 +33,38 @@ export async function GET(request: NextRequest) {
     for (const wallet of wallets) {
       try {
         console.log(`📊 Processing ${wallet.chain} wallet: ${wallet.address}`);
-        let realUsdtBalance = await safePingService.getUserUSDTBalance(
+        const realTokenBalance = await blockchainService.getUserTokenBalance(
           wallet.chain as ChainType,
+          wallet.currency as CurrencyType,
           wallet.address
         );
 
         walletsWithBalances.push({
           address: wallet.address,
           chain: wallet.chain,
+          currency: wallet.currency,
           amount: wallet.amount,
-          usdtBalance: wallet.usdtBalance,
-          realUsdtBalance,
+          tokenBalance: wallet.tokenBalance,
+          realTokenBalance,
           paymentCount: wallet.paymentCount,
-          lastActivity: wallet.lastActivity,
+          lastActivity: wallet.lastActivity
         });
 
         console.log(
-          `✅ Completed ${wallet.chain} wallet: ${realUsdtBalance} USDT`
+          `✅ Completed ${wallet.chain.toUpperCase()} wallet: ${realTokenBalance} ${wallet.currency.toUpperCase()}`
         );
       } catch (error) {
         logger.error(`Failed to get balance for ${wallet.address}:`, error);
         walletsWithBalances.push({
           address: wallet.address,
           chain: wallet.chain,
+          currency: wallet.currency,
           amount: wallet.amount,
-          usdtBalance: wallet.usdtBalance,
-          realUsdtBalance: "0.00",
+          tokenBalance: wallet.tokenBalance,
+          realTokenBalance: "0.00",
           paymentCount: wallet.paymentCount,
           lastActivity: wallet.lastActivity,
-          error: "Failed to fetch balance",
+          error: "Failed to fetch balance"
         });
         console.log(`❌ Failed ${wallet.chain} wallet: ${wallet.address}`);
       }
@@ -86,14 +76,14 @@ export async function GET(request: NextRequest) {
       {
         balances: walletsWithBalances,
         timestamp: new Date().toISOString(),
-        totalWallets: walletsWithBalances.length,
+        totalWallets: walletsWithBalances.length
       },
       {
         headers: {
           "Cache-Control": "no-cache, no-store, must-revalidate",
           Pragma: "no-cache",
-          Expires: "0",
-        },
+          Expires: "0"
+        }
       }
     );
   } catch (error) {
@@ -102,7 +92,7 @@ export async function GET(request: NextRequest) {
       {
         error: "Failed to get wallet balances",
         details: error instanceof Error ? error.message : "Unknown error",
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     );
@@ -115,7 +105,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
   });
 }

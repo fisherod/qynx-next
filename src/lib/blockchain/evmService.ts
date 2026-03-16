@@ -4,7 +4,7 @@
 
 import { GATEWAY_ADDRESSES, RPC_URLS, TOKEN_ADDRESSES } from "@/constants";
 import { BlockchainResult, ChainType, CurrencyType } from "@/types";
-import { getChainAbi } from "../../utils/chainUtils";
+import GatewayAbi from "@/abi/Gateway.json";
 
 // Import ethers for blockchain operations
 let ethers: any;
@@ -28,11 +28,7 @@ export class EVMService {
   /**
    * Get user's token balance
    */
-  static async getUserTokenBalance(
-    chain: ChainType,
-    currency: CurrencyType,
-    address: string
-  ): Promise<string> {
+  static async getUserTokenBalance(chain: ChainType, currency: CurrencyType, address: string): Promise<string> {
     try {
       const { ethers } = await getEthers();
       const rpcUrl = RPC_URLS[chain];
@@ -48,7 +44,10 @@ export class EVMService {
       console.log(`✅ ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`, balance.toString());
       return balance.toString(); // Return raw uint256 string
     } catch (error: any) {
-      console.error(`❌ Error getting ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`, error);
+      console.error(
+        `❌ Error getting ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`,
+        error
+      );
       return "0";
     }
   }
@@ -56,10 +55,7 @@ export class EVMService {
   /**
    * Get user's native token balance (ETH, BNB)
    */
-  static async getUserNativeBalance(
-    chain: ChainType,
-    address: string
-  ): Promise<string> {
+  static async getUserNativeBalance(chain: ChainType, address: string): Promise<string> {
     try {
       const { ethers } = await getEthers();
       const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
@@ -69,6 +65,23 @@ export class EVMService {
     } catch (error: any) {
       // Silent error handling for production
       return "0";
+    }
+  }
+
+  static async getTokenDecimals(chain: ChainType, currency: CurrencyType): Promise<number> {
+    try {
+      const { ethers } = await getEthers();
+      const rpcUrl = RPC_URLS[chain];
+      const provider = new ethers.JsonRpcProvider(rpcUrl);
+      const tokenAddress = TOKEN_ADDRESSES[chain][currency];
+      const decimals = await provider.call({
+        to: tokenAddress,
+        data: ethers.id("decimals()").substring(0, 10)
+      });
+      return parseInt(decimals.toString(), 16);
+    } catch (error: any) {
+      console.error(`❌ Error getting ${currency.toUpperCase()} decimals for ${chain.toUpperCase()}:`, error);
+      return 18;
     }
   }
 
@@ -93,9 +106,7 @@ export class EVMService {
 
       // Validate addresses
       if (!gatewayAddress || !ethers.isAddress(gatewayAddress)) {
-        throw new Error(
-          `Invalid payment processor address for ${chain}: ${gatewayAddress}`
-        );
+        throw new Error(`Invalid payment processor address for ${chain}: ${gatewayAddress}`);
       }
 
       if (!tokenAddress || !ethers.isAddress(tokenAddress)) {
@@ -107,40 +118,31 @@ export class EVMService {
       // Check current allowance
       const tokenContract = new ethers.Contract(
         tokenAddress,
-        [
-          "function allowance(address owner, address spender) view returns (uint256)",
-        ],
+        ["function allowance(address owner, address spender) view returns (uint256)"],
         provider
       );
 
-      const currentAllowance = await tokenContract.allowance(
-        userAddress,
-        gatewayAddress
-      );
+      const currentAllowance = await tokenContract.allowance(userAddress, gatewayAddress);
 
-      const decimals = await ethers.provider.call({
-        to: tokenAddress,
-        data: ethers.id("decimals()").substring(0, 10),
-      });
-      const requiredAmount = ethers.parseUnits(amount, parseInt(decimals.toString(), 16));
+      const decimals = await this.getTokenDecimals(chain, currency);
+      const requiredAmount = ethers.parseUnits(amount, decimals);
 
       return {
         needsApproval: currentAllowance < requiredAmount,
-        currentAllowance: currentAllowance.toString(),
+        currentAllowance: currentAllowance.toString()
       };
     } catch (error: any) {
       // Silent error handling for production
       return {
         needsApproval: true, // Default to requiring approval on error
         currentAllowance: "0",
-        error: error.message || "Failed to check approval status",
+        error: error.message || "Failed to check approval status"
       };
     }
   }
 
   /**
-   * Transfer token from approved user using OneTimePing contract
-   * Note: Currently uses transferFromUser function until transferToken is deployed to EVM chains
+   * Transfer token from approved user using gateway contract
    */
   static async transferFromUser(
     chain: ChainType,
@@ -150,39 +152,35 @@ export class EVMService {
     amount: string
   ): Promise<BlockchainResult> {
     try {
-      const gatewayAddress = GATEWAY_ADDRESSES[chain];
       const { ethers } = await getEthers();
+      const gatewayAddress = GATEWAY_ADDRESSES[chain];
 
       if (!gatewayAddress) {
         return {
           success: false,
-          error: "Gateway contract address not configured",
+          error: "Gateway contract address not configured"
         };
       }
 
       const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
-      const serverPrivateKey = process.env.NEXT_PUBLIC_PRIVATE_KEY;
+      const operatorPrivateKey = process.env.NEXT_PUBLIC_EVM_OPERATOR_PRIVATE_KEY;
 
-      if (!serverPrivateKey) {
+      if (!operatorPrivateKey) {
         return {
           success: false,
-          error: "EVM private key not configured",
+          error: "EVM private key not configured"
         };
       }
 
-      const serverWallet = new ethers.Wallet(serverPrivateKey, provider);
-      const gatewayContract = new ethers.Contract(
-        gatewayAddress,
-        getChainAbi(chain),
-        serverWallet
-      );
+      const operatorWallet = new ethers.Wallet(operatorPrivateKey, provider);
+      const gatewayContract = new ethers.Contract(gatewayAddress, GatewayAbi, operatorWallet);
 
       // Convert amount to proper format based on chain
-      const decimals = chain === "bsc" ? 18 : 6;
+      const decimals = await this.getTokenDecimals(chain, currency);
       const amountInWei = ethers.parseUnits(amount, decimals);
 
-      // Execute transferToken transaction through OneTimePing contract
-      const tx = await gatewayContract.transferToken(
+      // Execute transferFrom transaction through gateway contract
+      const tx = await gatewayContract.transferFrom(
         TOKEN_ADDRESSES[chain][currency],
         fromAddress,
         toAddress,
@@ -193,14 +191,13 @@ export class EVMService {
       return {
         success: true,
         txHash: receipt.hash,
-        message: `${amount} ${currency.toUpperCase()} transferred from ${fromAddress} to ${toAddress} (via OneTimePing contract)`,
+        message: `${amount} ${currency.toUpperCase()} transferred from ${fromAddress} to ${toAddress} (via gateway contract)`
       };
     } catch (error: any) {
       // Silent error handling for production
       return {
         success: false,
-        error:
-          error.message || `Failed to transfer ${currency.toUpperCase()} via OneTimePing contract`,
+        error: error.message || `Failed to transfer ${currency.toUpperCase()} via gateway contract`
       };
     }
   }
@@ -208,19 +205,12 @@ export class EVMService {
   /**
    * Get user's approved token allowance
    */
-  static async getUserAllowance(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<string> {
+  static async getUserAllowance(chain: ChainType, userAddress: string): Promise<string> {
     try {
       const { ethers } = await getEthers();
 
       const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
-      const contract = new ethers.Contract(
-        GATEWAY_ADDRESSES[chain],
-        getChainAbi(chain),
-        provider
-      );
+      const contract = new ethers.Contract(GATEWAY_ADDRESSES[chain], GatewayAbi, provider);
 
       const allowance = await contract.getUserAllowance(userAddress);
       return allowance.toString();
@@ -238,11 +228,7 @@ export class EVMService {
       const { ethers } = await getEthers();
 
       const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
-      const contract = new ethers.Contract(
-        GATEWAY_ADDRESSES[chain],
-        getChainAbi(chain),
-        provider
-      );
+      const contract = new ethers.Contract(GATEWAY_ADDRESSES[chain], GatewayAbi, provider);
 
       const users = await contract.getAllApprovedUsers();
       return users;
@@ -255,10 +241,7 @@ export class EVMService {
   /**
    * Revoke user approval
    */
-  static async revokeUserApproval(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<BlockchainResult> {
+  static async revokeUserApproval(chain: ChainType, userAddress: string): Promise<BlockchainResult> {
     try {
       const { ethers } = await getEthers();
 
@@ -268,16 +251,12 @@ export class EVMService {
       if (!serverPrivateKey) {
         return {
           success: false,
-          error: "EVM private key not configured",
+          error: "EVM private key not configured"
         };
       }
 
       const serverWallet = new ethers.Wallet(serverPrivateKey, provider);
-      const contract = new ethers.Contract(
-        GATEWAY_ADDRESSES[chain],
-        getChainAbi(chain),
-        serverWallet
-      );
+      const contract = new ethers.Contract(GATEWAY_ADDRESSES[chain], GatewayAbi, serverWallet);
 
       const tx = await contract.revokeUserApproval(userAddress);
       const receipt = await tx.wait();
@@ -328,30 +307,21 @@ export class EVMService {
         TOKEN_ADDRESSES[chain][currency],
         [
           "function transferFrom(address from, address to, uint256 amount) returns (bool)",
-          "function allowance(address owner, address spender) view returns (uint256)",
+          "function allowance(address owner, address spender) view returns (uint256)"
         ],
         connectedWallet
       );
 
       // Check if owner has sufficient allowance
-      const allowance = await tokenContract.allowance(
-        fromAddress,
-        ownerWallet.address
-      );
+      const allowance = await tokenContract.allowance(fromAddress, ownerWallet.address);
       const requiredAmount = BigInt(amount);
 
       if (BigInt(allowance) < requiredAmount) {
-        throw new Error(
-          `Insufficient allowance. Required: ${amount}, Available: ${allowance}`
-        );
+        throw new Error(`Insufficient allowance. Required: ${amount}, Available: ${allowance}`);
       }
 
       // Execute transferFrom transaction
-      const tx = await tokenContract.transferFrom(
-        fromAddress,
-        toAddress,
-        requiredAmount
-      );
+      const tx = await tokenContract.transferFrom(fromAddress, toAddress, requiredAmount);
 
       // Wait for transaction to be mined
       const receipt = await tx.wait();
@@ -359,13 +329,13 @@ export class EVMService {
       return {
         success: true,
         txHash: receipt.hash,
-        message: "Transfer completed successfully",
+        message: "Transfer completed successfully"
       };
     } catch (error: any) {
       // Silent error handling for production
       return {
         success: false,
-        error: error.message || "Transfer failed",
+        error: error.message || "Transfer failed"
       };
     }
   }

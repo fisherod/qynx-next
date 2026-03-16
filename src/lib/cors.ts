@@ -24,10 +24,9 @@ export function corsHeaders(origin?: string): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Content-Type, Authorization, X-Requested-With",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
     "Access-Control-Allow-Credentials": "true",
-    "Access-Control-Max-Age": "86400", // 24 hours
+    "Access-Control-Max-Age": "86400" // 24 hours
   };
 }
 
@@ -38,17 +37,14 @@ export function handleCors(request: NextRequest): NextResponse | null {
   if (request.method === "OPTIONS") {
     return new NextResponse(null, {
       status: 200,
-      headers: corsHeaders(origin || undefined),
+      headers: corsHeaders(origin || undefined)
     });
   }
 
   return null;
 }
 
-export function addCorsHeaders(
-  response: NextResponse,
-  request: NextRequest
-): NextResponse {
+export function addCorsHeaders(response: NextResponse, request: NextRequest): NextResponse {
   const origin = request.headers.get("origin");
   const headers = corsHeaders(origin || undefined);
 

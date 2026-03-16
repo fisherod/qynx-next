@@ -14,12 +14,7 @@ interface PaymentTimerProps {
   compact?: boolean;
 }
 
-export function PaymentTimer({
-  expiresAt,
-  onExpire,
-  className,
-  compact = false,
-}: PaymentTimerProps) {
+export function PaymentTimer({ expiresAt, onExpire, className, compact = false }: PaymentTimerProps) {
   const [timeLeft, setTimeLeft] = useState<{
     minutes: number;
     seconds: number;
@@ -29,7 +24,7 @@ export function PaymentTimer({
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
-      
+
       // Parse date properly - handle both ISO strings and MySQL datetime strings
       let expiryDate: Date;
       if (typeof expiresAt === "string") {
@@ -42,20 +37,18 @@ export function PaymentTimer({
       } else {
         expiryDate = new Date(expiresAt);
       }
-      
+
       const expiry = expiryDate.getTime();
       const difference = expiry - now;
 
       if (difference > 0) {
-        const minutes = Math.floor(
-          (difference % (1000 * 60 * 60)) / (1000 * 60)
-        );
+        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
         setTimeLeft({
           minutes,
           seconds,
-          total: difference,
+          total: difference
         });
       } else {
         setTimeLeft({ minutes: 0, seconds: 0, total: 0 });

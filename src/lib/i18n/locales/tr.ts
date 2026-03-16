@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "Yeterli {{symbol}} yok ({{amount}} {{symbol}} gerekli)",
       processingButton: "İşleniyor...",
       pay: "Öde",
-      failedTitle: "Ödeme başarısız",
-    },
-  },
+      failedTitle: "Ödeme başarısız"
+    }
+  }
 };

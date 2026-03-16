@@ -30,19 +30,14 @@ class Logger {
     return requestedLevelIndex <= currentLevelIndex;
   }
 
-  private formatLog(
-    level: LogLevel,
-    message: string,
-    data?: any,
-    service?: string
-  ): LogEntry {
+  private formatLog(level: LogLevel, message: string, data?: any, service?: string): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level,
       message,
       data,
       service,
-      traceId: this.generateTraceId(),
+      traceId: this.generateTraceId()
     };
   }
 
@@ -94,13 +89,7 @@ class Logger {
   }
 
   // Specific logging methods for different services
-  apiRequest(
-    method: string,
-    url: string,
-    statusCode: number,
-    duration?: number,
-    userAgent?: string
-  ): void {
+  apiRequest(method: string, url: string, statusCode: number, duration?: number, userAgent?: string): void {
     if (!this.enableRequestLogging) return;
 
     this.info(
@@ -110,7 +99,7 @@ class Logger {
         url,
         statusCode,
         duration,
-        userAgent,
+        userAgent
       },
       "api"
     );
@@ -122,7 +111,7 @@ class Logger {
       {
         paymentId,
         amount,
-        serviceName,
+        serviceName
       },
       "payment"
     );
@@ -134,7 +123,7 @@ class Logger {
       {
         paymentId,
         status,
-        chain,
+        chain
       },
       "payment"
     );
@@ -146,25 +135,20 @@ class Logger {
       {
         chain,
         txHash,
-        status,
+        status
       },
       "blockchain"
     );
   }
 
-  webhookSent(
-    paymentId: string,
-    url: string,
-    statusCode: number,
-    attempt: number
-  ): void {
+  webhookSent(paymentId: string, url: string, statusCode: number, attempt: number): void {
     this.info(
       "Webhook Sent",
       {
         paymentId,
         url,
         statusCode,
-        attempt,
+        attempt
       },
       "webhook"
     );
@@ -176,7 +160,7 @@ class Logger {
       {
         operation,
         error,
-        table,
+        table
       },
       "database"
     );
@@ -188,7 +172,7 @@ class Logger {
       {
         type,
         ip,
-        details,
+        details
       },
       "security"
     );
@@ -200,7 +184,7 @@ class Logger {
       {
         ip,
         endpoint,
-        limit,
+        limit
       },
       "rate-limit"
     );
@@ -220,8 +204,7 @@ export const logDebug = logger.debug.bind(logger);
 export const logApiRequest = logger.apiRequest.bind(logger);
 export const logPaymentCreated = logger.paymentCreated.bind(logger);
 export const logPaymentUpdated = logger.paymentUpdated.bind(logger);
-export const logBlockchainTransaction =
-  logger.blockchainTransaction.bind(logger);
+export const logBlockchainTransaction = logger.blockchainTransaction.bind(logger);
 export const logWebhookSent = logger.webhookSent.bind(logger);
 export const logDatabaseError = logger.databaseError.bind(logger);
 export const logSecurityAlert = logger.securityAlert.bind(logger);

@@ -21,7 +21,7 @@ export function formatDate(date: Date | string, locale: string = "zh-CN"): strin
   return d.toLocaleDateString(locale, {
     year: "numeric",
     month: "2-digit",
-    day: "2-digit",
+    day: "2-digit"
   });
 }
 
@@ -35,7 +35,7 @@ export function formatDateTime(date: Date | string, locale: string = "zh-CN"): s
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
-    minute: "2-digit",
+    minute: "2-digit"
   });
 }
 
@@ -56,4 +56,3 @@ export function getTimeAgo(date: Date | string): string {
   if (diffDays < 7) return `${diffDays}天前`;
   return formatDate(d);
 }
-

@@ -20,14 +20,9 @@ function SignInContent() {
     form?: string;
   }>({});
   const [submitting, setSubmitting] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(
-    null
-  );
+  const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
   const fromRegistration = searchParams.get("registered") === "1";
-  const callbackUrl =
-    searchParams.get("callbackUrl") ||
-    searchParams.get("redirect") ||
-    "/user/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("redirect") || "/user/dashboard";
 
   const validate = () => {
     const next: { email?: string; password?: string } = {};
@@ -47,31 +42,31 @@ function SignInContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors((prev) => ({ ...prev, form: undefined }));
+    setErrors(prev => ({ ...prev, form: undefined }));
     if (!validate()) return;
     setSubmitting(true);
     try {
       const res = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
-        redirect: false,
+        redirect: false
       });
       if (res?.error) {
-        setErrors((prev) => ({ ...prev, form: "Invalid email or password" }));
+        setErrors(prev => ({ ...prev, form: "Invalid email or password" }));
         return;
       }
       if (res?.ok) {
         router.push(callbackUrl);
         return;
       }
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
-        form: "Something went wrong. Try again.",
+        form: "Something went wrong. Try again."
       }));
     } catch {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
-        form: "Something went wrong. Try again.",
+        form: "Something went wrong. Try again."
       }));
     } finally {
       setSubmitting(false);
@@ -95,12 +90,8 @@ function SignInContent() {
     <PageLayout showFooter={false}>
       <section className="relative z-40 pt-40 sm:pt-48 pb-16 sm:pb-24 px-4 sm:px-6 min-h-[60vh] flex items-start justify-center">
         <div className="w-full max-w-[480px] rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10 p-8 sm:p-10">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-white mb-2">
-            Sign in
-          </h1>
-          <p className="text-[#C8C8C8] text-sm mb-8">
-            Access your Qynx account
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-semibold text-white mb-2">Sign in</h1>
+          <p className="text-[#C8C8C8] text-sm mb-8">Access your Qynx account</p>
           {fromRegistration && (
             <div className="mb-6 py-3 px-4 rounded-xl bg-green-500/20 border border-green-500/40 text-green-300 text-sm text-center">
               Registration successful. You can sign in now.
@@ -108,10 +99,7 @@ function SignInContent() {
           )}
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-white/90 mb-2"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-2">
                 Email
               </label>
               <input
@@ -119,20 +107,15 @@ function SignInContent() {
                 type="email"
                 name="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={e => setEmail(e.target.value)}
                 autoComplete="email"
                 placeholder="you@example.com"
                 className={`${inputBase} ${errors.email ? inputError : ""}`}
               />
-              {errors.email && (
-                <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>
-              )}
+              {errors.email && <p className="mt-1.5 text-sm text-red-400">{errors.email}</p>}
             </div>
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-white/90 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-white/90 mb-2">
                 Password
               </label>
               <input
@@ -140,24 +123,20 @@ function SignInContent() {
                 type="password"
                 name="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 autoComplete="current-password"
                 placeholder="••••••••"
                 className={`${inputBase} ${errors.password ? inputError : ""}`}
               />
-              {errors.password && (
-                <p className="mt-1.5 text-sm text-red-400">{errors.password}</p>
-              )}
+              {errors.password && <p className="mt-1.5 text-sm text-red-400">{errors.password}</p>}
             </div>
-            {errors.form && (
-              <p className="text-sm text-red-400">{errors.form}</p>
-            )}
+            {errors.form && <p className="text-sm text-red-400">{errors.form}</p>}
             <button
               type="submit"
               disabled={submitting}
               className="w-full py-3.5 rounded-xl text-white font-medium transition-opacity hover:opacity-90 active:opacity-100 disabled:opacity-70"
               style={{
-                background: "linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)",
+                background: "linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)"
               }}
             >
               {submitting ? "Signing in…" : "Sign in with Email"}
@@ -169,9 +148,7 @@ function SignInContent() {
               <span className="w-full border-t border-white/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-transparent text-white/60">
-                Or continue with
-              </span>
+              <span className="px-2 bg-transparent text-white/60">Or continue with</span>
             </div>
           </div>
 
@@ -218,11 +195,7 @@ function SignInContent() {
                 <span className="text-sm">Loading…</span>
               ) : (
                 <>
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-1.18 1.62-2.38 3.23-4.07 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                   </svg>
                   Apple
@@ -233,10 +206,7 @@ function SignInContent() {
 
           <p className="text-[#C8C8C8] text-sm mt-6 text-center">
             Don&apos;t have an account?{" "}
-            <Link
-              href="/sign-up"
-              className="text-[#E4B5FF] font-medium hover:underline"
-            >
+            <Link href="/sign-up" className="text-[#E4B5FF] font-medium hover:underline">
               Sign up
             </Link>
           </p>

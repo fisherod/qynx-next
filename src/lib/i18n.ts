@@ -26,7 +26,7 @@ i18n.use(initReactI18next).init({
   debug: process.env.NODE_ENV === "development",
 
   interpolation: {
-    escapeValue: false, // React already escapes values
+    escapeValue: false // React already escapes values
   },
 
   // Pluralization
@@ -35,7 +35,7 @@ i18n.use(initReactI18next).init({
 
   // Namespace
   defaultNS: "translation",
-  ns: ["translation"],
+  ns: ["translation"]
 });
 
 export default i18n;

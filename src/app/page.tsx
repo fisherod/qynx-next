@@ -1,13 +1,13 @@
-import Navbar from '@/components/Navbar'
-import TitleSection from '@/components/TitleSection'
-import MobileCtaBar from '@/components/MobileCtaBar'
-import AssetSection from '@/components/AssetSection'
-import FeatureSection from '@/components/FeatureSection'
-import PerformanceSection from '@/components/PerformanceSection'
-import PlanSection from '@/components/PlanSection'
-import FAQSection from '@/components/FAQSection'
-import PositionSection from '@/components/PositionSection'
-import Footer from '@/components/Footer'
+import Navbar from "@/components/Navbar";
+import TitleSection from "@/components/TitleSection";
+import MobileCtaBar from "@/components/MobileCtaBar";
+import AssetSection from "@/components/AssetSection";
+import FeatureSection from "@/components/FeatureSection";
+import PerformanceSection from "@/components/PerformanceSection";
+import PlanSection from "@/components/PlanSection";
+import FAQSection from "@/components/FAQSection";
+import PositionSection from "@/components/PositionSection";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -22,19 +22,18 @@ export default function Home() {
         />
       </div>
       <div className="relative z-10">
-
-      {/* Content - natural flow */}
-      <Navbar />
-      <TitleSection />
-      <MobileCtaBar />
-      <FeatureSection />
-      <PerformanceSection />
-      <AssetSection />
-      <PlanSection />
-      <FAQSection />
-      <PositionSection />
-      <Footer />
+        {/* Content - natural flow */}
+        <Navbar />
+        <TitleSection />
+        <MobileCtaBar />
+        <FeatureSection />
+        <PerformanceSection />
+        <AssetSection />
+        <PlanSection />
+        <FAQSection />
+        <PositionSection />
+        <Footer />
       </div>
     </main>
-  )
+  );
 }

@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 import { rateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 
 export async function GET(request: NextRequest) {
@@ -11,24 +11,16 @@ export async function GET(request: NextRequest) {
     // Apply rate limiting
     const rateLimitResult = rateLimit(request, "api");
     if (!rateLimitResult.success) {
-      return createRateLimitResponse(
-        rateLimitResult.limit,
-        rateLimitResult.remaining,
-        rateLimitResult.reset
-      );
+      return createRateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.reset);
     }
 
     // Basic auth check (in production, implement proper authentication)
     const authHeader = request.headers.get("authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const db = getDatabase();
-    await db.ensureInitialized();
 
     // Get payment statistics
     const stats = await db.getPaymentStats(30); // Last 30 days
@@ -37,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Simple network info since blockchainService.getNetworkInfo() no longer exists
     const networkInfo = {
       isMainnet: process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet",
-      networks: ["ethereum", "bsc", "tron"],
+      networks: ["ethereum", "bsc", "tron"]
     };
 
     // System health
@@ -45,7 +37,7 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
       database: "connected",
       blockchain: "operational",
-      version: process.env.npm_package_version || "1.0.0",
+      version: process.env.npm_package_version || "1.0.0"
     };
 
     return NextResponse.json({
@@ -54,16 +46,15 @@ export async function GET(request: NextRequest) {
         stats,
         recentStats,
         networkInfo,
-        systemHealth,
-      },
+        systemHealth
+      }
     });
   } catch (error: any) {
     console.error("Admin dashboard API error:", error);
     return NextResponse.json(
       {
         error: "Failed to load dashboard data",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );
@@ -76,7 +67,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
   });
 }

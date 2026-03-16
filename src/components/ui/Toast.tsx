@@ -10,12 +10,7 @@ interface ToastProps {
   onClose?: () => void;
 }
 
-export function Toast({
-  message,
-  type = "info",
-  duration = 4000,
-  onClose,
-}: ToastProps) {
+export function Toast({ message, type = "info", duration = 4000, onClose }: ToastProps) {
   const [isVisible, setIsVisible] = useState(true);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -51,48 +46,23 @@ export function Toast({
       case "success":
         return (
           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={3}
-                d="M5 13l4 4L19 7"
-              />
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
           </div>
         );
       case "error":
         return (
           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={3}
-                d="M6 18L18 6M6 6l12 12"
-              />
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
         );
       case "warning":
         return (
           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -105,12 +75,7 @@ export function Toast({
       case "loading":
         return (
           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white animate-spin"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -123,12 +88,7 @@ export function Toast({
       default:
         return (
           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
-            <svg
-              className="w-4 h-4 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -146,9 +106,7 @@ export function Toast({
       className={cn(
         "w-full",
         "transform transition-all duration-500 ease-out",
-        isVisible && !isExiting
-          ? "opacity-100 translate-y-0 scale-100"
-          : "opacity-0 translate-y-[-100%] scale-95"
+        isVisible && !isExiting ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-[-100%] scale-95"
       )}
     >
       <div
@@ -166,9 +124,7 @@ export function Toast({
         <div className="relative flex items-start space-x-3">
           <div className="flex-shrink-0">{getIcon()}</div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white leading-relaxed">
-              {message}
-            </p>
+            <p className="text-sm font-semibold text-white leading-relaxed">{message}</p>
           </div>
 
           {/* Close button */}
@@ -188,12 +144,7 @@ export function Toast({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
@@ -201,13 +152,10 @@ export function Toast({
         {/* Progress bar */}
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 rounded-b-2xl overflow-hidden">
           <div
-            className={cn(
-              "h-full bg-white/40 transition-all ease-linear",
-              isExiting ? "w-0" : "w-full"
-            )}
+            className={cn("h-full bg-white/40 transition-all ease-linear", isExiting ? "w-0" : "w-full")}
             style={{
               transitionDuration: `${duration}ms`,
-              animationDelay: "0ms",
+              animationDelay: "0ms"
             }}
           />
         </div>
@@ -218,15 +166,10 @@ export function Toast({
 
 // Toast context for global toast management
 interface ToastContextType {
-  showToast: (
-    message: string,
-    type?: "success" | "error" | "info" | "warning" | "loading"
-  ) => void;
+  showToast: (message: string, type?: "success" | "error" | "info" | "warning" | "loading") => void;
 }
 
-export const ToastContext = React.createContext<ToastContextType | undefined>(
-  undefined
-);
+export const ToastContext = React.createContext<ToastContextType | undefined>(undefined);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<
@@ -237,16 +180,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     }>
   >([]);
 
-  const showToast = (
-    message: string,
-    type: "success" | "error" | "info" | "warning" | "loading" = "info"
-  ) => {
+  const showToast = (message: string, type: "success" | "error" | "info" | "warning" | "loading" = "info") => {
     const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts(prev => [...prev, { id, message, type }]);
   };
 
   const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    setToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
   return (
@@ -258,17 +198,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             key={toast.id}
             className="transform transition-all duration-300 ease-out"
             style={{
-              transform: `translateY(${index * 8}px) scale(${
-                1 - index * 0.05
-              })`,
-              zIndex: 1000 - index,
+              transform: `translateY(${index * 8}px) scale(${1 - index * 0.05})`,
+              zIndex: 1000 - index
             }}
           >
-            <Toast
-              message={toast.message}
-              type={toast.type}
-              onClose={() => removeToast(toast.id)}
-            />
+            <Toast message={toast.message} type={toast.type} onClose={() => removeToast(toast.id)} />
           </div>
         ))}
       </div>

@@ -1,19 +1,51 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import ListWithCircles from '@/components/ListWithCircles'
+import Link from "next/link";
+import Image from "next/image";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import ListWithCircles from "@/components/ListWithCircles";
 
 const technologyListItems = [
-  { id: 'engine', title: 'AI Trading Engine', desc: 'Our engine is powered by a custom-trained Large Language Model (LLM) optimized for financial market interpretation. It analyzes price action and order flow, market volatility patterns, on-chain activity, liquidity depth, derivatives data, and sentiment indicators. The AI continuously evaluates probabilities and dynamically allocates capital across strategies based on real-time conditions.' },
-  { id: 'strategy', title: 'Multi-Strategy Deployment', desc: 'To reduce reliance on a single trading style, our system deploys multiple strategy layers: trend-following models, statistical arbitrage frameworks, mean reversion strategies, volatility capture mechanisms, and market-neutral hedging systems. This diversification aims to reduce exposure to any single market condition.' },
-  { id: 'risk', title: 'Risk Management Architecture', desc: 'Risk control is embedded at every layer of the system. Our framework includes position-level exposure limits, dynamic stop-loss controls, capital allocation caps, cross-market hedging, and volatility monitoring algorithms. The objective is disciplined capital preservation while targeting structured growth.' },
-  { id: 'execution', title: 'Automated Execution Layer', desc: 'The system integrates directly with major exchange APIs through secure infrastructure. Features include smart order routing, slippage control mechanisms, low-latency trade execution, and continuous system monitoring. All trades are executed without emotional bias or manual interference.' },
-  { id: 'transparency', title: 'Transparency & Monitoring', desc: 'Investors benefit from structured performance reporting and token transparency. The ecosystem includes real-time dashboard access, monthly performance summaries, token supply monitoring, and buyback disclosures. We believe scalable growth requires measurable transparency.' },
-  { id: 'scale', title: 'Scalable Capital Model', desc: 'Our trading architecture is built to scale with capital deployment. As capital increases, hedging depth improves, liquidity access expands, strategy diversification strengthens, and risk distribution becomes more efficient. Scale enhances stability.' },
-  { id: 'quantum', title: 'Quantum Research Initiative', desc: 'In parallel, we are exploring advanced computational frameworks, including quantum-enhanced modeling for optimization acceleration, high-dimensional pattern recognition, and advanced probabilistic forecasting. This research positions our platform for long-term technological leadership.' },
-  { id: 'security', title: 'Security & Infrastructure', desc: 'Security is foundational to our architecture. Infrastructure includes encrypted data transmission, multi-layer server protection, smart contract auditing where applicable, and continuous infrastructure monitoring. Investor capital protection is prioritized at the system level.' },
-]
+  {
+    id: "engine",
+    title: "AI Trading Engine",
+    desc: "Our engine is powered by a custom-trained Large Language Model (LLM) optimized for financial market interpretation. It analyzes price action and order flow, market volatility patterns, on-chain activity, liquidity depth, derivatives data, and sentiment indicators. The AI continuously evaluates probabilities and dynamically allocates capital across strategies based on real-time conditions."
+  },
+  {
+    id: "strategy",
+    title: "Multi-Strategy Deployment",
+    desc: "To reduce reliance on a single trading style, our system deploys multiple strategy layers: trend-following models, statistical arbitrage frameworks, mean reversion strategies, volatility capture mechanisms, and market-neutral hedging systems. This diversification aims to reduce exposure to any single market condition."
+  },
+  {
+    id: "risk",
+    title: "Risk Management Architecture",
+    desc: "Risk control is embedded at every layer of the system. Our framework includes position-level exposure limits, dynamic stop-loss controls, capital allocation caps, cross-market hedging, and volatility monitoring algorithms. The objective is disciplined capital preservation while targeting structured growth."
+  },
+  {
+    id: "execution",
+    title: "Automated Execution Layer",
+    desc: "The system integrates directly with major exchange APIs through secure infrastructure. Features include smart order routing, slippage control mechanisms, low-latency trade execution, and continuous system monitoring. All trades are executed without emotional bias or manual interference."
+  },
+  {
+    id: "transparency",
+    title: "Transparency & Monitoring",
+    desc: "Investors benefit from structured performance reporting and token transparency. The ecosystem includes real-time dashboard access, monthly performance summaries, token supply monitoring, and buyback disclosures. We believe scalable growth requires measurable transparency."
+  },
+  {
+    id: "scale",
+    title: "Scalable Capital Model",
+    desc: "Our trading architecture is built to scale with capital deployment. As capital increases, hedging depth improves, liquidity access expands, strategy diversification strengthens, and risk distribution becomes more efficient. Scale enhances stability."
+  },
+  {
+    id: "quantum",
+    title: "Quantum Research Initiative",
+    desc: "In parallel, we are exploring advanced computational frameworks, including quantum-enhanced modeling for optimization acceleration, high-dimensional pattern recognition, and advanced probabilistic forecasting. This research positions our platform for long-term technological leadership."
+  },
+  {
+    id: "security",
+    title: "Security & Infrastructure",
+    desc: "Security is foundational to our architecture. Infrastructure includes encrypted data transmission, multi-layer server protection, smart contract auditing where applicable, and continuous infrastructure monitoring. Investor capital protection is prioritized at the system level."
+  }
+];
 
 export default function TechnologyPage() {
   return (
@@ -35,10 +67,12 @@ export default function TechnologyPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
               {/* Left: text content (~2/3 on large screens) */}
               <div className="lg:col-span-7 text-left">
-                <p className="text-[#E4B5FF] text-lg sm:text-xl font-medium uppercase tracking-wider mb-3">Technology</p>
+                <p className="text-[#E4B5FF] text-lg sm:text-xl font-medium uppercase tracking-wider mb-3">
+                  Technology
+                </p>
                 <h1
                   className="font-bold leading-tight text-white mb-4 sm:mb-5"
-                  style={{ fontSize: 'clamp(1.75rem, 3.5vw, 3.25rem)' }}
+                  style={{ fontSize: "clamp(1.75rem, 3.5vw, 3.25rem)" }}
                 >
                   AI Crypto Trading with Qynx
                 </h1>
@@ -47,13 +81,16 @@ export default function TechnologyPage() {
                 </p>
                 <div className="text-[#C8C8C8] text-base sm:text-lg leading-relaxed space-y-4">
                   <p>
-                    Our next-generation machine learning algorithm is built to optimize profit opportunities and mitigate risk in AI-driven crypto trading.
+                    Our next-generation machine learning algorithm is built to optimize profit opportunities and
+                    mitigate risk in AI-driven crypto trading.
                   </p>
                   <p>
-                    We diversify across a broad asset portfolio—including major cryptocurrencies, stablecoins, and select altcoins—to balance opportunity with risk management.
+                    We diversify across a broad asset portfolio—including major cryptocurrencies, stablecoins, and
+                    select altcoins—to balance opportunity with risk management.
                   </p>
                   <p>
-                    Trust and safety are at the core: our platform is designed to deliver AI-based financial services to a global user base with transparency and accountability.
+                    Trust and safety are at the core: our platform is designed to deliver AI-based financial services to
+                    a global user base with transparency and accountability.
                   </p>
                 </div>
               </div>
@@ -92,7 +129,7 @@ export default function TechnologyPage() {
               <Link
                 href="/#investment"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 sm:px-10 sm:py-5 rounded-full text-white text-lg font-medium transition-opacity hover:opacity-90"
-                style={{ background: 'linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)' }}
+                style={{ background: "linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)" }}
               >
                 <span>Secure Early Entry</span>
                 <span>&gt;</span>
@@ -105,5 +142,5 @@ export default function TechnologyPage() {
         <Footer />
       </div>
     </main>
-  )
+  );
 }

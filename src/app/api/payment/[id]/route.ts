@@ -3,20 +3,14 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: paymentId } = await params;
 
     if (!paymentId) {
-      return NextResponse.json(
-        { error: "Payment ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Payment ID is required" }, { status: 400 });
     }
 
     // Get payment from database
@@ -24,10 +18,7 @@ export async function GET(
     const payment = await db.getPayment(paymentId);
 
     if (!payment) {
-      return NextResponse.json(
-        { error: "Payment not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
     // Check if payment is expired
@@ -49,7 +40,7 @@ export async function GET(
       status: payment.status,
       tx_hash: payment.tx_hash,
       created_at: payment.created_at,
-      expires_at: payment.expires_at,
+      expires_at: payment.expires_at
     };
 
     return NextResponse.json(response);
@@ -59,8 +50,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: "Failed to fetch payment",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );

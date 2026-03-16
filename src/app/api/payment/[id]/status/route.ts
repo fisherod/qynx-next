@@ -3,20 +3,14 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: paymentId } = await params;
 
     if (!paymentId) {
-      return NextResponse.json(
-        { error: "Payment ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Payment ID is required" }, { status: 400 });
     }
 
     // Get payment from database
@@ -24,10 +18,7 @@ export async function GET(
     const payment = await db.getPayment(paymentId);
 
     if (!payment) {
-      return NextResponse.json(
-        { error: "Payment not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
     // Check if payment should be expired
@@ -50,10 +41,7 @@ export async function GET(
       created_at: payment.created_at,
       updated_at: payment.updated_at,
       expires_at: payment.expires_at,
-      time_remaining:
-        payment.status === "pending"
-          ? Math.max(0, expiresAt.getTime() - now.getTime())
-          : 0,
+      time_remaining: payment.status === "pending" ? Math.max(0, expiresAt.getTime() - now.getTime()) : 0
     };
 
     // Get recent events for this payment
@@ -62,11 +50,11 @@ export async function GET(
 
     return NextResponse.json({
       ...response,
-      recent_events: recentEvents.map((event) => ({
+      recent_events: recentEvents.map(event => ({
         type: event.event_type,
         timestamp: event.created_at,
-        data: event.data ? JSON.parse(event.data) : null,
-      })),
+        data: event.data ? JSON.parse(event.data) : null
+      }))
     });
   } catch (error: any) {
     console.error("Payment status error:", error);
@@ -74,8 +62,7 @@ export async function GET(
     return NextResponse.json(
       {
         error: "Failed to fetch payment status",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );

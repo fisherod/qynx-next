@@ -10,10 +10,7 @@ export async function POST(request: NextRequest) {
 
     // Validate credentials
     if (!username || !password) {
-      return NextResponse.json(
-        { error: "Username and password are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Username and password are required" }, { status: 400 });
     }
 
     // Check against environment variables
@@ -21,25 +18,16 @@ export async function POST(request: NextRequest) {
     const validPassword = process.env.ADMIN_PASSWORD;
 
     if (!validUsername || !validPassword) {
-      return NextResponse.json(
-        { error: "Admin credentials not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Admin credentials not configured" }, { status: 500 });
     }
 
     if (username === validUsername && password === validPassword) {
       return NextResponse.json({ success: true });
     } else {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
   }
 }
 
@@ -49,7 +37,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
   });
 }

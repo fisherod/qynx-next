@@ -3,8 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
-import axios from "axios";
+import { getDatabase } from "@/lib/api";
 
 // Test webhook endpoint
 export async function POST(request: NextRequest) {
@@ -12,20 +11,14 @@ export async function POST(request: NextRequest) {
     const { webhook_url } = await request.json();
 
     if (!webhook_url) {
-      return NextResponse.json(
-        { error: "Webhook URL is required", error_cn: "需要webhook URL" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Webhook URL is required" }, { status: 400 });
     }
 
     // Validate URL format
     try {
       new URL(webhook_url);
     } catch {
-      return NextResponse.json(
-        { error: "Invalid webhook URL", error_cn: "无效的webhook URL" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid webhook URL" }, { status: 400 });
     }
 
     // Send test webhook
@@ -35,33 +28,28 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       data: {
         message: "This is a test webhook",
-        message_cn: "这是一个测试webhook",
-      },
+        message_cn: "这是一个测试webhook"
+      }
     };
 
     try {
-      const response = await axios.post(webhook_url, testPayload, {
-        timeout: 10000,
+      const response = await fetch(webhook_url, {
+        method: "POST",
+        body: JSON.stringify(testPayload),
         headers: {
           "Content-Type": "application/json",
-          "User-Agent": "CryptoPaymentPlatform/1.0",
-        },
+          "User-Agent": "CryptoPaymentPlatform/1.0"
+        }
       });
 
       return NextResponse.json({ success: true, message: "Webhook test sent" });
     } catch (error: any) {
       // Silent error handling for production
-      return NextResponse.json(
-        { error: "Failed to send webhook test" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to send webhook test" }, { status: 500 });
     }
   } catch (error: any) {
     // Silent error handling for production
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -73,16 +61,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, logs });
     }
 
-    return NextResponse.json(
-      { error: "Invalid action parameter" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Invalid action parameter" }, { status: 400 });
   } catch (error: any) {
     // Silent error handling for production
-    return NextResponse.json(
-      { error: "Failed to get webhook logs" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to get webhook logs" }, { status: 500 });
   }
 }
 

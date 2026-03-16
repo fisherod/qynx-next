@@ -23,9 +23,9 @@ const withPWA = require("next-pwa")({
               cacheName: "image-cache",
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-              },
-            },
+                maxAgeSeconds: 30 * 24 * 60 * 60 // 30 days
+              }
+            }
           },
           {
             urlPattern: /^https?.*\.(woff|woff2|eot|ttf|otf)$/,
@@ -34,9 +34,9 @@ const withPWA = require("next-pwa")({
               cacheName: "font-cache",
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 365 * 24 * 60 * 60, // 1 year
-              },
-            },
+                maxAgeSeconds: 365 * 24 * 60 * 60 // 1 year
+              }
+            }
           },
           {
             urlPattern: /\/api\/.*$/,
@@ -46,24 +46,24 @@ const withPWA = require("next-pwa")({
               networkTimeoutSeconds: 3,
               expiration: {
                 maxEntries: 50,
-                maxAgeSeconds: 5 * 60, // 5 minutes
-              },
-            },
-          },
-        ],
+                maxAgeSeconds: 5 * 60 // 5 minutes
+              }
+            }
+          }
+        ]
 });
 
 const nextConfig = {
   reactStrictMode: true,
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true
   },
   images: {
     domains: ["localhost"],
-    unoptimized: false,
+    unoptimized: false
   },
   compress: true,
   poweredByHeader: false,
@@ -72,7 +72,7 @@ const nextConfig = {
     // Resolve tslib for tronweb (and other packages that require it)
     config.resolve.alias = {
       ...config.resolve.alias,
-      tslib: path.resolve(__dirname, "node_modules/tslib"),
+      tslib: path.resolve(__dirname, "node_modules/tslib")
     };
     if (!isServer) {
       // Don't resolve server-only modules on the client to prevent this error
@@ -84,7 +84,7 @@ const nextConfig = {
         crypto: false,
         net: false,
         tls: false,
-        mysql2: false,
+        mysql2: false
       };
     }
     return config;
@@ -96,67 +96,67 @@ const nextConfig = {
         headers: [
           {
             key: "Cache-Control",
-            value: "public, max-age=300, s-maxage=300",
+            value: "public, max-age=300, s-maxage=300"
           },
           {
             key: "X-Content-Type-Options",
-            value: "nosniff",
+            value: "nosniff"
           },
           {
             key: "X-Frame-Options",
-            value: "DENY",
+            value: "DENY"
           },
           {
             key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-        ],
+            value: "1; mode=block"
+          }
+        ]
       },
       {
         source: "/(.*)",
         headers: [
           {
             key: "X-Content-Type-Options",
-            value: "nosniff",
+            value: "nosniff"
           },
           {
             key: "X-Frame-Options",
-            value: "DENY",
+            value: "DENY"
           },
           {
             key: "X-XSS-Protection",
-            value: "1; mode=block",
+            value: "1; mode=block"
           },
           {
             key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
+            value: "strict-origin-when-cross-origin"
           },
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.walletconnect.com https://*.web3modal.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.walletconnect.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.walletconnect.com; font-src 'self' https://fonts.gstatic.com https://*.walletconnect.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.walletconnect.com https://*.web3modal.org https://api.web3modal.org https://pulse.walletconnect.org https://fonts.googleapis.com https://fonts.gstatic.com https://ip-api.com http://ip-api.com; frame-src 'self' https://*.walletconnect.com; object-src 'none'; base-uri 'self'; form-action 'self';",
-          },
-        ],
+              "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://*.walletconnect.com https://*.web3modal.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.walletconnect.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.walletconnect.com; font-src 'self' https://fonts.gstatic.com https://*.walletconnect.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.walletconnect.com https://*.web3modal.org https://api.web3modal.org https://pulse.walletconnect.org https://fonts.googleapis.com https://fonts.gstatic.com https://ip-api.com http://ip-api.com; frame-src 'self' https://*.walletconnect.com; object-src 'none'; base-uri 'self'; form-action 'self';"
+          }
+        ]
       },
       {
         source: "/icons/:path*",
         headers: [
           {
             key: "Cache-Control",
-            value: "no-cache, no-store, must-revalidate",
+            value: "no-cache, no-store, must-revalidate"
           },
           {
             key: "Pragma",
-            value: "no-cache",
+            value: "no-cache"
           },
           {
             key: "Expires",
-            value: "0",
-          },
-        ],
-      },
+            value: "0"
+          }
+        ]
+      }
     ];
-  },
+  }
 };
 
 module.exports = withPWA(nextConfig);

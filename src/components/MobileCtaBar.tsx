@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import InvestNowLink from '@/components/InvestNowLink'
+import Link from "next/link";
+import InvestNowLink from "@/components/InvestNowLink";
 
 export default function MobileCtaBar() {
   return (
@@ -18,11 +18,11 @@ export default function MobileCtaBar() {
       </Link>
       <InvestNowLink
         className="flex items-center justify-center gap-2 px-6 py-3 rounded-full text-white text-sm font-medium transition-opacity hover:opacity-90 shrink-0"
-        style={{ background: 'linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)' }}
+        style={{ background: "linear-gradient(90deg, #6B46C1 0%, #A78BFA 100%)" }}
       >
         <span>Invest Now</span>
         <span>&gt;</span>
       </InvestNowLink>
     </div>
-  )
+  );
 }

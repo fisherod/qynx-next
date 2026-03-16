@@ -1,7 +1,7 @@
 /**
  * Auth user storage in MongoDB (used by NextAuth and signup API).
  */
-import { getAuthDb } from "@/db/mongodb";
+import { getDb } from "@/lib/mongodb";
 
 const USERS_COLLECTION = "users";
 
@@ -21,22 +21,19 @@ export interface DbUser {
 }
 
 export async function findUserByEmail(email: string): Promise<DbUser | null> {
-  const db = await getAuthDb();
+  const db = await getDb();
   const doc = await db.collection(USERS_COLLECTION).findOne({
-    email: email.toLowerCase().trim(),
+    email: email.toLowerCase().trim()
   });
   if (!doc) return null;
   return docToUser(doc);
 }
 
-export async function findUserByOAuth(
-  provider: string,
-  providerAccountId: string
-): Promise<DbUser | null> {
-  const db = await getAuthDb();
+export async function findUserByOAuth(provider: string, providerAccountId: string): Promise<DbUser | null> {
+  const db = await getDb();
   const doc = await db.collection(USERS_COLLECTION).findOne({
     "accounts.provider": provider,
-    "accounts.providerAccountId": providerAccountId,
+    "accounts.providerAccountId": providerAccountId
   });
   if (!doc) return null;
   return docToUser(doc);
@@ -50,7 +47,7 @@ export async function createUser(data: {
   emailVerified?: Date | null;
   role?: string;
 }): Promise<DbUser> {
-  const db = await getAuthDb();
+  const db = await getDb();
   const now = new Date();
   const doc = {
     email: data.email.toLowerCase().trim(),
@@ -61,7 +58,7 @@ export async function createUser(data: {
     role: data.role ?? "user",
     createdAt: now,
     updatedAt: now,
-    accounts: [],
+    accounts: []
   };
   const result = await db.collection(USERS_COLLECTION).insertOne(doc);
   return docToUser({ _id: result.insertedId, ...doc });
@@ -72,14 +69,14 @@ export async function updateUserOAuthAccount(
   provider: string,
   providerAccountId: string
 ): Promise<void> {
-  const db = await getAuthDb();
+  const db = await getDb();
   await db.collection(USERS_COLLECTION).updateOne(
     { email: email.toLowerCase().trim() },
     {
       $set: { updatedAt: new Date() },
       $addToSet: {
-        accounts: { provider, providerAccountId },
-      },
+        accounts: { provider, providerAccountId }
+      }
     }
   );
 }
@@ -91,7 +88,7 @@ export async function upsertUserByOAuth(data: {
   provider: string;
   providerAccountId: string;
 }): Promise<DbUser> {
-  const db = await getAuthDb();
+  const db = await getDb();
   const now = new Date();
   const email = data.email.toLowerCase().trim();
   const existing = await db.collection(USERS_COLLECTION).findOne({ email });
@@ -102,14 +99,14 @@ export async function upsertUserByOAuth(data: {
         $set: {
           name: data.name ?? existing.name,
           image: data.image ?? existing.image,
-          updatedAt: now,
+          updatedAt: now
         },
         $addToSet: {
           accounts: {
             provider: data.provider,
-            providerAccountId: data.providerAccountId,
-          },
-        },
+            providerAccountId: data.providerAccountId
+          }
+        }
       }
     );
     const updated = await db.collection(USERS_COLLECTION).findOne({ email });
@@ -124,9 +121,7 @@ export async function upsertUserByOAuth(data: {
     role: "user",
     createdAt: now,
     updatedAt: now,
-    accounts: [
-      { provider: data.provider, providerAccountId: data.providerAccountId },
-    ],
+    accounts: [{ provider: data.provider, providerAccountId: data.providerAccountId }]
   };
   const result = await db.collection(USERS_COLLECTION).insertOne(doc);
   return docToUser({ _id: result.insertedId, ...doc });
@@ -144,6 +139,6 @@ function docToUser(doc: any): DbUser {
     role: doc.role,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
-    accounts: doc.accounts,
+    accounts: doc.accounts
   };
 }

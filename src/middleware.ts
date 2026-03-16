@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/user")) {
     const token = await getToken({
       req: request,
-      secret: process.env.NEXTAUTH_SECRET,
+      secret: process.env.NEXTAUTH_SECRET
     });
     if (!token) {
       const signInUrl = new URL("/sign-in", request.url);
@@ -51,7 +51,7 @@ function addSecurityHeaders(response: NextResponse) {
     "connect-src 'self' https:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self'"
   ].join("; ");
 
   response.headers.set("Content-Security-Policy", csp);
@@ -65,7 +65,7 @@ function addSecurityHeaders(response: NextResponse) {
     "usb=()",
     "magnetometer=()",
     "accelerometer=()",
-    "gyroscope=()",
+    "gyroscope=()"
   ].join(", ");
 
   response.headers.set("Permissions-Policy", permissionsPolicy);
@@ -84,6 +84,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder files
      */
-    "/((?!_next/static|_next/image|favicon.ico|public|icons|manifest.json|sw.js|workbox-).*)",
-  ],
+    "/((?!_next/static|_next/image|favicon.ico|public|icons|manifest.json|sw.js|workbox-).*)"
+  ]
 };

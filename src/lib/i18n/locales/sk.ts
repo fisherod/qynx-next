@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "Nedostatok {{symbol}} (potrebujete {{amount}} {{symbol}})",
       processingButton: "Spracováva sa...",
       pay: "Zaplatiť",
-      failedTitle: "Platba zlyhala",
-    },
-  },
+      failedTitle: "Platba zlyhala"
+    }
+  }
 };

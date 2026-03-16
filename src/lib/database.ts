@@ -10,7 +10,7 @@ import {
   CreatePaymentRequest,
   PaymentStatus,
   ChainType,
-  AdminWalletBalance,
+  AdminWalletBalance
 } from "@/types";
 import { logInfo, logError } from "./logger";
 
@@ -35,13 +35,13 @@ class Database {
         connectionLimit: 10,
         queueLimit: 0,
         enableKeepAlive: true,
-        keepAliveInitialDelay: 0,
+        keepAliveInitialDelay: 0
       };
 
       this.pool = mysql.createPool({
         ...config,
         // Set timezone to UTC for all connections
-        timezone: "Z", // UTC
+        timezone: "Z" // UTC
       });
 
       // Test connection and set timezone
@@ -100,60 +100,36 @@ class Database {
   }
 
   // Payment operations
-  async createPayment(
-    data: CreatePaymentRequest & { payment_id: string; expires_at: Date }
-  ): Promise<Payment> {
-    const {
-      payment_id,
-      service_name,
-      description,
-      amount,
-      webhook_url,
-      language,
-      expires_at,
-    } = data;
+  async createPayment(data: CreatePaymentRequest & { payment_id: string; expires_at: Date }): Promise<Payment> {
+    const { payment_id, service_name, description, amount, webhook_url, language, expires_at } = data;
 
     // Format expires_at as UTC datetime string for MySQL
     // toISOString() returns UTC, we format it as MySQL DATETIME (YYYY-MM-DD HH:mm:ss)
     // Since we set session timezone to UTC, MySQL will interpret this correctly
     const expiresAtMySQL = expires_at.toISOString().slice(0, 19).replace("T", " ");
-    
+
     await this.execute(
       `INSERT INTO payments (
         payment_id, service_name, description,
         amount, webhook_url, language, expires_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        payment_id,
-        service_name,
-        description || null,
-        amount,
-        webhook_url || null,
-        language || null,
-        expiresAtMySQL,
-      ]
+      [payment_id, service_name, description || null, amount, webhook_url || null, language || null, expiresAtMySQL]
     );
 
-    const payments = await this.query(
-      "SELECT * FROM payments WHERE payment_id = ?",
-      [payment_id]
-    );
+    const payments = await this.query("SELECT * FROM payments WHERE payment_id = ?", [payment_id]);
 
     const payment = Array.isArray(payments) && payments.length > 0 ? (payments[0] as Payment) : null;
     if (!payment) {
       throw new Error(`Failed to create payment: payment not found after insert`);
     }
-    
+
     await this.logEvent(payment_id, "created", { amount });
 
     return payment;
   }
 
   async getPayment(paymentId: string): Promise<Payment | null> {
-    const rows = await this.query(
-      "SELECT * FROM payments WHERE payment_id = ?",
-      [paymentId]
-    );
+    const rows = await this.query("SELECT * FROM payments WHERE payment_id = ?", [paymentId]);
     return Array.isArray(rows) && rows.length > 0 ? (rows[0] as Payment) : null;
   }
 
@@ -183,10 +159,7 @@ class Database {
   }
 
   async updatePaymentChain(paymentId: string, chain: ChainType): Promise<void> {
-    await this.execute(
-      "UPDATE payments SET chain = ?, updated_at = NOW() WHERE payment_id = ?",
-      [chain, paymentId]
-    );
+    await this.execute("UPDATE payments SET chain = ?, updated_at = NOW() WHERE payment_id = ?", [chain, paymentId]);
     await this.logEvent(paymentId, "chain_updated", { chain });
   }
 
@@ -208,22 +181,18 @@ class Database {
   }
 
   // Event logging
-  async logEvent(
-    paymentId: string,
-    eventType: string,
-    data?: any
-  ): Promise<void> {
-    await this.execute(
-      `INSERT INTO payment_events (payment_id, event_type, data) VALUES (?, ?, ?)`,
-      [paymentId, eventType, data ? JSON.stringify(data) : null]
-    );
+  async logEvent(paymentId: string, eventType: string, data?: any): Promise<void> {
+    await this.execute(`INSERT INTO payment_events (payment_id, event_type, data) VALUES (?, ?, ?)`, [
+      paymentId,
+      eventType,
+      data ? JSON.stringify(data) : null
+    ]);
   }
 
   async getPaymentEvents(paymentId: string): Promise<PaymentEvent[]> {
-    const rows = await this.query(
-      "SELECT * FROM payment_events WHERE payment_id = ? ORDER BY created_at DESC",
-      [paymentId]
-    );
+    const rows = await this.query("SELECT * FROM payment_events WHERE payment_id = ? ORDER BY created_at DESC", [
+      paymentId
+    ]);
     return Array.isArray(rows) ? (rows as PaymentEvent[]) : [];
   }
 
@@ -243,16 +212,15 @@ class Database {
         webhookUrl,
         JSON.stringify(payload),
         responseStatus,
-        responseData ? JSON.stringify(responseData) : null,
+        responseData ? JSON.stringify(responseData) : null
       ]
     );
   }
 
   async getWebhookLogs(paymentId: string): Promise<WebhookLog[]> {
-    const rows = await this.query(
-      "SELECT * FROM webhook_logs WHERE payment_id = ? ORDER BY created_at DESC",
-      [paymentId]
-    );
+    const rows = await this.query("SELECT * FROM webhook_logs WHERE payment_id = ? ORDER BY created_at DESC", [
+      paymentId
+    ]);
     return Array.isArray(rows) ? (rows as WebhookLog[]) : [];
   }
 
@@ -263,16 +231,11 @@ class Database {
   }
 
   async getAllPayments(limit: number, offset: number): Promise<Payment[]> {
-    const rows = await this.query(
-      "SELECT * FROM payments ORDER BY created_at DESC LIMIT ? OFFSET ?",
-      [limit, offset]
-    );
+    const rows = await this.query("SELECT * FROM payments ORDER BY created_at DESC LIMIT ? OFFSET ?", [limit, offset]);
     return Array.isArray(rows) ? (rows as Payment[]) : [];
   }
 
-  async getUniqueWalletAddresses(): Promise<
-    { address: string; chain: string | null }[]
-  > {
+  async getUniqueWalletAddresses(): Promise<{ address: string; chain: string | null }[]> {
     const [rows] = await this.query(
       "SELECT DISTINCT wallet_address as address, chain FROM payments WHERE wallet_address IS NOT NULL AND wallet_address != '' ORDER BY chain, address"
     );
@@ -305,7 +268,7 @@ class Database {
       completed: stats.completed || 0,
       failed: stats.failed || 0,
       pending: stats.pending || 0,
-      totalAmount: stats.totalAmount || 0,
+      totalAmount: stats.totalAmount || 0
     };
   }
 
@@ -340,7 +303,7 @@ class Database {
       failed: stats.failed || 0,
       pending: stats.pending || 0,
       totalAmount: stats.totalAmount || 0,
-      lastPaymentDate: stats.lastPaymentDate || null,
+      lastPaymentDate: stats.lastPaymentDate || null
     };
   }
 
@@ -367,8 +330,7 @@ class Database {
       usdtBalance: wallet.usdtBalance || "0.00",
       amount: wallet.amount || "0.00",
       paymentCount: wallet.paymentCount || 0,
-      lastActivity:
-        wallet.lastActivity || wallet.connectedAt || new Date().toISOString(),
+      lastActivity: wallet.lastActivity || wallet.connectedAt || new Date().toISOString()
     }));
   }
 
@@ -395,31 +357,19 @@ class Database {
         amount = VALUES(amount),
         last_activity = NOW(),
         payment_count = payment_count + 1`,
-      [
-        walletData.address,
-        walletData.chain,
-        walletData.usdtBalance || "0.00",
-        walletData.amount || "0.00",
-      ]
+      [walletData.address, walletData.chain, walletData.usdtBalance || "0.00", walletData.amount || "0.00"]
     );
 
-    logInfo(
-      `Wallet ${walletData.address} on ${walletData.chain} saved/updated`
-    );
+    logInfo(`Wallet ${walletData.address} on ${walletData.chain} saved/updated`);
   }
 
   async getWalletByAddress(address: string): Promise<any | null> {
-    const rows = await this.query("SELECT * FROM wallets WHERE address = ?", [
-      address,
-    ]);
+    const rows = await this.query("SELECT * FROM wallets WHERE address = ?", [address]);
     const wallets = Array.isArray(rows) ? rows : [];
     return wallets[0] || null;
   }
 
-  async updateWalletBalance(
-    address: string,
-    usdtBalance: string
-  ): Promise<void> {
+  async updateWalletBalance(address: string, usdtBalance: string): Promise<void> {
     await this.execute(
       `UPDATE wallets 
       SET usdt_balance = ?, last_activity = NOW()
@@ -462,7 +412,7 @@ class Database {
           transferData.txHash || null,
           transferData.success ? 1 : 0,
           transferData.error || null,
-          transferData.timestamp.toISOString().slice(0, 19).replace("T", " "),
+          transferData.timestamp.toISOString().slice(0, 19).replace("T", " ")
         ]
       );
 
@@ -475,9 +425,7 @@ class Database {
 
   async getAutoTransferConfig(): Promise<Record<string, string>> {
     try {
-      const rows = await this.query(
-        "SELECT `key`, value FROM auto_transfer_config"
-      );
+      const rows = await this.query("SELECT `key`, value FROM auto_transfer_config");
       const config: Record<string, string> = {};
       const configs = Array.isArray(rows) ? rows : [];
 
@@ -508,10 +456,7 @@ class Database {
     }
   }
 
-  async getAutoTransferHistory(
-    limit: number = 100,
-    offset: number = 0
-  ): Promise<any[]> {
+  async getAutoTransferHistory(limit: number = 100, offset: number = 0): Promise<any[]> {
     try {
       const rows = await this.query(
         `SELECT * FROM auto_transfers 
@@ -557,12 +502,7 @@ class Database {
     }
   }
 
-  async saveTreasuryWallet(
-    chain: string,
-    address: string,
-    name?: string,
-    description?: string
-  ): Promise<any> {
+  async saveTreasuryWallet(chain: string, address: string, name?: string, description?: string): Promise<any> {
     try {
       // First, deactivate any existing wallets for this chain
       await this.execute(
@@ -586,7 +526,7 @@ class Database {
           chain,
           address,
           name || `${chain.toUpperCase()} Treasury`,
-          description || `Default ${chain.toUpperCase()} treasury wallet`,
+          description || `Default ${chain.toUpperCase()} treasury wallet`
         ]
       );
 
@@ -633,4 +573,3 @@ export async function getWalletBalances(): Promise<AdminWalletBalance[]> {
 }
 
 export default Database;
-

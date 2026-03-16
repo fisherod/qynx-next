@@ -1,13 +1,12 @@
 /* Self-hosted fonts (no Google fetch at build or runtime) */
-@import '@fontsource/montserrat/400.css';
-@import '@fontsource/montserrat/500.css';
-@import '@fontsource/montserrat/600.css';
-@import '@fontsource/montserrat/700.css';
-@import '@fontsource/josefin-sans/400.css';
-@import '@fontsource/josefin-sans/500.css';
-@import '@fontsource/josefin-sans/600.css';
-@import '@fontsource/josefin-sans/700.css';
-
+@import "@fontsource/montserrat/400.css";
+@import "@fontsource/montserrat/500.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+@import "@fontsource/josefin-sans/400.css";
+@import "@fontsource/josefin-sans/500.css";
+@import "@fontsource/josefin-sans/600.css";
+@import "@fontsource/josefin-sans/700.css";
 
 @tailwind base;
 @tailwind components;
@@ -19,33 +18,33 @@
 
 @layer base {
   /* Custom font imports */
-  
+
   /* Root variables for consistent theming */
   :root {
     /* Chinese-preferred colors */
-    --color-primary: #FF6B35;        /* Warm orange-red, popular in Chinese apps */
-    --color-primary-dark: #E55A2B;
-    --color-success: #FF4757;        /* Chinese red for money/success */
-    --color-wealth: #FFD700;         /* Gold for premium features */
-    --color-warning: #FFA726;
-    --color-error: #EF4444;
-    --color-info: #42A5F5;
-    --color-wechat: #07C160;         /* WeChat green */
-    --color-alipay: #1677FF;         /* Alipay blue */
-    
+    --color-primary: #ff6b35; /* Warm orange-red, popular in Chinese apps */
+    --color-primary-dark: #e55a2b;
+    --color-success: #ff4757; /* Chinese red for money/success */
+    --color-wealth: #ffd700; /* Gold for premium features */
+    --color-warning: #ffa726;
+    --color-error: #ef4444;
+    --color-info: #42a5f5;
+    --color-wechat: #07c160; /* WeChat green */
+    --color-alipay: #1677ff; /* Alipay blue */
+
     /* Chinese gradient backgrounds */
-    --gradient-warm: linear-gradient(135deg, #FF6B35 0%, #FFB347 100%);
-    --gradient-money: linear-gradient(135deg, #FFD700 0%, #FFA726 100%);
-    --gradient-success: linear-gradient(135deg, #FF4757 0%, #FF6B8A 100%);
-    
+    --gradient-warm: linear-gradient(135deg, #ff6b35 0%, #ffb347 100%);
+    --gradient-money: linear-gradient(135deg, #ffd700 0%, #ffa726 100%);
+    --gradient-success: linear-gradient(135deg, #ff4757 0%, #ff6b8a 100%);
+
     /* Chinese font optimization */
-    --font-chinese: 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    --font-chinese: "PingFang SC", "Microsoft YaHei", "微软雅黑", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
   }
 
   /* Dark mode variables */
   .dark {
-    --color-primary: #60A5FA;
-    --color-primary-dark: #3B82F6;
+    --color-primary: #60a5fa;
+    --color-primary-dark: #3b82f6;
   }
 
   /* Base element styles */
@@ -242,7 +241,7 @@
   /* Scrollbar styling */
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: #CBD5E0 #F7FAFC;
+    scrollbar-color: #cbd5e0 #f7fafc;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
@@ -250,24 +249,24 @@
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: #F7FAFC;
+    background: #f7fafc;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #CBD5E0;
+    background-color: #cbd5e0;
     border-radius: 3px;
   }
 
   .dark .scrollbar-thin {
-    scrollbar-color: #4A5568 #2D3748;
+    scrollbar-color: #4a5568 #2d3748;
   }
 
   .dark .scrollbar-thin::-webkit-scrollbar-track {
-    background: #2D3748;
+    background: #2d3748;
   }
 
   .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #4A5568;
+    background-color: #4a5568;
   }
 
   /* Safe area handling for mobile */
@@ -337,11 +336,21 @@
 
 /* Language-specific font preferences */
 :lang(zh-CN) {
-  font-family: 'Inter', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    "PingFang SC",
+    "Microsoft YaHei",
+    sans-serif;
 }
 
 :lang(en) {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* RTL support for future expansion */
@@ -362,7 +371,6 @@
    📱 Mobile-Specific Styles
    ================================= */
 
-
 main {
   max-width: 100vw;
   overflow-x: hidden;
@@ -380,7 +388,6 @@ img:focus {
   opacity: 1 !important;
   filter: none !important;
 }
-
 
 /* Selects: keep font size modest so dropdowns don’t look oversized */
 select,
@@ -460,7 +467,8 @@ select option {
 }
 
 @keyframes pulse-processing {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -471,7 +479,8 @@ select option {
 }
 
 @keyframes money-glow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
   }
   50% {
@@ -526,7 +535,7 @@ select option {
   .card {
     @apply border-2 border-gray-900 dark:border-white;
   }
-  
+
   .btn-primary {
     @apply border-2 border-blue-900;
   }

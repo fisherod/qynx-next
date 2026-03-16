@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "Nedostatek {{symbol}} (potřeba {{amount}} {{symbol}})",
       processingButton: "Zpracovává se...",
       pay: "Zaplatit",
-      failedTitle: "Platba selhala",
-    },
-  },
+      failedTitle: "Platba selhala"
+    }
+  }
 };

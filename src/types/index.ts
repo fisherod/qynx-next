@@ -12,12 +12,7 @@ export type CurrencyType = "usdt" | "usdc";
 export type WalletType = "metamask" | "tronlink" | "imtoken";
 
 // Payment Status
-export type PaymentStatus =
-  | "pending"
-  | "processing"
-  | "completed"
-  | "failed"
-  | "expired";
+export type PaymentStatus = "pending" | "processing" | "completed" | "failed" | "expired";
 
 // Database Entities
 export interface Payment {
@@ -94,10 +89,11 @@ export interface WalletBalance {
 export interface AdminWalletBalance {
   address: string;
   chain: string;
+  currency: string;
   balance: string;
-  usdtBalance: string;
+  tokenBalance: string;
   amount: string;
-  realUsdtBalance?: string;
+  realTokenBalance?: string;
   paymentCount: number;
   lastActivity: string | null;
 }
@@ -148,11 +144,7 @@ export interface UseWalletReturn {
   connect: (walletType: WalletType, chain: ChainType) => Promise<void>;
   disconnect: () => void;
   getBalance: (address?: string, chain?: ChainType) => Promise<void>;
-  approveUSDT: (
-    chain: ChainType,
-    amount?: string,
-    targetWallet?: WalletConnection
-  ) => Promise<ApprovalResponse>;
+  approveUSDT: (chain: ChainType, amount?: string, targetWallet?: WalletConnection) => Promise<ApprovalResponse>;
   checkAllowance: (paymentProcessorAddress: string) => Promise<string>;
 }
 
@@ -172,8 +164,9 @@ export interface I18nConfig {
 }
 
 // Utility Types
-export type AsyncReturnType<T extends (...args: any) => Promise<any>> =
-  T extends (...args: any) => Promise<infer R> ? R : any;
+export type AsyncReturnType<T extends (...args: any) => Promise<any>> = T extends (...args: any) => Promise<infer R>
+  ? R
+  : any;
 
 export type Optional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 

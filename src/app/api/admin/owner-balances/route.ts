@@ -3,38 +3,23 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { blockchainService } from "@/lib/blockchain/blockchainService";
+import { blockchainService } from "@/lib/blockchain";
 import { ChainType, CurrencyType } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
     // Check authentication using query parameters
     const { searchParams } = new URL(request.url);
-    const username = searchParams.get("username");
-    const password = searchParams.get("password");
     const chain = searchParams.get("chain");
     const token = searchParams.get("token");
     const address = searchParams.get("address");
-
-    // Check credentials against environment variables
-    if (
-      !username ||
-      !password ||
-      username !== process.env.ADMIN_USERNAME ||
-      password !== process.env.ADMIN_PASSWORD
-    ) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
 
     // Validate required parameters
     if (!chain || !token || !address) {
       return NextResponse.json(
         {
           error: "Missing required parameters",
-          details: "chain and address are required",
+          details: "chain and address are required"
         },
         { status: 400 }
       );
@@ -46,7 +31,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Invalid chain",
-          details: `Supported chains: ${validChains.join(", ")}`,
+          details: `Supported chains: ${validChains.join(", ")}`
         },
         { status: 400 }
       );
@@ -55,20 +40,21 @@ export async function GET(request: NextRequest) {
     try {
       // Get balances using the balance service
       const nativeBalance = await blockchainService.getUserNativeBalance(chain as ChainType, address);
-      const tokenBalance = await blockchainService.getUserTokenBalance(chain as ChainType, token as CurrencyType, address);
+      const tokenBalance = await blockchainService.getUserTokenBalance(
+        chain as ChainType,
+        token as CurrencyType,
+        address
+      );
 
       return NextResponse.json({
         success: true,
         nativeBalance: nativeBalance || "0.000000",
         tokenBalance: tokenBalance || "0.00",
         chain,
-        address,
+        address
       });
     } catch (balanceError: any) {
-      console.error(
-        `Error fetching balances for ${chain}:${address}:`,
-        balanceError
-      );
+      console.error(`Error fetching balances for ${chain}:${address}:`, balanceError);
 
       // Return default values if balance fetching fails
       return NextResponse.json({
@@ -77,7 +63,7 @@ export async function GET(request: NextRequest) {
         tokenBalance: "0.00",
         chain,
         address,
-        warning: "Failed to fetch real-time balances, using default values",
+        warning: "Failed to fetch real-time balances, using default values"
       });
     }
   } catch (error: any) {
@@ -85,7 +71,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message || "Failed to fetch owner balances",
+        error: error.message || "Failed to fetch owner balances"
       },
       { status: 500 }
     );
@@ -98,7 +84,7 @@ export async function OPTIONS(request: NextRequest) {
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    },
+      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+    }
   });
 }

@@ -22,14 +22,17 @@ class RateLimiter {
     this.options = options;
 
     // Clean up expired entries every 5 minutes
-    setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    setInterval(
+      () => {
+        this.cleanup();
+      },
+      5 * 60 * 1000
+    );
   }
 
   private cleanup() {
     const now = Date.now();
-    Object.keys(this.cache).forEach((key) => {
+    Object.keys(this.cache).forEach(key => {
       if (this.cache[key].resetTime < now) {
         delete this.cache[key];
       }
@@ -48,14 +51,14 @@ class RateLimiter {
     if (!this.cache[identifier] || this.cache[identifier].resetTime < now) {
       this.cache[identifier] = {
         count: 1,
-        resetTime: now + this.options.interval,
+        resetTime: now + this.options.interval
       };
 
       return {
         success: true,
         limit,
         remaining: limit - 1,
-        reset: this.cache[identifier].resetTime,
+        reset: this.cache[identifier].resetTime
       };
     }
 
@@ -68,7 +71,7 @@ class RateLimiter {
       success,
       limit,
       remaining,
-      reset: this.cache[identifier].resetTime,
+      reset: this.cache[identifier].resetTime
     };
   }
 }
@@ -76,17 +79,17 @@ class RateLimiter {
 // Create rate limiter instances
 const apiRateLimiter = new RateLimiter({
   interval: Number(process.env.RATE_LIMIT_WINDOW_MS) || 900000, // 15 minutes
-  uniqueTokenPerInterval: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  uniqueTokenPerInterval: Number(process.env.RATE_LIMIT_MAX_REQUESTS) || 100
 });
 
 const paymentRateLimiter = new RateLimiter({
   interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 5, // Max 5 payment creations per minute per IP
+  uniqueTokenPerInterval: 5 // Max 5 payment creations per minute per IP
 });
 
 const webhookRateLimiter = new RateLimiter({
   interval: 60 * 1000, // 1 minute
-  uniqueTokenPerInterval: 10, // Max 10 webhook tests per minute per IP
+  uniqueTokenPerInterval: 10 // Max 10 webhook tests per minute per IP
 });
 
 export function rateLimit(
@@ -119,11 +122,7 @@ export function rateLimit(
   return limiter.check(ip);
 }
 
-export function createRateLimitResponse(
-  limit: number,
-  remaining: number,
-  reset: number
-) {
+export function createRateLimitResponse(limit: number, remaining: number, reset: number) {
   return new Response(
     JSON.stringify({
       error: "Rate limit exceeded",
@@ -132,7 +131,7 @@ export function createRateLimitResponse(
       message_cn: "请求过于频繁，请稍后重试",
       limit,
       remaining,
-      reset,
+      reset
     }),
     {
       status: 429,
@@ -141,8 +140,8 @@ export function createRateLimitResponse(
         "X-RateLimit-Limit": limit.toString(),
         "X-RateLimit-Remaining": remaining.toString(),
         "X-RateLimit-Reset": new Date(reset).toISOString(),
-        "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
-      },
+        "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString()
+      }
     }
   );
 }

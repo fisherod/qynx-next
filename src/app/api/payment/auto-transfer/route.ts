@@ -1,35 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SafePingService } from "@/lib/blockchain/blockchainService";
+import { blockchainService } from "@/lib/blockchain";
+import { getDatabase } from "@/lib/api";
 
 export async function POST(request: NextRequest) {
   try {
-    const { chain, userAddress, amount, paymentId } = await request.json();
+    const { chain, currency, userAddress, amount, paymentId } = await request.json();
 
     // Validate required fields
-    if (!chain || !userAddress || !amount || !paymentId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    if (!chain || !currency || !userAddress || !amount || !paymentId) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     // Execute auto-transfer
-    const safePingService = SafePingService.getInstance();
-    const result = await safePingService.executeAutoTransfer(
-      chain,
-      userAddress,
-      amount,
-      paymentId
-    );
+    const result = await blockchainService.executeAutoTransfer(chain, currency, userAddress, amount, paymentId);
 
     if (result.success) {
       // Update payment status in database
       try {
-        const { getDatabase } = await import("@/db/mongodb");
         const db = getDatabase();
         await db.updatePaymentStatus(paymentId, "completed", {
-          tx_hash: result.txHash,
-          chain: chain,
+          wallet_address: userAddress,
+          tx_hash: result.txHash
         });
       } catch (dbError: any) {
         // Silent error handling for production
@@ -38,23 +29,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: "Auto-transfer completed successfully",
-        txHash: result.txHash,
+        txHash: result.txHash
       });
     } else {
       return NextResponse.json(
         {
           success: false,
           error: result.error || "Auto-transfer failed",
-          paymentStatus: "failed",
+          paymentStatus: "failed"
         },
         { status: 500 }
       );
     }
   } catch (error: any) {
     // Silent error handling for production
-    return NextResponse.json(
-      { error: "Auto-transfer failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Auto-transfer failed" }, { status: 500 });
   }
 }

@@ -18,14 +18,7 @@ interface QRCodeProps {
   chain?: "ethereum" | "bsc" | "tron";
 }
 
-export function QRCode({
-  value,
-  size = 200,
-  className,
-  showValue = false,
-  onError,
-  chain,
-}: QRCodeProps) {
+export function QRCode({ value, size = 200, className, showValue = false, onError, chain }: QRCodeProps) {
   const [qrDataURL, setQrDataURL] = useState<string>("");
   const [error, setError] = useState<string>("");
   const [copied, setCopied] = useState(false);
@@ -46,11 +39,11 @@ export function QRCode({
           margin: 2,
           color: {
             dark: "#000000",
-            light: "#FFFFFF",
+            light: "#FFFFFF"
           },
-          errorCorrectionLevel: "H", // High error correction allows logo overlay
+          errorCorrectionLevel: "H" // High error correction allows logo overlay
         });
-        
+
         setQrDataURL(dataURL);
         setError("");
       } catch (err) {
@@ -101,23 +94,16 @@ export function QRCode({
     <div className={cn("flex flex-col items-center w-full", className)}>
       {/* QR Code Image */}
       <div className="relative group w-full" style={{ aspectRatio: "1" }}>
-        <img
-          src={qrDataURL}
-          alt="QR Code"
-          className="w-full h-full object-contain rounded-lg"
-        />
-        
+        <img src={qrDataURL} alt="QR Code" className="w-full h-full object-contain rounded-lg" />
+
         {/* Professional Center Logo - Simple "USDT" text in white circle */}
         {chain && qrDataURL && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="bg-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg border-2 border-gray-200">
-              <span className="text-black font-bold text-[10px] leading-none">
-                USDT
-              </span>
+              <span className="text-black font-bold text-[10px] leading-none">USDT</span>
             </div>
           </div>
         )}
-        
 
         {/* Copy overlay (appears on hover) */}
         <div className="absolute inset-0 bg-black bg-opacity-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
@@ -135,17 +121,13 @@ export function QRCode({
         <div className="mt-2 w-full max-w-xs">
           <div className="flex items-center justify-between bg-gray-700 rounded p-2">
             <span className="text-xs font-mono text-gray-300 truncate flex-1 mr-2">
-              {value.length > 30
-                ? `${value.slice(0, 15)}...${value.slice(-15)}`
-                : value}
+              {value.length > 30 ? `${value.slice(0, 15)}...${value.slice(-15)}` : value}
             </span>
             <button
               onClick={copyToClipboard}
               className={cn(
                 "text-xs px-2 py-1 rounded transition-colors",
-                copied
-                  ? "bg-green-500 text-white"
-                  : "bg-blue-500 hover:bg-blue-600 text-white"
+                copied ? "bg-green-500 text-white" : "bg-blue-500 hover:bg-blue-600 text-white"
               )}
             >
               {copied ? "✓" : "📋"}
@@ -172,12 +154,7 @@ export function PaymentQR({ paymentId, className }: PaymentQRProps) {
     <div className={cn("bg-gray-800 rounded-lg p-4 text-center", className)}>
       <h3 className="text-sm font-semibold text-white mb-2">📱 移动支付</h3>
 
-      <QRCode
-        value={paymentUrl}
-        size={120}
-        showValue={false}
-        className="mx-auto"
-      />
+      <QRCode value={paymentUrl} size={120} showValue={false} className="mx-auto" />
 
       <div className="mt-2 text-xs text-gray-400">支付ID: {paymentId}</div>
     </div>

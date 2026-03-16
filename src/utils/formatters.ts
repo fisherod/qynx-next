@@ -15,11 +15,7 @@ export function formatPaymentAmount(amount: number | string): string {
 /**
  * Format currency with symbol
  */
-export function formatCurrency(
-  amount: number | string,
-  symbol: string = "USDT",
-  decimals: number = 2
-): string {
+export function formatCurrency(amount: number | string, symbol: string = "USDT", decimals: number = 2): string {
   const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
   if (isNaN(numAmount)) return `0.00 ${symbol}`;
   return `${numAmount.toFixed(decimals)} ${symbol}`;
@@ -28,11 +24,7 @@ export function formatCurrency(
 /**
  * Format address - truncate with ellipsis
  */
-export function formatAddress(
-  address: string,
-  startChars: number = 6,
-  endChars: number = 4
-): string {
+export function formatAddress(address: string, startChars: number = 6, endChars: number = 4): string {
   if (!address || address.length <= startChars + endChars) {
     return address;
   }
@@ -48,4 +40,3 @@ export function formatLargeNumber(num: number): string {
   if (num >= 1e3) return (num / 1e3).toFixed(2) + "K";
   return num.toFixed(2);
 }
-

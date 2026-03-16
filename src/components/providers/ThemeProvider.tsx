@@ -29,10 +29,7 @@ interface ThemeProviderProps {
   defaultTheme?: Theme;
 }
 
-export function ThemeProvider({
-  children,
-  defaultTheme = "system",
-}: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = "system" }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
@@ -55,10 +52,7 @@ export function ThemeProvider({
       let newResolvedTheme: "light" | "dark" = "light";
 
       if (theme === "system") {
-        newResolvedTheme = window.matchMedia("(prefers-color-scheme: dark)")
-          .matches
-          ? "dark"
-          : "light";
+        newResolvedTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
       } else {
         newResolvedTheme = theme;
       }
@@ -91,17 +85,11 @@ export function ThemeProvider({
   // Prevent flash of incorrect theme and hydration mismatch
   if (!mounted) {
     return (
-      <ThemeContext.Provider
-        value={{ theme: defaultTheme, setTheme, resolvedTheme: "dark" }}
-      >
+      <ThemeContext.Provider value={{ theme: defaultTheme, setTheme, resolvedTheme: "dark" }}>
         {children}
       </ThemeContext.Provider>
     );
   }
 
-  return (
-    <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={{ theme, setTheme, resolvedTheme }}>{children}</ThemeContext.Provider>;
 }

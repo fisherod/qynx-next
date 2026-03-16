@@ -1,38 +1,38 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
-const STORAGE_KEY = 'qynx_cookie_consent'
+const STORAGE_KEY = "qynx_cookie_consent";
 
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return
+    if (typeof window === "undefined") return;
     try {
-      const stored = window.localStorage.getItem(STORAGE_KEY)
-      if (stored === 'accepted') return
-      setVisible(true)
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored === "accepted") return;
+      setVisible(true);
     } catch {
-      setVisible(true)
+      setVisible(true);
     }
-  }, [])
+  }, []);
 
-  if (!visible) return null
+  if (!visible) return null;
 
   const handleAccept = () => {
     try {
-      window.localStorage.setItem(STORAGE_KEY, 'accepted')
+      window.localStorage.setItem(STORAGE_KEY, "accepted");
     } catch {
       // ignore storage errors
     }
-    setVisible(false)
-  }
+    setVisible(false);
+  };
 
   const closeModal = () => {
-    setVisible(false)
-  }
+    setVisible(false);
+  };
 
   return (
     <div className="fixed bottom-4 right-4 z-[90] px-4">
@@ -48,8 +48,8 @@ export default function CookieConsent() {
           </svg>
         </button>
         <p className="text-sm text-white/80 mb-4 font-medium">
-          By clicking <strong className="text-white">Accept All Cookies</strong>, you agree to the storing of cookies on your device
-          to enhance site navigation, analyze site usage, and assist in our marketing efforts.
+          By clicking <strong className="text-white">Accept All Cookies</strong>, you agree to the storing of cookies on
+          your device to enhance site navigation, analyze site usage, and assist in our marketing efforts.
         </p>
         <button
           type="button"
@@ -67,6 +67,5 @@ export default function CookieConsent() {
         </button>
       </div>
     </div>
-  )
+  );
 }
-

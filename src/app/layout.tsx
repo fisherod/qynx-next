@@ -18,7 +18,7 @@ export const viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  viewportFit: "cover",
+  viewportFit: "cover"
 };
 
 export const metadata: Metadata = {
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     "Tron",
     "blockchain payment",
     "crypto",
-    "payment",
+    "payment"
   ],
   authors: [{ name: "Crypto Payment Platform" }],
 
@@ -42,44 +42,24 @@ export const metadata: Metadata = {
     title: "Crypto Payment Platform",
     description: "Secure USDT multi-chain payment platform supporting multiple blockchain networks",
     type: "website",
-    locale: "en_US",
+    locale: "en_US"
   },
   twitter: {
     card: "summary_large_image",
     title: "Crypto Payment Platform",
-    description:
-      "Secure USDT payment platform supporting multiple blockchain networks",
-  },
+    description: "Secure USDT payment platform supporting multiple blockchain networks"
+  }
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
-
         {/* Favicon and app icons */}
         <link rel="icon" href="/favicon.ico" />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-touch-icon.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="manifest" href="/manifest.json" />
 
         {/* Security headers */}
@@ -104,23 +84,18 @@ export default function RootLayout({
               } catch (e) {
                 document.documentElement.classList.add('dark');
               }
-            `,
+            `
           }}
         />
       </head>
-      <body
-        className={`${inter.className} h-full antialiased`}
-        suppressHydrationWarning
-      >
+      <body className={`${inter.className} h-full antialiased`} suppressHydrationWarning>
         <ThemeProvider defaultTheme="dark">
           <SessionProvider>
             <I18nProvider>
               <ToastProvider>
                 <ErrorBoundary>
                   {/* Global wrapper with dark mode support */}
-                  <div className="min-h-full bg-white dark:bg-gray-900 transition-colors duration-200">
-                    {children}
-                  </div>
+                  <div className="min-h-full bg-white dark:bg-gray-900 transition-colors duration-200">{children}</div>
                 </ErrorBoundary>
               </ToastProvider>
             </I18nProvider>

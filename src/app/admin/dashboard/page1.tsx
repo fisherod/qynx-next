@@ -64,9 +64,7 @@ interface Wallet {
 export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [wallets, setWallets] = useState<Wallet[]>([]);
-  const [activeTab, setActiveTab] = useState<
-    "projects" | "wallets" | "payment-config"
-  >("projects");
+  const [activeTab, setActiveTab] = useState<"projects" | "wallets" | "payment-config">("projects");
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -79,11 +77,9 @@ export default function AdminDashboard() {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false);
   const [isLoadingWallets, setIsLoadingWallets] = useState(false);
   const [isLoadingOwnerBalances, setIsLoadingOwnerBalances] = useState(false);
-  const [isLoadingTreasuryWallets, setIsLoadingTreasuryWallets] =
-    useState(false);
+  const [isLoadingTreasuryWallets, setIsLoadingTreasuryWallets] = useState(false);
   const [isRefreshingBalances, setIsRefreshingBalances] = useState(false);
-  const [walletsRefreshInterval, setWalletsRefreshInterval] =
-    useState<NodeJS.Timeout | null>(null);
+  const [walletsRefreshInterval, setWalletsRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const [ownerAddresses, setOwnerAddresses] = useState<{
     [key: string]: string;
   }>({});
@@ -104,7 +100,7 @@ export default function AdminDashboard() {
     chain: "ethereum",
     address: "",
     name: "",
-    description: "",
+    description: ""
   });
 
   const router = useRouter();
@@ -144,7 +140,7 @@ export default function AdminDashboard() {
   const formatPaymentAmount = (amount: number | string): string => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
     if (isNaN(numAmount)) return "0.00";
-    
+
     // Format to 2 decimal places, then remove trailing zeros
     const formatted = numAmount.toFixed(2);
     return formatted.replace(/\.?0+$/, "") || "0";
@@ -159,8 +155,8 @@ export default function AdminDashboard() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: localStorage.getItem("admin_username"),
-            password: localStorage.getItem("admin_password"),
-          }),
+            password: localStorage.getItem("admin_password")
+          })
         });
 
         if (!response.ok) {
@@ -196,7 +192,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}&page=${page}&limit=${itemsPerPage}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -205,17 +201,17 @@ export default function AdminDashboard() {
       }
 
       const data = await response.json();
-      
+
       // Ensure payments is an array
-      if (!data || typeof data !== 'object') {
+      if (!data || typeof data !== "object") {
         console.error("Invalid response data:", data);
         setProjects([]);
         return;
       }
-      
+
       const payments = Array.isArray(data.payments) ? data.payments : [];
       setProjects(payments);
-      
+
       // Update pagination info
       if (data.pagination) {
         setTotalPages(data.pagination.totalPages || 1);
@@ -238,24 +234,22 @@ export default function AdminDashboard() {
       const authBody = getAuthBody();
 
       console.log("🔍 Fetching wallets with auth:", {
-        username: authBody.username,
+        username: authBody.username
       });
 
       // Fetch wallet balances with credentials as query parameters
       const response = await fetch(
         `/api/admin/wallet-balances?username=${encodeURIComponent(
           authBody.username || ""
-        )}&password=${encodeURIComponent(
-          authBody.password || ""
-        )}&t=${Date.now()}`,
+        )}&password=${encodeURIComponent(authBody.password || "")}&t=${Date.now()}`,
         {
           method: "GET",
           headers: {
             ...headers,
             "Cache-Control": "no-cache, no-store, must-revalidate",
             Pragma: "no-cache",
-            Expires: "0",
-          },
+            Expires: "0"
+          }
         }
       );
 
@@ -302,7 +296,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -331,7 +325,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -356,60 +350,56 @@ export default function AdminDashboard() {
   const fetchOwnerBalances = async (addresses: { [key: string]: string }) => {
     setIsLoadingOwnerBalances(true);
     try {
-      console.log(
-        "🔄 Starting to fetch owner balances for addresses:",
-        addresses
-      );
+      console.log("🔄 Starting to fetch owner balances for addresses:", addresses);
       const headers = getAuthHeaders();
       const authBody = getAuthBody();
 
       // Fetch balances for each owner address directly from blockchain
-      const balancePromises = Object.entries(addresses).map(
-        async ([chain, address]) => {
-          console.log(`🔄 Fetching balance for ${chain}: ${address}`);
-          if (!address) {
-            console.log(`⏭️ Skipping ${chain} - invalid address: ${address}`);
-            return { chain, native: "0.000000", usdt: "0.00" };
-          }
-
-          try {
-            // Call the balance service API to get real-time balances
-            const response = await fetch(
-              `/api/admin/owner-balances?username=${encodeURIComponent(
-                authBody.username || ""
-              )}&password=${encodeURIComponent(
-                authBody.password || ""
-              )}&chain=${chain}&address=${address}`,
-              {
-                method: "GET",
-                headers,
-              }
-            );
-
-            if (response.ok) {
-              const data = await response.json();
-              console.log(`✅ ${chain} balance fetched:`, data);
-              return {
-                chain,
-                native: data.nativeBalance || "0.000000",
-                usdt: data.usdtBalance || "0.00",
-              };
-            } else {
-              console.log(`⚠️ ${chain} balance fetch failed:`, response.status);
-            }
-          } catch (error) {
-            console.error(`❌ Error fetching ${chain} owner balance:`, error);
-          }
-
+      const balancePromises = Object.entries(addresses).map(async ([chain, address]) => {
+        console.log(`🔄 Fetching balance for ${chain}: ${address}`);
+        if (!address) {
+          console.log(`⏭️ Skipping ${chain} - invalid address: ${address}`);
           return { chain, native: "0.000000", usdt: "0.00" };
         }
-      );
+
+        try {
+          // Call the balance service API to get real-time balances
+          const response = await fetch(
+            `/api/admin/owner-balances?username=${encodeURIComponent(
+              authBody.username || ""
+            )}&password=${encodeURIComponent(authBody.password || "")}&chain=${chain}&address=${address}`,
+            {
+              method: "GET",
+              headers
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log(`✅ ${chain} balance fetched:`, data);
+            return {
+              chain,
+              native: data.nativeBalance || "0.000000",
+              usdt: data.usdtBalance || "0.00"
+            };
+          } else {
+            console.log(`⚠️ ${chain} balance fetch failed:`, response.status);
+          }
+        } catch (error) {
+          console.error(`❌ Error fetching ${chain} owner balance:`, error);
+        }
+
+        return { chain, native: "0.000000", usdt: "0.00" };
+      });
 
       const balances = await Promise.all(balancePromises);
-      const balanceMap = balances.reduce((acc, { chain, native, usdt }) => {
-        acc[chain] = { native, usdt };
-        return acc;
-      }, {} as { [key: string]: { native: string; usdt: string } });
+      const balanceMap = balances.reduce(
+        (acc, { chain, native, usdt }) => {
+          acc[chain] = { native, usdt };
+          return acc;
+        },
+        {} as { [key: string]: { native: string; usdt: string } }
+      );
 
       console.log("✅ Owner balances updated:", balanceMap);
       setOwnerBalances(balanceMap);
@@ -436,10 +426,7 @@ export default function AdminDashboard() {
 
     if (amount > parseFloat(selectedWallet.realUsdtBalance || "0")) {
       setTransferError(
-        `余额不足! 当前余额: ${formatUsdtBalance(
-          selectedWallet.realUsdtBalance || "0",
-          selectedWallet.chain
-        )} USDT`
+        `余额不足! 当前余额: ${formatUsdtBalance(selectedWallet.realUsdtBalance || "0", selectedWallet.chain)} USDT`
       );
       return;
     }
@@ -450,12 +437,11 @@ export default function AdminDashboard() {
       const usdtContracts = {
         ethereum: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
         bsc: "0x55d398326f99059fF775485246999027B3197955",
-        tron: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+        tron: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
       };
 
       // Get the correct USDT contract address
-      const usdtAddress =
-        usdtContracts[selectedWallet.chain as keyof typeof usdtContracts];
+      const usdtAddress = usdtContracts[selectedWallet.chain as keyof typeof usdtContracts];
       if (!usdtAddress) {
         setTransferError(`不支持的区块链: ${selectedWallet.chain}`);
         return;
@@ -508,21 +494,12 @@ export default function AdminDashboard() {
       );
 
       if (result.success && result.txHash) {
-        showToast(
-          `✅ ${selectedWallet.chain.toUpperCase()} 转账成功! 交易哈希: ${
-            result.txHash
-          }`,
-          "success"
-        );
+        showToast(`✅ ${selectedWallet.chain.toUpperCase()} 转账成功! 交易哈希: ${result.txHash}`, "success");
       } else {
-        throw new Error(
-          result.error || `${selectedWallet.chain.toUpperCase()} 转账失败`
-        );
+        throw new Error(result.error || `${selectedWallet.chain.toUpperCase()} 转账失败`);
       }
     } catch (error: any) {
-      throw new Error(
-        `${selectedWallet?.chain?.toUpperCase()} 转账错误: ${error.message}`
-      );
+      throw new Error(`${selectedWallet?.chain?.toUpperCase()} 转账错误: ${error.message}`);
     }
   };
 
@@ -566,7 +543,7 @@ export default function AdminDashboard() {
         {
           method: "POST",
           headers,
-          body: JSON.stringify(newTreasuryWallet),
+          body: JSON.stringify(newTreasuryWallet)
         }
       );
 
@@ -581,7 +558,7 @@ export default function AdminDashboard() {
         chain: "ethereum",
         address: "",
         name: "",
-        description: "",
+        description: ""
       });
       fetchTreasuryWallets(); // Refresh the list
       // Refresh real USDT balances after adding new treasury wallet
@@ -607,7 +584,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}&id=${id}`,
         {
           method: "DELETE",
-          headers,
+          headers
         }
       );
 
@@ -623,17 +600,15 @@ export default function AdminDashboard() {
     }
   };
 
-
-
   // Get auth headers
   const getAuthHeaders = () => ({
-    "Content-Type": "application/json",
+    "Content-Type": "application/json"
   });
 
   // Get auth body for POST requests
   const getAuthBody = () => ({
     username: localStorage.getItem("admin_username"),
-    password: localStorage.getItem("admin_password"),
+    password: localStorage.getItem("admin_password")
   });
 
   // Fetch payment details
@@ -649,7 +624,7 @@ export default function AdminDashboard() {
         )}&password=${encodeURIComponent(authBody.password || "")}`,
         {
           method: "GET",
-          headers,
+          headers
         }
       );
 
@@ -680,11 +655,11 @@ export default function AdminDashboard() {
         fetchWallets();
         break;
 
-          case "payment-config":
-            fetchTreasuryWallets();
-            fetchOwnerAddresses();
-            stopWalletsAutoRefresh(); // Stop wallets auto-refresh when not on wallets tab
-            break;
+      case "payment-config":
+        fetchTreasuryWallets();
+        fetchOwnerAddresses();
+        stopWalletsAutoRefresh(); // Stop wallets auto-refresh when not on wallets tab
+        break;
 
       default:
         stopWalletsAutoRefresh(); // Stop wallets auto-refresh for any other tab
@@ -733,9 +708,7 @@ export default function AdminDashboard() {
             <button
               onClick={() => setActiveTab("projects")}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "projects"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                activeTab === "projects" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Project Records
@@ -743,23 +716,21 @@ export default function AdminDashboard() {
             <button
               onClick={() => setActiveTab("wallets")}
               className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === "wallets"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-600 hover:text-gray-900"
+                activeTab === "wallets" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
               }`}
             >
               Wallet Management
             </button>
-                <button
-                  onClick={() => setActiveTab("payment-config")}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeTab === "payment-config"
-                      ? "bg-white text-gray-900 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  Fee Wallet
-                </button>
+            <button
+              onClick={() => setActiveTab("payment-config")}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "payment-config"
+                  ? "bg-white text-gray-900 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Fee Wallet
+            </button>
           </div>
         </div>
 
@@ -771,12 +742,7 @@ export default function AdminDashboard() {
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-blue-500/30 flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -788,7 +754,9 @@ export default function AdminDashboard() {
                   Payment Transaction Records
                 </h2>
                 <p className="text-gray-400 text-sm ml-13">
-                  {totalItems > 0 ? `Total ${totalItems} transaction records` : "View and manage all payment transactions"}
+                  {totalItems > 0
+                    ? `Total ${totalItems} transaction records`
+                    : "View and manage all payment transactions"}
                 </p>
               </div>
             </div>
@@ -818,10 +786,7 @@ export default function AdminDashboard() {
                   <tbody className="divide-y divide-gray-700/50">
                     {isLoadingProjects ? (
                       <tr>
-                        <td
-                          colSpan={5}
-                          className="px-6 py-4 text-center text-gray-400"
-                        >
+                        <td colSpan={5} className="px-6 py-4 text-center text-gray-400">
                           <div className="flex flex-col items-center justify-center space-y-3 py-8">
                             <div className="relative">
                               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -835,10 +800,7 @@ export default function AdminDashboard() {
                       </tr>
                     ) : projects.length === 0 ? (
                       <tr>
-                        <td
-                          colSpan={5}
-                          className="px-6 py-12 text-center"
-                        >
+                        <td colSpan={5} className="px-6 py-12 text-center">
                           <div className="flex flex-col items-center justify-center space-y-4">
                             <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
                               <svg
@@ -863,7 +825,7 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     ) : (
-                      projects.map((project) => (
+                      projects.map(project => (
                         <tr key={project.id} className="hover:bg-gray-700/30 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
@@ -894,12 +856,7 @@ export default function AdminDashboard() {
                                   className="text-xs text-blue-400 hover:text-blue-300 mt-0.5 flex items-center gap-1"
                                 >
                                   Copy full ID
-                                  <svg
-                                    className="w-3 h-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
@@ -917,7 +874,7 @@ export default function AdminDashboard() {
                                 src="/icons/tether.svg"
                                 alt="USDT"
                                 className="w-4 h-4"
-                                onError={(e) => {
+                                onError={e => {
                                   e.currentTarget.style.display = "none";
                                 }}
                               />
@@ -933,27 +890,27 @@ export default function AdminDashboard() {
                                 project.status === "completed"
                                   ? "bg-green-500/10 text-green-400 border-green-500/30"
                                   : project.status === "pending"
-                                  ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                                  : project.status === "processing"
-                                  ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-                                  : project.status === "failed"
-                                  ? "bg-red-500/10 text-red-400 border-red-500/30"
-                                  : project.status === "expired"
-                                  ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
-                                  : "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                                    ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                                    : project.status === "processing"
+                                      ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                      : project.status === "failed"
+                                        ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                        : project.status === "expired"
+                                          ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                                          : "bg-gray-500/10 text-gray-400 border-gray-500/30"
                               }`}
                             >
                               {project.status === "completed"
                                 ? "✓ Completed"
                                 : project.status === "pending"
-                                ? "⏳ Pending"
-                                : project.status === "processing"
-                                ? "⚙ Processing"
-                                : project.status === "failed"
-                                ? "✗ Failed"
-                                : project.status === "expired"
-                                ? "⏰ Expired"
-                                : project.status}
+                                  ? "⏳ Pending"
+                                  : project.status === "processing"
+                                    ? "⚙ Processing"
+                                    : project.status === "failed"
+                                      ? "✗ Failed"
+                                      : project.status === "expired"
+                                        ? "⏰ Expired"
+                                        : project.status}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -962,13 +919,13 @@ export default function AdminDashboard() {
                                 {new Date(project.created_at).toLocaleDateString("zh-CN", {
                                   year: "numeric",
                                   month: "2-digit",
-                                  day: "2-digit",
+                                  day: "2-digit"
                                 })}
                               </span>
                               <span className="text-xs text-gray-400">
                                 {new Date(project.created_at).toLocaleTimeString("zh-CN", {
                                   hour: "2-digit",
-                                  minute: "2-digit",
+                                  minute: "2-digit"
                                 })}
                               </span>
                             </div>
@@ -979,12 +936,7 @@ export default function AdminDashboard() {
                               disabled={isLoadingPaymentDetails}
                               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -1007,12 +959,14 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
-              
+
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm px-6 py-4 flex items-center justify-between border-t border-gray-700/50">
                   <div className="text-sm text-gray-400">
-                    Showing <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> - <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="text-white font-medium">{totalItems}</span> records
+                    Showing <span className="text-white font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> -{" "}
+                    <span className="text-white font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span>{" "}
+                    of <span className="text-white font-medium">{totalItems}</span> records
                   </div>
                   <div className="flex items-center space-x-2">
                     <button
@@ -1023,18 +977,8 @@ export default function AdminDashboard() {
                       disabled={currentPage === 1 || isLoadingProjects}
                       className="px-4 py-2 bg-gray-700/50 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 19l-7-7 7-7"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                       Previous Page
                     </button>
@@ -1075,18 +1019,8 @@ export default function AdminDashboard() {
                       className="px-4 py-2 bg-gray-700/50 hover:bg-gray-700 disabled:bg-gray-800/50 disabled:text-gray-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2"
                     >
                       Next Page
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </button>
                   </div>
@@ -1104,12 +1038,7 @@ export default function AdminDashboard() {
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-green-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1177,10 +1106,7 @@ export default function AdminDashboard() {
                   <tbody className="divide-y divide-gray-700/50">
                     {isLoadingWallets ? (
                       <tr>
-                        <td
-                          colSpan={5}
-                          className="px-6 py-4 text-center text-gray-400"
-                        >
+                        <td colSpan={5} className="px-6 py-4 text-center text-gray-400">
                           <div className="flex flex-col items-center justify-center space-y-3 py-8">
                             <div className="relative">
                               <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -1194,10 +1120,7 @@ export default function AdminDashboard() {
                       </tr>
                     ) : wallets.length === 0 ? (
                       <tr>
-                        <td
-                          colSpan={5}
-                          className="px-6 py-12 text-center"
-                        >
+                        <td colSpan={5} className="px-6 py-12 text-center">
                           <div className="flex flex-col items-center justify-center space-y-4">
                             <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
                               <svg
@@ -1222,11 +1145,8 @@ export default function AdminDashboard() {
                         </td>
                       </tr>
                     ) : (
-                      wallets.map((wallet) => (
-                        <tr
-                          key={wallet.address}
-                          className="hover:bg-gray-700/30 transition-colors"
-                        >
+                      wallets.map(wallet => (
+                        <tr key={wallet.address} className="hover:bg-gray-700/30 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center">
@@ -1256,12 +1176,7 @@ export default function AdminDashboard() {
                                   className="text-xs text-blue-400 hover:text-blue-300 mt-0.5 flex items-center gap-1"
                                 >
                                   Copy full address
-                                  <svg
-                                    className="w-3 h-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
@@ -1275,18 +1190,20 @@ export default function AdminDashboard() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="flex items-center gap-2">
-                              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                wallet.chain === "ethereum" 
-                                  ? "bg-blue-500/10 border border-blue-500/20"
-                                  : wallet.chain === "bsc"
-                                  ? "bg-yellow-500/10 border border-yellow-500/20"
-                                  : "bg-red-500/10 border border-red-500/20"
-                              }`}>
+                              <div
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                  wallet.chain === "ethereum"
+                                    ? "bg-blue-500/10 border border-blue-500/20"
+                                    : wallet.chain === "bsc"
+                                      ? "bg-yellow-500/10 border border-yellow-500/20"
+                                      : "bg-red-500/10 border border-red-500/20"
+                                }`}
+                              >
                                 <img
                                   src={`/icons/${wallet.chain}.png`}
                                   alt={wallet.chain}
                                   className="w-5 h-5"
-                                  onError={(e) => {
+                                  onError={e => {
                                     e.currentTarget.style.display = "none";
                                   }}
                                 />
@@ -1300,15 +1217,12 @@ export default function AdminDashboard() {
                                 src="/icons/tether.svg"
                                 alt="USDT"
                                 className="w-5 h-5"
-                                onError={(e) => {
+                                onError={e => {
                                   e.currentTarget.style.display = "none";
                                 }}
                               />
                               <span className="text-sm font-bold text-blue-400 font-mono">
-                                {formatUsdtBalance(
-                                  wallet.realUsdtBalance || "0",
-                                  wallet.chain
-                                )}
+                                {formatUsdtBalance(wallet.realUsdtBalance || "0", wallet.chain)}
                               </span>
                               <span className="text-xs text-gray-400">USDT</span>
                             </div>
@@ -1329,12 +1243,7 @@ export default function AdminDashboard() {
                               }}
                               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
                             >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                   strokeLinecap="round"
                                   strokeLinejoin="round"
@@ -1363,12 +1272,7 @@ export default function AdminDashboard() {
               <div>
                 <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500/20 to-orange-500/20 border border-yellow-500/30 flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-yellow-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1389,9 +1293,7 @@ export default function AdminDashboard() {
                 className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
               >
                 <svg
-                  className={`w-5 h-5 ${
-                    isLoadingOwnerBalances ? "animate-spin" : ""
-                  }`}
+                  className={`w-5 h-5 ${isLoadingOwnerBalances ? "animate-spin" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1430,42 +1332,38 @@ export default function AdminDashboard() {
                   const nativeBalance = parseFloat(balance?.native || "0");
                   const usdtBalance = parseFloat(balance?.usdt || "0");
                   const isLowBalance = nativeBalance < 0.01;
-                  
+
                   return (
                     <div
                       key={chain}
                       className={`bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl border-2 p-6 transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
-                        isLowBalance
-                          ? "border-red-500/50 shadow-red-500/20"
-                          : "border-gray-700/50 shadow-gray-700/20"
+                        isLowBalance ? "border-red-500/50 shadow-red-500/20" : "border-gray-700/50 shadow-gray-700/20"
                       }`}
                     >
                       {/* Chain Header */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            chain === "ethereum" 
-                              ? "bg-blue-500/20 border border-blue-500/30"
-                              : chain === "bsc"
-                              ? "bg-yellow-500/20 border border-yellow-500/30"
-                              : "bg-red-500/20 border border-red-500/30"
-                          }`}>
+                          <div
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                              chain === "ethereum"
+                                ? "bg-blue-500/20 border border-blue-500/30"
+                                : chain === "bsc"
+                                  ? "bg-yellow-500/20 border border-yellow-500/30"
+                                  : "bg-red-500/20 border border-red-500/30"
+                            }`}
+                          >
                             <img
                               src={`/icons/${chain}.png`}
                               alt={chain}
                               className="w-8 h-8"
-                              onError={(e) => {
+                              onError={e => {
                                 e.currentTarget.style.display = "none";
                               }}
                             />
                           </div>
                           <div>
                             <h3 className="text-lg font-bold text-white">
-                              {chain === "ethereum"
-                                ? "Ethereum"
-                                : chain === "bsc"
-                                ? "Binance Smart Chain"
-                                : "TRON"}
+                              {chain === "ethereum" ? "Ethereum" : chain === "bsc" ? "Binance Smart Chain" : "TRON"}
                             </h3>
                             <p className="text-xs text-gray-400">Fee Wallet</p>
                           </div>
@@ -1512,20 +1410,15 @@ export default function AdminDashboard() {
                             chain === "ethereum"
                               ? `https://etherscan.io/address/${address}`
                               : chain === "bsc"
-                              ? `https://bscscan.com/address/${address}`
-                              : `https://tronscan.org/#/address/${address}`
+                                ? `https://bscscan.com/address/${address}`
+                                : `https://tronscan.org/#/address/${address}`
                           }
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-green-400 hover:text-green-300 mt-1 inline-flex items-center gap-1"
                         >
                           View in Blockchain Explorer
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -1546,30 +1439,29 @@ export default function AdminDashboard() {
                                 src={`/icons/${chain}.png`}
                                 alt={chain}
                                 className="w-5 h-5"
-                                onError={(e) => {
+                                onError={e => {
                                   e.currentTarget.style.display = "none";
                                 }}
                               />
                               <span className="text-sm font-medium text-gray-300">
-                                {chain === "tron"
-                                  ? "TRX"
-                                  : chain === "bsc"
-                                  ? "BNB"
-                                  : "ETH"}
+                                {chain === "tron" ? "TRX" : chain === "bsc" ? "BNB" : "ETH"}
                               </span>
                             </div>
                             {!balance ? (
                               <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>
                             ) : (
-                              <span className={`text-lg font-bold font-mono ${
-                                nativeBalance < 0.01 ? "text-red-400" : "text-green-400"
-                              }`}>
+                              <span
+                                className={`text-lg font-bold font-mono ${
+                                  nativeBalance < 0.01 ? "text-red-400" : "text-green-400"
+                                }`}
+                              >
                                 {nativeBalance.toFixed(6)}
                               </span>
                             )}
                           </div>
                           <p className="text-xs text-gray-500">
-                            Used for payment of transaction fees on the {chain === "tron" ? "TRON" : chain === "bsc" ? "BSC" : "Ethereum"} network
+                            Used for payment of transaction fees on the{" "}
+                            {chain === "tron" ? "TRON" : chain === "bsc" ? "BSC" : "Ethereum"} network
                           </p>
                         </div>
 
@@ -1581,7 +1473,7 @@ export default function AdminDashboard() {
                                 src="/icons/tether.svg"
                                 alt="USDT"
                                 className="w-5 h-5"
-                                onError={(e) => {
+                                onError={e => {
                                   e.currentTarget.style.display = "none";
                                 }}
                               />
@@ -1636,12 +1528,7 @@ export default function AdminDashboard() {
               <div className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-12">
                 <div className="flex flex-col items-center justify-center space-y-4">
                   <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
-                    <svg
-                      className="w-8 h-8 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1652,7 +1539,9 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-medium text-gray-300">Fee Wallet Not Configured</p>
-                    <p className="text-sm text-gray-500 mt-1">Please contact the administrator to configure the wallet address</p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Please contact the administrator to configure the wallet address
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1669,24 +1558,20 @@ export default function AdminDashboard() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Wallet Address
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Wallet Address</label>
                 <div className="text-sm text-white bg-gray-700 px-3 py-2 rounded border border-gray-600">
                   {selectedWallet.address}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Blockchain Network
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Blockchain Network</label>
                 <div className="text-sm text-white bg-gray-700 px-3 py-2 rounded border border-gray-600 flex items-center gap-2">
                   <img
                     src={`/icons/${selectedWallet.chain}.png`}
                     alt={selectedWallet.chain}
                     className="w-5 h-5"
-                    onError={(e) => {
+                    onError={e => {
                       // Fallback to a default icon if the image fails to load
                       e.currentTarget.style.display = "none";
                     }}
@@ -1696,14 +1581,10 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Current USDT Balance
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Current USDT Balance</label>
                 <div className="text-sm text-white bg-gray-700 px-3 py-2 rounded border border-gray-600">
                   {formatUsdtBalance(
-                    selectedWallet.realUsdtBalance ||
-                      selectedWallet.usdtBalance ||
-                      "0",
+                    selectedWallet.realUsdtBalance || selectedWallet.usdtBalance || "0",
                     selectedWallet.chain
                   )}{" "}
                   USDT
@@ -1711,26 +1592,22 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Receiver Address
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Receiver Address</label>
                 <input
                   type="text"
                   value={spenderAddress}
-                  onChange={(e) => setSpenderAddress(e.target.value)}
+                  onChange={e => setSpenderAddress(e.target.value)}
                   placeholder="Enter the receiver's wallet address"
                   className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Transfer Amount (USDT)
-                </label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Transfer Amount (USDT)</label>
                 <input
                   type="number"
                   value={transferAmount}
-                  onChange={(e) => setTransferAmount(e.target.value)}
+                  onChange={e => setTransferAmount(e.target.value)}
                   placeholder="Enter the transfer amount"
                   step="0.01"
                   min="0"
@@ -1779,25 +1656,13 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between p-6 border-b border-gray-700/50">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center">
-                  <svg
-                    className="w-5 h-5 text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
+                  <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">
-                    {newTreasuryWallet.address
-                      ? "Edit Treasury Wallet"
-                      : "Add Treasury Wallet"}
+                    {newTreasuryWallet.address ? "Edit Treasury Wallet" : "Add Treasury Wallet"}
                   </h3>
                   <p className="text-sm text-gray-400">
                     Configure your treasury wallet for {newTreasuryWallet.chain.toUpperCase()}
@@ -1811,23 +1676,13 @@ export default function AdminDashboard() {
                     chain: "ethereum",
                     address: "",
                     name: "",
-                    description: "",
+                    description: ""
                   });
                 }}
                 className="w-8 h-8 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center"
               >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
@@ -1836,25 +1691,23 @@ export default function AdminDashboard() {
             <div className="p-6 space-y-6">
               {/* Chain Selection */}
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Blockchain Network
-                </label>
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Blockchain Network</label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     {
                       value: "ethereum",
                       label: "Ethereum",
-                      icon: "/icons/ethereum.png",
+                      icon: "/icons/ethereum.png"
                     },
                     { value: "bsc", label: "BSC", icon: "/icons/bsc.png" },
-                    { value: "tron", label: "TRON", icon: "/icons/tron.png" },
-                  ].map((chain) => (
+                    { value: "tron", label: "TRON", icon: "/icons/tron.png" }
+                  ].map(chain => (
                     <button
                       key={chain.value}
                       onClick={() =>
                         setNewTreasuryWallet({
                           ...newTreasuryWallet,
-                          chain: chain.value,
+                          chain: chain.value
                         })
                       }
                       className={`p-4 rounded-xl border-2 transition-all duration-200 ${
@@ -1864,14 +1717,8 @@ export default function AdminDashboard() {
                       }`}
                     >
                       <div className="flex flex-col items-center gap-2">
-                        <img
-                          src={chain.icon}
-                          alt={chain.label}
-                          className="w-8 h-8"
-                        />
-                        <span className="text-sm font-medium text-white">
-                          {chain.label}
-                        </span>
+                        <img src={chain.icon} alt={chain.label} className="w-8 h-8" />
+                        <span className="text-sm font-medium text-white">{chain.label}</span>
                       </div>
                     </button>
                   ))}
@@ -1880,17 +1727,15 @@ export default function AdminDashboard() {
 
               {/* Treasury Address */}
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Treasury Wallet Address
-                </label>
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Treasury Wallet Address</label>
                 <div className="relative">
                   <input
                     type="text"
                     value={newTreasuryWallet.address}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewTreasuryWallet({
                         ...newTreasuryWallet,
-                        address: e.target.value,
+                        address: e.target.value
                       })
                     }
                     placeholder={`Enter ${newTreasuryWallet.chain.toUpperCase()} treasury wallet address`}
@@ -1909,16 +1754,14 @@ export default function AdminDashboard() {
 
               {/* Name */}
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Wallet Name
-                </label>
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Wallet Name</label>
                 <input
                   type="text"
                   value={newTreasuryWallet.name}
-                  onChange={(e) =>
+                  onChange={e =>
                     setNewTreasuryWallet({
                       ...newTreasuryWallet,
-                      name: e.target.value,
+                      name: e.target.value
                     })
                   }
                   placeholder={`${newTreasuryWallet.chain.toUpperCase()} Treasury Wallet`}
@@ -1928,15 +1771,13 @@ export default function AdminDashboard() {
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-semibold text-gray-300 mb-3">
-                  Description
-                </label>
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Description</label>
                 <textarea
                   value={newTreasuryWallet.description}
-                  onChange={(e) =>
+                  onChange={e =>
                     setNewTreasuryWallet({
                       ...newTreasuryWallet,
-                      description: e.target.value,
+                      description: e.target.value
                     })
                   }
                   placeholder={`Your ${newTreasuryWallet.chain.toUpperCase()} Treasury Wallet description`}
@@ -1955,7 +1796,7 @@ export default function AdminDashboard() {
                     chain: "ethereum",
                     address: "",
                     name: "",
-                    description: "",
+                    description: ""
                   });
                 }}
                 className="flex-1 px-6 py-3 bg-gray-700/50 hover:bg-gray-700 text-white rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105"
@@ -1967,20 +1808,10 @@ export default function AdminDashboard() {
                 disabled={!newTreasuryWallet.address}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 text-white rounded-xl text-sm font-medium transition-all duration-200 transform hover:scale-105 disabled:transform-none"
               >
-                <svg
-                  className="w-4 h-4 mr-2 inline"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
+                <svg className="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                  {newTreasuryWallet.address ? "Update Wallet" : "Save Wallet"}
+                {newTreasuryWallet.address ? "Update Wallet" : "Save Wallet"}
               </button>
             </div>
           </div>
@@ -2004,268 +1835,12 @@ export default function AdminDashboard() {
               </div>
             ) : selectedPayment ? (
               <>
-            {/* Modal Header */}
-            <div className="sticky top-0 bg-gray-800/95 backdrop-blur-sm border-b border-gray-700/50 p-6 z-10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center">
-                    <svg
-                      className="w-6 h-6 text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-white">Payment Details</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <p className="text-sm text-gray-400 font-mono">
-                        {selectedPayment.payment.payment_id}
-                      </p>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(
-                            selectedPayment.payment.payment_id
-                          );
-                          showToast("Payment ID copied", "success");
-                        }}
-                        className="p-1 hover:bg-gray-700 rounded transition-colors"
-                        title="Copy Payment ID"
-                      >
-                        <svg
-                          className="w-4 h-4 text-gray-400 hover:text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setShowPaymentModal(false);
-                    setSelectedPayment(null);
-                  }}
-                  className="w-10 h-10 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-6">
-              {/* Payment Overview */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-1">Service Name</div>
-                  <div className="text-white font-medium">
-                    {selectedPayment.payment.service_name}
-                  </div>
-                </div>
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-2">Amount</div>
-                  <div className="flex items-center gap-2">
-                    <img
-                      src="/icons/tether.svg"
-                      alt="USDT"
-                      className="w-5 h-5"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                    <span className="text-white font-bold text-xl font-mono">
-                      {formatPaymentAmount(selectedPayment.payment.amount)}
-                    </span>
-                    <span className="text-sm text-gray-400">USDT</span>
-                  </div>
-                </div>
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-2">Status</div>
-                  <span
-                    className={`px-3 py-1.5 text-sm font-semibold rounded-lg border inline-block ${
-                      selectedPayment.payment.status === "completed"
-                        ? "bg-green-500/10 text-green-400 border-green-500/30"
-                        : selectedPayment.payment.status === "pending"
-                        ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
-                        : selectedPayment.payment.status === "processing"
-                        ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
-                        : selectedPayment.payment.status === "failed"
-                        ? "bg-red-500/10 text-red-400 border-red-500/30"
-                        : selectedPayment.payment.status === "expired"
-                        ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
-                        : "bg-gray-500/10 text-gray-400 border-gray-500/30"
-                    }`}
-                  >
-                    {selectedPayment.payment.status === "completed"
-                      ? "✓ Completed"
-                      : selectedPayment.payment.status === "pending"
-                      ? "⏳ Pending"
-                      : selectedPayment.payment.status === "processing"
-                      ? "⚙ Processing"
-                      : selectedPayment.payment.status === "failed"
-                    ? "✗ Failed"
-                      : selectedPayment.payment.status === "expired"
-                      ? "⏰ Expired"
-                      : selectedPayment.payment.status}
-                  </span>
-                </div>
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-1">Blockchain</div>
-                  <div className="text-white font-medium flex items-center gap-2">
-                    {selectedPayment.payment.chain ? (
-                      <>
-                        <img
-                          src={`/icons/${selectedPayment.payment.chain}.png`}
-                          alt={selectedPayment.payment.chain}
-                          className="w-5 h-5"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                        <span>{selectedPayment.payment.chain.toUpperCase()}</span>
-                      </>
-                    ) : (
-                      <span className="text-gray-500">Not selected</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              {selectedPayment.payment.description && (
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-2">Description</div>
-                  <div className="text-white">{selectedPayment.payment.description}</div>
-                </div>
-              )}
-
-              {/* Transaction Details */}
-              <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl p-5 border border-gray-700/30 space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
-                    <svg
-                      className="w-5 h-5 text-blue-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                      />
-                    </svg>
-                  </div>
-                  <h4 className="text-base font-bold text-white">Transaction Information</h4>
-                </div>
-                {selectedPayment.payment.wallet_address && (
-                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
-                          />
-                        </svg>
-                        <span className="text-xs text-gray-400 font-medium">Wallet Address</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              selectedPayment.payment.wallet_address!
-                            );
-                            showToast("Address copied", "success");
-                          }}
-                          className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
-                        >
-                          Copy
-                        </button>
-                        {selectedPayment.payment.chain && (
-                          <a
-                            href={
-                              selectedPayment.payment.chain === "ethereum"
-                                ? `https://etherscan.io/address/${selectedPayment.payment.wallet_address}`
-                                : selectedPayment.payment.chain === "bsc"
-                                ? `https://bscscan.com/address/${selectedPayment.payment.wallet_address}`
-                                : selectedPayment.payment.chain === "tron"
-                                ? `https://tronscan.org/#/address/${selectedPayment.payment.wallet_address}`
-                                : "#"
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2 py-1 text-xs text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded transition-colors flex items-center gap-1"
-                          >
-                            View
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                              />
-                            </svg>
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-sm text-white font-mono break-all">
-                      {selectedPayment.payment.wallet_address}
-                    </div>
-                  </div>
-                )}
-                {selectedPayment.payment.tx_hash && (
-                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <svg
-                          className="w-4 h-4 text-gray-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
+                {/* Modal Header */}
+                <div className="sticky top-0 bg-gray-800/95 backdrop-blur-sm border-b border-gray-700/50 p-6 z-10">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center">
+                        <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
@@ -2273,38 +1848,21 @@ export default function AdminDashboard() {
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                           />
                         </svg>
-                        <span className="text-xs text-gray-400 font-medium">Transaction Hash</span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(
-                              selectedPayment.payment.tx_hash!
-                            );
-                            showToast("Transaction Hash copied", "success");
-                          }}
-                          className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
-                        >
-                          Copy
-                        </button>
-                        {selectedPayment.payment.chain && (
-                          <a
-                            href={
-                              selectedPayment.payment.chain === "ethereum"
-                                ? `https://etherscan.io/tx/${selectedPayment.payment.tx_hash}`
-                                : selectedPayment.payment.chain === "bsc"
-                                ? `https://bscscan.com/tx/${selectedPayment.payment.tx_hash}`
-                                : selectedPayment.payment.chain === "tron"
-                                ? `https://tronscan.org/#/transaction/${selectedPayment.payment.tx_hash}`
-                                : "#"
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2 py-1 text-xs text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded transition-colors flex items-center gap-1"
+                      <div>
+                        <h3 className="text-2xl font-bold text-white">Payment Details</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-sm text-gray-400 font-mono">{selectedPayment.payment.payment_id}</p>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedPayment.payment.payment_id);
+                              showToast("Payment ID copied", "success");
+                            }}
+                            className="p-1 hover:bg-gray-700 rounded transition-colors"
+                            title="Copy Payment ID"
                           >
-                            View
                             <svg
-                              className="w-3 h-3"
+                              className="w-4 h-4 text-gray-400 hover:text-white"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -2313,240 +1871,462 @@ export default function AdminDashboard() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
                               />
                             </svg>
-                          </a>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowPaymentModal(false);
+                        setSelectedPayment(null);
+                      }}
+                      className="w-10 h-10 rounded-lg bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors flex items-center justify-center"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-6">
+                  {/* Payment Overview */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-1">Service Name</div>
+                      <div className="text-white font-medium">{selectedPayment.payment.service_name}</div>
+                    </div>
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-2">Amount</div>
+                      <div className="flex items-center gap-2">
+                        <img
+                          src="/icons/tether.svg"
+                          alt="USDT"
+                          className="w-5 h-5"
+                          onError={e => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        <span className="text-white font-bold text-xl font-mono">
+                          {formatPaymentAmount(selectedPayment.payment.amount)}
+                        </span>
+                        <span className="text-sm text-gray-400">USDT</span>
+                      </div>
+                    </div>
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-2">Status</div>
+                      <span
+                        className={`px-3 py-1.5 text-sm font-semibold rounded-lg border inline-block ${
+                          selectedPayment.payment.status === "completed"
+                            ? "bg-green-500/10 text-green-400 border-green-500/30"
+                            : selectedPayment.payment.status === "pending"
+                              ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                              : selectedPayment.payment.status === "processing"
+                                ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                                : selectedPayment.payment.status === "failed"
+                                  ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                  : selectedPayment.payment.status === "expired"
+                                    ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                                    : "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                        }`}
+                      >
+                        {selectedPayment.payment.status === "completed"
+                          ? "✓ Completed"
+                          : selectedPayment.payment.status === "pending"
+                            ? "⏳ Pending"
+                            : selectedPayment.payment.status === "processing"
+                              ? "⚙ Processing"
+                              : selectedPayment.payment.status === "failed"
+                                ? "✗ Failed"
+                                : selectedPayment.payment.status === "expired"
+                                  ? "⏰ Expired"
+                                  : selectedPayment.payment.status}
+                      </span>
+                    </div>
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-1">Blockchain</div>
+                      <div className="text-white font-medium flex items-center gap-2">
+                        {selectedPayment.payment.chain ? (
+                          <>
+                            <img
+                              src={`/icons/${selectedPayment.payment.chain}.png`}
+                              alt={selectedPayment.payment.chain}
+                              className="w-5 h-5"
+                              onError={e => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                            <span>{selectedPayment.payment.chain.toUpperCase()}</span>
+                          </>
+                        ) : (
+                          <span className="text-gray-500">Not selected</span>
                         )}
                       </div>
                     </div>
-                    <div className="text-sm text-white font-mono break-all">
-                      {selectedPayment.payment.tx_hash}
-                    </div>
                   </div>
-                )}
-                {selectedPayment.payment.webhook_url && (
-                  <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
-                    <div className="flex items-center gap-2 mb-2">
-                      <svg
-                        className="w-4 h-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                        />
-                      </svg>
-                      <span className="text-xs text-gray-400 font-medium">Webhook URL</span>
-                    </div>
-                    <div className="text-sm text-white break-all font-mono">
-                      {selectedPayment.payment.webhook_url}
-                    </div>
-                  </div>
-                )}
-              </div>
 
-              {/* Timestamps */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-1">Created At</div>
-                  <div className="text-white text-sm">
-                    {new Date(selectedPayment.payment.created_at).toLocaleString("zh-CN")}
-                  </div>
-                </div>
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-1">Updated At</div>
-                  <div className="text-white text-sm">
-                    {new Date(selectedPayment.payment.updated_at).toLocaleString("zh-CN")}
-                  </div>
-                </div>
-                <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
-                  <div className="text-xs text-gray-400 mb-1">Expires At</div>
-                  <div className="text-white text-sm">
-                    {new Date(selectedPayment.payment.expires_at).toLocaleString("zh-CN")}
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Events Timeline */}
-              {selectedPayment.events && selectedPayment.events.length > 0 && (
-                <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl p-5 border border-gray-700/30">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
-                      <svg
-                        className="w-5 h-5 text-purple-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
+                  {/* Description */}
+                  {selectedPayment.payment.description && (
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-2">Description</div>
+                      <div className="text-white">{selectedPayment.payment.description}</div>
                     </div>
-                    <h4 className="text-base font-bold text-white">
-                      Event Timeline <span className="text-sm font-normal text-gray-400">({selectedPayment.events.length})</span>
-                    </h4>
-                  </div>
-                  <div className="space-y-3">
-                    {selectedPayment.events.map((event, index) => (
-                      <div
-                        key={event.id}
-                        className="flex items-start gap-3 pb-3 border-b border-gray-700/30 last:border-0"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="text-sm font-medium text-white">
-                              {event.event_type}
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              {new Date(event.created_at).toLocaleString("zh-CN")}
-                            </div>
-                          </div>
-                          {event.data && (
-                            <details className="mt-1">
-                              <summary className="text-xs text-blue-400 cursor-pointer hover:text-blue-300">
-                                View Event Data
-                              </summary>
-                              <pre className="mt-2 text-xs text-gray-300 bg-gray-800/50 p-2 rounded overflow-x-auto">
-                                {(() => {
-                                  try {
-                                    const parsed = typeof event.data === "string" 
-                                      ? JSON.parse(event.data) 
-                                      : event.data;
-                                    return JSON.stringify(parsed, null, 2);
-                                  } catch {
-                                    return typeof event.data === "string"
-                                      ? event.data
-                                      : JSON.stringify(event.data, null, 2);
-                                  }
-                                })()}
-                              </pre>
-                            </details>
-                          )}
-                        </div>
+                  )}
+
+                  {/* Transaction Details */}
+                  <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl p-5 border border-gray-700/30 space-y-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+                        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                          />
+                        </svg>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Webhook Logs */}
-              {selectedPayment.webhookLogs && selectedPayment.webhookLogs.length > 0 && (
-                <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl p-5 border border-gray-700/30">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
-                      <svg
-                        className="w-5 h-5 text-orange-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
+                      <h4 className="text-base font-bold text-white">Transaction Information</h4>
                     </div>
-                    <h4 className="text-base font-bold text-white">
-                          Webhook Logs <span className="text-sm font-normal text-gray-400">({selectedPayment.webhookLogs.length})</span>
-                    </h4>
-                  </div>
-                  <div className="space-y-3">
-                    {selectedPayment.webhookLogs.map((log) => (
-                      <div
-                        key={log.id}
-                        className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/30"
-                      >
+                    {selectedPayment.payment.wallet_address && (
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="text-xs text-gray-400">
-                            {new Date(log.created_at).toLocaleString("zh-CN")}
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="w-4 h-4 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"
+                              />
+                            </svg>
+                            <span className="text-xs text-gray-400 font-medium">Wallet Address</span>
                           </div>
-                          <span
-                            className={`px-2 py-1 text-xs rounded ${
-                              log.response_status >= 200 && log.response_status < 300
-                                ? "bg-green-900/20 text-green-400"
-                                : "bg-red-900/20 text-red-400"
-                            }`}
-                          >
-                            {log.response_status || "N/A"}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-1">URL</div>
-                        <div className="text-sm text-white font-mono break-all mb-2">
-                          {log.webhook_url}
-                        </div>
-                        {log.payload && (
-                          <details className="mt-2">
-                            <summary className="text-xs text-blue-400 cursor-pointer hover:text-blue-300">
-                              View Payload
-                            </summary>
-                            <pre className="mt-2 text-xs text-gray-300 bg-gray-800/50 p-2 rounded overflow-x-auto max-h-60 overflow-y-auto">
-                              {(() => {
-                                try {
-                                  const parsed = typeof log.payload === "string" 
-                                    ? JSON.parse(log.payload) 
-                                    : log.payload;
-                                  return JSON.stringify(parsed, null, 2);
-                                } catch {
-                                  return typeof log.payload === "string"
-                                    ? log.payload
-                                    : JSON.stringify(log.payload, null, 2);
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(selectedPayment.payment.wallet_address!);
+                                showToast("Address copied", "success");
+                              }}
+                              className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
+                            >
+                              Copy
+                            </button>
+                            {selectedPayment.payment.chain && (
+                              <a
+                                href={
+                                  selectedPayment.payment.chain === "ethereum"
+                                    ? `https://etherscan.io/address/${selectedPayment.payment.wallet_address}`
+                                    : selectedPayment.payment.chain === "bsc"
+                                      ? `https://bscscan.com/address/${selectedPayment.payment.wallet_address}`
+                                      : selectedPayment.payment.chain === "tron"
+                                        ? `https://tronscan.org/#/address/${selectedPayment.payment.wallet_address}`
+                                        : "#"
                                 }
-                              })()}
-                            </pre>
-                          </details>
-                        )}
-                        {log.response_data && (
-                          <details className="mt-2">
-                            <summary className="text-xs text-blue-400 cursor-pointer hover:text-blue-300">
-                              View Response
-                            </summary>
-                            <pre className="mt-2 text-xs text-gray-300 bg-gray-800/50 p-2 rounded overflow-x-auto max-h-60 overflow-y-auto">
-                              {(() => {
-                                try {
-                                  const parsed = typeof log.response_data === "string" 
-                                    ? JSON.parse(log.response_data) 
-                                    : log.response_data;
-                                  return JSON.stringify(parsed, null, 2);
-                                } catch {
-                                  return typeof log.response_data === "string"
-                                    ? log.response_data
-                                    : JSON.stringify(log.response_data, null, 2);
-                                }
-                              })()}
-                            </pre>
-                          </details>
-                        )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 text-xs text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded transition-colors flex items-center gap-1"
+                              >
+                                View
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm text-white font-mono break-all">
+                          {selectedPayment.payment.wallet_address}
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    {selectedPayment.payment.tx_hash && (
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <svg
+                              className="w-4 h-4 text-gray-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            <span className="text-xs text-gray-400 font-medium">Transaction Hash</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(selectedPayment.payment.tx_hash!);
+                                showToast("Transaction Hash copied", "success");
+                              }}
+                              className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors"
+                            >
+                              Copy
+                            </button>
+                            {selectedPayment.payment.chain && (
+                              <a
+                                href={
+                                  selectedPayment.payment.chain === "ethereum"
+                                    ? `https://etherscan.io/tx/${selectedPayment.payment.tx_hash}`
+                                    : selectedPayment.payment.chain === "bsc"
+                                      ? `https://bscscan.com/tx/${selectedPayment.payment.tx_hash}`
+                                      : selectedPayment.payment.chain === "tron"
+                                        ? `https://tronscan.org/#/transaction/${selectedPayment.payment.tx_hash}`
+                                        : "#"
+                                }
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2 py-1 text-xs text-green-400 hover:text-green-300 hover:bg-green-500/10 rounded transition-colors flex items-center gap-1"
+                              >
+                                View
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-sm text-white font-mono break-all">{selectedPayment.payment.tx_hash}</div>
+                      </div>
+                    )}
+                    {selectedPayment.payment.webhook_url && (
+                      <div className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
+                        <div className="flex items-center gap-2 mb-2">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+                            />
+                          </svg>
+                          <span className="text-xs text-gray-400 font-medium">Webhook URL</span>
+                        </div>
+                        <div className="text-sm text-white break-all font-mono">
+                          {selectedPayment.payment.webhook_url}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
 
-            {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-gradient-to-r from-gray-800/95 to-gray-900/95 backdrop-blur-sm border-t border-gray-700/50 p-4">
-              <button
-                onClick={() => {
-                  setShowPaymentModal(false);
-                  setSelectedPayment(null);
-                }}
-                className="w-full px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg"
-              >
-                Close
-              </button>
-            </div>
+                  {/* Timestamps */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-1">Created At</div>
+                      <div className="text-white text-sm">
+                        {new Date(selectedPayment.payment.created_at).toLocaleString("zh-CN")}
+                      </div>
+                    </div>
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-1">Updated At</div>
+                      <div className="text-white text-sm">
+                        {new Date(selectedPayment.payment.updated_at).toLocaleString("zh-CN")}
+                      </div>
+                    </div>
+                    <div className="bg-gray-900/30 rounded-xl p-4 border border-gray-700/30">
+                      <div className="text-xs text-gray-400 mb-1">Expires At</div>
+                      <div className="text-white text-sm">
+                        {new Date(selectedPayment.payment.expires_at).toLocaleString("zh-CN")}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Events Timeline */}
+                  {selectedPayment.events && selectedPayment.events.length > 0 && (
+                    <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl p-5 border border-gray-700/30">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-purple-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                        </div>
+                        <h4 className="text-base font-bold text-white">
+                          Event Timeline{" "}
+                          <span className="text-sm font-normal text-gray-400">({selectedPayment.events.length})</span>
+                        </h4>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedPayment.events.map((event, index) => (
+                          <div
+                            key={event.id}
+                            className="flex items-start gap-3 pb-3 border-b border-gray-700/30 last:border-0"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></div>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <div className="text-sm font-medium text-white">{event.event_type}</div>
+                                <div className="text-xs text-gray-400">
+                                  {new Date(event.created_at).toLocaleString("zh-CN")}
+                                </div>
+                              </div>
+                              {event.data && (
+                                <details className="mt-1">
+                                  <summary className="text-xs text-blue-400 cursor-pointer hover:text-blue-300">
+                                    View Event Data
+                                  </summary>
+                                  <pre className="mt-2 text-xs text-gray-300 bg-gray-800/50 p-2 rounded overflow-x-auto">
+                                    {(() => {
+                                      try {
+                                        const parsed =
+                                          typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+                                        return JSON.stringify(parsed, null, 2);
+                                      } catch {
+                                        return typeof event.data === "string"
+                                          ? event.data
+                                          : JSON.stringify(event.data, null, 2);
+                                      }
+                                    })()}
+                                  </pre>
+                                </details>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Webhook Logs */}
+                  {selectedPayment.webhookLogs && selectedPayment.webhookLogs.length > 0 && (
+                    <div className="bg-gradient-to-br from-gray-900/50 to-gray-800/50 rounded-xl p-5 border border-gray-700/30">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-orange-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
+                          </svg>
+                        </div>
+                        <h4 className="text-base font-bold text-white">
+                          Webhook Logs{" "}
+                          <span className="text-sm font-normal text-gray-400">
+                            ({selectedPayment.webhookLogs.length})
+                          </span>
+                        </h4>
+                      </div>
+                      <div className="space-y-3">
+                        {selectedPayment.webhookLogs.map(log => (
+                          <div key={log.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700/30">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="text-xs text-gray-400">
+                                {new Date(log.created_at).toLocaleString("zh-CN")}
+                              </div>
+                              <span
+                                className={`px-2 py-1 text-xs rounded ${
+                                  log.response_status >= 200 && log.response_status < 300
+                                    ? "bg-green-900/20 text-green-400"
+                                    : "bg-red-900/20 text-red-400"
+                                }`}
+                              >
+                                {log.response_status || "N/A"}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-400 mb-1">URL</div>
+                            <div className="text-sm text-white font-mono break-all mb-2">{log.webhook_url}</div>
+                            {log.payload && (
+                              <details className="mt-2">
+                                <summary className="text-xs text-blue-400 cursor-pointer hover:text-blue-300">
+                                  View Payload
+                                </summary>
+                                <pre className="mt-2 text-xs text-gray-300 bg-gray-800/50 p-2 rounded overflow-x-auto max-h-60 overflow-y-auto">
+                                  {(() => {
+                                    try {
+                                      const parsed =
+                                        typeof log.payload === "string" ? JSON.parse(log.payload) : log.payload;
+                                      return JSON.stringify(parsed, null, 2);
+                                    } catch {
+                                      return typeof log.payload === "string"
+                                        ? log.payload
+                                        : JSON.stringify(log.payload, null, 2);
+                                    }
+                                  })()}
+                                </pre>
+                              </details>
+                            )}
+                            {log.response_data && (
+                              <details className="mt-2">
+                                <summary className="text-xs text-blue-400 cursor-pointer hover:text-blue-300">
+                                  View Response
+                                </summary>
+                                <pre className="mt-2 text-xs text-gray-300 bg-gray-800/50 p-2 rounded overflow-x-auto max-h-60 overflow-y-auto">
+                                  {(() => {
+                                    try {
+                                      const parsed =
+                                        typeof log.response_data === "string"
+                                          ? JSON.parse(log.response_data)
+                                          : log.response_data;
+                                      return JSON.stringify(parsed, null, 2);
+                                    } catch {
+                                      return typeof log.response_data === "string"
+                                        ? log.response_data
+                                        : JSON.stringify(log.response_data, null, 2);
+                                    }
+                                  })()}
+                                </pre>
+                              </details>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="sticky bottom-0 bg-gradient-to-r from-gray-800/95 to-gray-900/95 backdrop-blur-sm border-t border-gray-700/50 p-4">
+                  <button
+                    onClick={() => {
+                      setShowPaymentModal(false);
+                      setSelectedPayment(null);
+                    }}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl text-sm font-medium transition-all duration-200 shadow-lg"
+                  >
+                    Close
+                  </button>
+                </div>
               </>
             ) : null}
           </div>

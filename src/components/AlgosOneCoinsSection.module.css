@@ -1,6 +1,6 @@
 /* Section: no solid background so token-ico page background (background.webp) shows through; trend line on top */
 .section {
-  background-image: url('/trend.svg');
+  background-image: url("/trend.svg");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -105,7 +105,7 @@
 }
 
 .coinText {
-  font-family: 'Montserrat', system-ui, sans-serif;
+  font-family: "Montserrat", system-ui, sans-serif;
   position: absolute;
   left: 0;
   top: -52px;
@@ -125,7 +125,9 @@
   font-weight: 700;
   width: 100%;
   opacity: 1;
-  transition: opacity 0.5s ease, transform 0.5s ease;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
 }
 
 .coinTextItemHidden {
@@ -134,7 +136,8 @@
 }
 
 @keyframes coinFloat {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(-50%, -50%) translateY(0);
   }
   50% {

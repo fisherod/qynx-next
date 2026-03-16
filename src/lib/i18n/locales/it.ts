@@ -19,7 +19,7 @@ export default {
       tokenInsufficient: "{{symbol}} insufficiente (servono {{amount}} {{symbol}})",
       processingButton: "Elaborazione...",
       pay: "Paga",
-      failedTitle: "Pagamento non riuscito",
-    },
-  },
+      failedTitle: "Pagamento non riuscito"
+    }
+  }
 };

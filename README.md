@@ -106,7 +106,7 @@ const config = {
   intervalMinutes: 30, // Check frequency
   maxTransferAmount: 1000, // Maximum transfer per transaction
   gasLimit: 300000,
-  gasPrice: "20000000000", // 20 Gwei
+  gasPrice: "20000000000" // 20 Gwei
 };
 ```
 

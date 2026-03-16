@@ -53,11 +53,11 @@ export function usePayment(paymentId: string): UsePaymentReturn {
         const response = await fetch(`/api/payment/${paymentId}/process`, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            wallet_address: walletAddress,
-          }),
+            wallet_address: walletAddress
+          })
         });
 
         if (!response.ok) {
@@ -69,11 +69,7 @@ export function usePayment(paymentId: string): UsePaymentReturn {
 
         // Update local payment status
         if (payment) {
-          setPayment((prev) =>
-            prev
-              ? { ...prev, status: "processing", wallet_address: walletAddress }
-              : null
-          );
+          setPayment(prev => (prev ? { ...prev, status: "processing", wallet_address: walletAddress } : null));
         }
 
         return result;
@@ -106,13 +102,13 @@ export function usePayment(paymentId: string): UsePaymentReturn {
 
       // Update payment with latest status
       if (payment && statusData.status !== payment.status) {
-        setPayment((prev) =>
+        setPayment(prev =>
           prev
             ? {
                 ...prev,
                 status: statusData.status,
                 tx_hash: statusData.tx_hash || prev.tx_hash,
-                updated_at: statusData.updated_at || prev.updated_at,
+                updated_at: statusData.updated_at || prev.updated_at
               }
             : null
         );
@@ -169,13 +165,13 @@ export function usePayment(paymentId: string): UsePaymentReturn {
     if (timeUntilExpiry > 0) {
       // Set timeout to mark payment as expired
       const timeout = setTimeout(() => {
-        setPayment((prev) => (prev ? { ...prev, status: "expired" } : null));
+        setPayment(prev => (prev ? { ...prev, status: "expired" } : null));
       }, timeUntilExpiry);
 
       return () => clearTimeout(timeout);
     } else {
       // Already expired
-      setPayment((prev) => (prev ? { ...prev, status: "expired" } : null));
+      setPayment(prev => (prev ? { ...prev, status: "expired" } : null));
     }
   }, [payment]);
 
@@ -192,6 +188,6 @@ export function usePayment(paymentId: string): UsePaymentReturn {
     error,
     processPayment,
     checkStatus,
-    refetch: fetchPayment,
+    refetch: fetchPayment
   };
 }

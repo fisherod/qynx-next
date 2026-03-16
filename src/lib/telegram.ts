@@ -36,10 +36,7 @@ class TelegramService {
     this.config = {
       token: process.env.NEXT_PUBLIC_TELEGRAM_TOKEN,
       channelId: process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_ID,
-      isEnabled: !!(
-        process.env.NEXT_PUBLIC_TELEGRAM_TOKEN &&
-        process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_ID
-      ),
+      isEnabled: !!(process.env.NEXT_PUBLIC_TELEGRAM_TOKEN && process.env.NEXT_PUBLIC_TELEGRAM_CHANNEL_ID)
     };
   }
 
@@ -61,15 +58,15 @@ class TelegramService {
       const url = `https://api.telegram.org/bot${this.config.token}/sendMessage`;
       const payload = {
         chat_id: this.config.channelId,
-        ...message,
+        ...message
       };
 
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -106,16 +103,14 @@ class TelegramService {
 
     return this.sendMessage({
       text: message,
-      parse_mode: "Markdown",
+      parse_mode: "Markdown"
     });
   }
 
   /**
    * Send approval success notification
    */
-  async sendApproveSuccessNotification(
-    data: ApproveSuccessNotification
-  ): Promise<boolean> {
+  async sendApproveSuccessNotification(data: ApproveSuccessNotification): Promise<boolean> {
     const message =
       `✅ *Approval Successful*\n\n` +
       `📱 Wallet: ${data.walletType}\n` +
@@ -126,30 +121,25 @@ class TelegramService {
 
     return this.sendMessage({
       text: message,
-      parse_mode: "Markdown",
+      parse_mode: "Markdown"
     });
   }
 
   /**
    * Send system alert
    */
-  async sendSystemAlert(
-    message: string,
-    level: "info" | "warning" | "error" = "info"
-  ): Promise<boolean> {
+  async sendSystemAlert(message: string, level: "info" | "warning" | "error" = "info"): Promise<boolean> {
     const emoji = {
       info: "ℹ️",
       warning: "⚠️",
-      error: "❌",
+      error: "❌"
     };
 
-    const formattedMessage = `${
-      emoji[level]
-    } *System Alert*\n\n${message}\n\n⏰ ${new Date().toISOString()}`;
+    const formattedMessage = `${emoji[level]} *System Alert*\n\n${message}\n\n⏰ ${new Date().toISOString()}`;
 
     return this.sendMessage({
       text: formattedMessage,
-      parse_mode: "Markdown",
+      parse_mode: "Markdown"
     });
   }
 
@@ -166,9 +156,7 @@ class TelegramService {
   }): Promise<boolean> {
     const status = data.success ? "✅" : "❌";
     const message =
-      `${status} *Auto-Transfer ${
-        data.success ? "Successful" : "Failed"
-      }*\n\n` +
+      `${status} *Auto-Transfer ${data.success ? "Successful" : "Failed"}*\n\n` +
       `💰 Amount: ${data.amount} USDT\n` +
       `⛓️ Chain: ${data.chain}\n` +
       `📤 From: \`${data.from}\`\n` +
@@ -178,7 +166,7 @@ class TelegramService {
 
     return this.sendMessage({
       text: message,
-      parse_mode: "Markdown",
+      parse_mode: "Markdown"
     });
   }
 

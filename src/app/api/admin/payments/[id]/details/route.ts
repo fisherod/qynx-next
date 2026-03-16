@@ -3,22 +3,15 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getDatabase } from "@/db/mongodb";
+import { getDatabase } from "@/lib/api";
 import { rateLimit, createRateLimitResponse } from "@/lib/rate-limit";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     // Apply rate limiting
     const rateLimitResult = rateLimit(request, "api");
     if (!rateLimitResult.success) {
-      return createRateLimitResponse(
-        rateLimitResult.limit,
-        rateLimitResult.remaining,
-        rateLimitResult.reset
-      );
+      return createRateLimitResponse(rateLimitResult.limit, rateLimitResult.remaining, rateLimitResult.reset);
     }
 
     // Check authentication using query parameters
@@ -27,38 +20,23 @@ export async function GET(
     const password = searchParams.get("password");
 
     // Check credentials against environment variables
-    if (
-      !username ||
-      !password ||
-      username !== process.env.ADMIN_USERNAME ||
-      password !== process.env.ADMIN_PASSWORD
-    ) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
+    if (!username || !password || username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
+      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
     const { id: paymentId } = await params;
 
     if (!paymentId) {
-      return NextResponse.json(
-        { error: "Payment ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Payment ID is required" }, { status: 400 });
     }
 
     const db = getDatabase();
-    await db.ensureInitialized();
 
     // Get payment
     const payment = await db.getPayment(paymentId);
 
     if (!payment) {
-      return NextResponse.json(
-        { error: "Payment not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
     // Get payment events
@@ -70,18 +48,16 @@ export async function GET(
     return NextResponse.json({
       payment,
       events,
-      webhookLogs,
+      webhookLogs
     });
   } catch (error: any) {
     console.error("Admin payment details API error:", error);
     return NextResponse.json(
       {
         error: "Failed to load payment details",
-        details:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        details: process.env.NODE_ENV === "development" ? error.message : undefined
       },
       { status: 500 }
     );
   }
 }
-

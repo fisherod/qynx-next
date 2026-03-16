@@ -3,8 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { dbConnectionStatus } from "@/db/connection-status";
-import { telegramService } from "@/lib/telegram";
+import { dbConnectionStatus } from "@/lib/mongodb";
 
 // Define types for health checks
 type HealthCheckStatus = "healthy" | "unhealthy" | "unknown" | "error";
@@ -50,14 +49,14 @@ export async function GET(request: NextRequest) {
       database: { status: "unknown", responseTime: 0 },
       autoTransfer: { status: "unknown", responseTime: 0 },
       telegram: { status: "unknown", responseTime: 0 },
-      system: { status: "unknown", responseTime: 0 },
+      system: { status: "unknown", responseTime: 0 }
     },
     summary: {
       totalChecks: 4,
       healthyChecks: 0,
       unhealthyChecks: 0,
-      totalResponseTime: 0,
-    },
+      totalResponseTime: 0
+    }
   };
 
   try {
@@ -69,7 +68,7 @@ export async function GET(request: NextRequest) {
       health.checks.database = {
         status: status === "Database connected" ? "healthy" : "unhealthy",
         responseTime: dbResponseTime,
-        ...(status !== "Database connected" && { error: status }),
+        ...(status !== "Database connected" && { error: status })
       };
       if (status === "Database connected") {
         health.summary.healthyChecks++;
@@ -82,7 +81,7 @@ export async function GET(request: NextRequest) {
       health.checks.database = {
         status: "unhealthy",
         responseTime: dbResponseTime,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : "Unknown error"
       };
       health.summary.unhealthyChecks++;
       health.summary.totalResponseTime += dbResponseTime;
@@ -101,12 +100,12 @@ export async function GET(request: NextRequest) {
             rss: `${Math.round(memoryUsage.rss / 1024 / 1024)} MB`,
             heapTotal: `${Math.round(memoryUsage.heapTotal / 1024 / 1024)} MB`,
             heapUsed: `${Math.round(memoryUsage.heapUsed / 1024 / 1024)} MB`,
-            external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`,
+            external: `${Math.round(memoryUsage.external / 1024 / 1024)} MB`
           },
           cpu: process.cpuUsage(),
           platform: process.platform,
-          arch: process.arch,
-        },
+          arch: process.arch
+        }
       };
       health.summary.healthyChecks++;
       health.summary.totalResponseTime += sysResponseTime;
@@ -115,7 +114,7 @@ export async function GET(request: NextRequest) {
       health.checks.system = {
         status: "unhealthy",
         responseTime: sysResponseTime,
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: error instanceof Error ? error.message : "Unknown error"
       };
       health.summary.unhealthyChecks++;
       health.summary.totalResponseTime += sysResponseTime;
@@ -134,12 +133,7 @@ export async function GET(request: NextRequest) {
     health.summary.totalResponseTime = Date.now() - startTime;
 
     // Return appropriate HTTP status
-    const statusCode =
-      health.status === "healthy"
-        ? 200
-        : health.status === "degraded"
-        ? 200
-        : 503;
+    const statusCode = health.status === "healthy" ? 200 : health.status === "degraded" ? 200 : 503;
 
     return NextResponse.json(health, { status: statusCode });
   } catch (error) {
@@ -148,7 +142,7 @@ export async function GET(request: NextRequest) {
     health.checks.system = {
       status: "error",
       responseTime: Date.now() - startTime,
-      error: error instanceof Error ? error.message : "Health check failed",
+      error: error instanceof Error ? error.message : "Health check failed"
     };
     health.summary.unhealthyChecks++;
     health.summary.totalResponseTime = Date.now() - startTime;
@@ -162,7 +156,7 @@ export async function OPTIONS(request: NextRequest) {
     status: 200,
     headers: {
       "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
+      "Access-Control-Allow-Headers": "Content-Type"
+    }
   });
 }

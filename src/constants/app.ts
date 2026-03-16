@@ -27,9 +27,9 @@ export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
  * Payment status colors
  */
 export const STATUS_COLORS = {
-    pending: "yellow",
-    processing: "blue",
-    completed: "green",
-    failed: "red",
-    expired: "gray",
+  pending: "yellow",
+  processing: "blue",
+  completed: "green",
+  failed: "red",
+  expired: "gray"
 } as const;

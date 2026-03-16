@@ -20,9 +20,9 @@ export default function AdminLogin() {
       const response = await fetch("/api/admin/auth", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password })
       });
 
       const data = await response.json();
@@ -61,17 +61,14 @@ export default function AdminLogin() {
           <form onSubmit={handleLogin} className="space-y-6">
             {/* Username Field */}
             <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-gray-300 mb-2"
-              >
+              <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
                 Username
               </label>
               <input
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
                 className={cn(
                   "w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg",
                   "text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent",
@@ -85,17 +82,14 @@ export default function AdminLogin() {
 
             {/* Password Field */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-300 mb-2"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                 Password
               </label>
               <input
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className={cn(
                   "w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg",
                   "text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent",
@@ -138,9 +132,7 @@ export default function AdminLogin() {
 
           {/* Security Notice */}
           <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700/50 rounded-lg">
-            <p className="text-blue-300 text-xs text-center">
-              🔒 Secure access to payment system management
-            </p>
+            <p className="text-blue-300 text-xs text-center">🔒 Secure access to payment system management</p>
           </div>
         </div>
 
