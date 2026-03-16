@@ -3,9 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import PageLayout from "@/components/PageLayout";
-import UserPanelHeader from "@/components/UserPanelHeader";
 import BscPriceTicker from "@/components/BscPriceTicker";
 
 const CURRENCY_OPTIONS = [
@@ -22,7 +20,6 @@ const CURRENCY_OPTIONS = [
 ] as const;
 
 export default function InvestmentPage() {
-  const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [formData, setFormData] = useState<{
@@ -48,14 +45,6 @@ export default function InvestmentPage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const handleLogout = () => {
-    if (typeof localStorage !== "undefined") {
-      localStorage.removeItem("adminToken");
-      localStorage.removeItem("adminUsername");
-    }
-    router.replace("/sign-in");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +98,6 @@ export default function InvestmentPage() {
 
   return (
     <PageLayout showNavbar={false}>
-      <UserPanelHeader onLogout={handleLogout} />
       <div className="min-h-screen">
         <main className="max-w-4xl mx-auto px-6 py-12">
           <div className="text-center mb-12">

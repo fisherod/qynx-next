@@ -1,31 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/db/mongodb";
-import { balanceService } from "@/lib/blockchain";
-
-// Helper function to check authentication
-function checkAuth(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const username = searchParams.get("username");
-  const password = searchParams.get("password");
-
-  if (
-    !username ||
-    !password ||
-    username !== process.env.ADMIN_USERNAME ||
-    password !== process.env.ADMIN_PASSWORD
-  ) {
-    return false;
-  }
-  return true;
-}
+import { blockchainService } from "@/lib/blockchain";
 
 export async function GET(request: NextRequest) {
   try {
-    // Rate limiting removed for development
-
-    // Check authentication
-    if (!checkAuth(request)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const { searchParams } = new URL(request.url);
+    const currency = searchParams.get("currency");
+    if (!currency) {
+      return NextResponse.json({ error: "Currency is required" }, { status: 400 });
     }
 
     const db = getDatabase();
@@ -35,11 +17,12 @@ export async function GET(request: NextRequest) {
     const treasuryWallets = await db.getTreasuryWallets();
 
     // Get real-time balances for each wallet
-    const walletsWithBalances = await balanceService.getTreasuryWalletBalances(
+    const walletsWithBalances = await blockchainService.getTreasuryWalletBalances(
       treasuryWallets.map((wallet) => ({
-        address: wallet.address,
         chain: wallet.chain,
-      }))
+        address: wallet.address,
+      })),
+      currency
     );
 
     // Merge database data with real-time balances
@@ -48,7 +31,7 @@ export async function GET(request: NextRequest) {
       return {
         ...wallet,
         ownerNativeBalance: balanceData?.nativeBalance || "0.000000",
-        ownerUSDTBalance: balanceData?.usdtBalance || "0.00",
+        ownerTokenBalance: balanceData?.tokenBalance || "0.00",
         lastBalanceUpdate: balanceData?.lastUpdated || new Date().toISOString(),
       };
     });
@@ -69,13 +52,6 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting removed for development
-
-    // Check authentication
-    if (!checkAuth(request)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const { chain, address, name, description } = body;
 
@@ -113,13 +89,6 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Rate limiting removed for development
-
-    // Check authentication
-    if (!checkAuth(request)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
 

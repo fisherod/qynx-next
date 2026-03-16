@@ -7,6 +7,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/components/providers/I18nProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { ToastProvider } from "@/components/ui/Toast";
 
@@ -112,16 +113,18 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider defaultTheme="dark">
-          <I18nProvider>
-            <ToastProvider>
-              <ErrorBoundary>
-                {/* Global wrapper with dark mode support */}
-                <div className="min-h-full bg-white dark:bg-gray-900 transition-colors duration-200">
-                  {children}
-                </div>
-              </ErrorBoundary>
-            </ToastProvider>
-          </I18nProvider>
+          <SessionProvider>
+            <I18nProvider>
+              <ToastProvider>
+                <ErrorBoundary>
+                  {/* Global wrapper with dark mode support */}
+                  <div className="min-h-full bg-white dark:bg-gray-900 transition-colors duration-200">
+                    {children}
+                  </div>
+                </ErrorBoundary>
+              </ToastProvider>
+            </I18nProvider>
+          </SessionProvider>
         </ThemeProvider>
       </body>
     </html>

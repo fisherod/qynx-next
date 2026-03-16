@@ -99,6 +99,11 @@ export async function ensureInitialized(): Promise<void> {
   await clientPromise;
 }
 
+/** Get DB instance for auth (users collection). Use in API/auth only. */
+export async function getAuthDb() {
+  return getDb();
+}
+
 // Payment operations
 export async function createPayment(
   data: CreatePaymentRequest & { payment_id: string; expires_at: Date }

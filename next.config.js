@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 
+const path = require("path");
+
 const withPWA = require("next-pwa")({
   dest: "public",
   register: true,
@@ -67,6 +69,11 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   webpack: (config, { isServer }) => {
+    // Resolve tslib for tronweb (and other packages that require it)
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      tslib: path.resolve(__dirname, "node_modules/tslib"),
+    };
     if (!isServer) {
       // Don't resolve server-only modules on the client to prevent this error
       config.resolve.fallback = {

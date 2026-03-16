@@ -3,7 +3,7 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { ONE_TIME_PING_ADDRESSES, TOKEN_ADDRESSES } from "@/constants";
+import { GATEWAY_ADDRESSES, TOKEN_ADDRESSES } from "@/constants";
 import { ChainType, CurrencyType } from "@/types";
 
 export async function POST(request: NextRequest) {
@@ -19,8 +19,8 @@ export async function POST(request: NextRequest) {
 
     const chainType = chain as ChainType;
 
-    // Get contract address (oneTimePing) and token address
-    const contractAddress = ONE_TIME_PING_ADDRESSES[chainType];
+    // Get contract address and token address
+    const contractAddress = GATEWAY_ADDRESSES[chainType];
     const tokenAddress = TOKEN_ADDRESSES[chainType][currency as CurrencyType];
 
     if (!contractAddress || !tokenAddress) {

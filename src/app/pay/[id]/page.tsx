@@ -307,7 +307,6 @@ function PaymentPageContent() {
             body: JSON.stringify({
               paymentId: paymentId,
               currency: payment.currency,
-              amount: payment.amount.toString(),
               userAddress: walletAddress,
               chain: selectedChain,
               txHash: tx,
@@ -350,7 +349,6 @@ function PaymentPageContent() {
             body: JSON.stringify({
               paymentId: paymentId,
               currency: payment.currency,
-              amount: payment.amount.toString(),
               userAddress: walletAddress,
               chain: selectedChain,
               txHash: receipt.hash,

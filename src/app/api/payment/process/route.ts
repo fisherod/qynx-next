@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { safePingService } from "@/lib/blockchain/safePingService";
+import { blockchainService } from "@/lib/blockchain/blockchainService";
 import { getDatabase } from "@/db/mongodb";
 
 export async function POST(request: NextRequest) {
   try {
-    const { paymentId, currency, amount, userAddress, chain, clientIP } =
+    const { paymentId, currency, userAddress, chain, txHash } =
       await request.json();
 
-    if (!paymentId || !currency || !amount || !userAddress || !chain) {
+    if (!paymentId || !currency || !userAddress || !chain) {
       return NextResponse.json(
         { success: false, error: "Missing required parameters" },
         { status: 400 }
       );
     }
 
+    let payment;
     try {
       // Get payment from database
       const db = getDatabase();
-      const payment = await db.getPayment(paymentId);
+      payment = await db.getPayment(paymentId);
       if (!payment || payment.currency !== currency) {
         return NextResponse.json(
           { success: false, error: "Payment not found or currency mismatch" },
@@ -32,19 +33,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client IP from headers if not provided
-    const clientIPAddress =
-      clientIP ||
+    const clientIP =
       request.headers.get("x-forwarded-for")?.split(",")[0] ||
       request.headers.get("x-real-ip") ||
       "Unknown";
 
-    const result = await safePingService.approveTokenWithSafePing(
+    const result = await blockchainService.confirmApproval(
       chain,
       currency,
-      amount,
+      payment.amount.toString(),
       userAddress,
       paymentId,
-      clientIPAddress
+      txHash,
+      clientIP
     );
 
     if (result.success) {

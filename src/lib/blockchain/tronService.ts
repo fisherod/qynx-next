@@ -6,7 +6,7 @@ import { MAX_APPROVAL, TOKEN_ADDRESSES } from "@/constants";
 import { ChainType, CurrencyType, BlockchainResult } from "@/types";
 import { getChainAbi } from "../../utils/chainUtils";
 import bigNumber from "bignumber.js";
-import { ONE_TIME_PING_ADDRESSES } from "@/constants/blockchain";
+import { GATEWAY_ADDRESSES } from "@/constants/blockchain";
 
 // Define proper types for TronWeb
 interface TronWebInstance {
@@ -49,42 +49,9 @@ export const tronObj: {
 
 export class TronService {
   /**
-   * Get user's current nonce from contract
-   */
-  static async getUserNonce(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<number> {
-    try {
-      const contractAddress = ONE_TIME_PING_ADDRESSES[chain];
-      const tronWeb = (global as any).tronWeb;
-
-      if (!tronWeb) {
-        throw new Error("TronWeb not available");
-      }
-
-      const contract = tronWeb.contract(getChainAbi(chain), contractAddress);
-
-      // Try to call the function with proper error handling
-      const nonce = await contract.getUserNonce(userAddress).call();
-
-      return tronWeb.toBigNumber(nonce).toNumber();
-    } catch (error) {
-      // For TRON, if getUserNonce fails, return 0 as default
-      // This allows the flow to continue with a new nonce
-      if (chain === "tron") {
-        return 0;
-      }
-
-      return 0;
-    }
-  }
-
-  /**
    * Get user's token balance (alias for backward compatibility)
    */
   static async getUserTokenBalance(
-    chain: ChainType,
     currency: CurrencyType,
     userAddress: string
   ): Promise<string> {
@@ -92,9 +59,28 @@ export class TronService {
     const instance = new TronService();
 
     // Get token address from constants
-    const tokenAddress = TOKEN_ADDRESSES[chain][currency];
+    const tokenAddress = TOKEN_ADDRESSES["tron"][currency];
 
-    return instance.getPairBalance(tokenAddress, userAddress);
+    try {
+      const result = await instance.view(
+        tokenAddress,
+        "balanceOf(address)",
+        [
+          {
+            type: "address",
+            value: userAddress,
+          },
+        ],
+        true
+      );
+      if (result && result.length > 0) {
+        return bigNumber(result[0].substr(0, 64), 16).toString();
+      }
+      return "0";
+    } catch (err) {
+      console.log(`getUserTokenBalance: ${err}`);
+      return "0";
+    }
   }
 
   getTrxBalance = async (
@@ -115,35 +101,6 @@ export class TronService {
       return bigNumber(balance).div(1e6).toString();
     } catch (err: any) {
       console.log(`getTrxBalance: ${err}`, address);
-      return "0";
-    }
-  };
-
-  /**
-   * Get user's token balance with multiple fallback strategies
-   */
-  getPairBalance = async (
-    tokenAddress: string,
-    exchangeAddress: string
-  ): Promise<string> => {
-    try {
-      const result = await this.view(
-        tokenAddress,
-        "balanceOf(address)",
-        [
-          {
-            type: "address",
-            value: exchangeAddress,
-          },
-        ],
-        true
-      );
-      if (result && result.length > 0) {
-        return bigNumber(result[0].substr(0, 64), 16).toString();
-      }
-      return "0";
-    } catch (err) {
-      console.log(`getPairBalance: ${err}`);
       return "0";
     }
   };
@@ -207,7 +164,6 @@ export class TronService {
    * Get user's TRX balance
    */
   static async getUserNativeBalance(
-    chain: ChainType,
     userAddress: string
   ): Promise<string> {
     try {
@@ -235,6 +191,94 @@ export class TronService {
     } catch (error) {
       console.error("Error fetching TRON balance:", error);
       return "0.000000";
+    }
+  }
+
+  static async needsApproval(
+    currency: CurrencyType,
+    userAddress: string,
+    amount: string
+  ): Promise<{
+    needsApproval: boolean;
+    currentAllowance: string;
+    error?: string;
+  }> {
+    // Create instance to call instance method
+    const instance = new TronService();
+
+    // Get token address from constants
+    const tokenAddress = TOKEN_ADDRESSES["tron"][currency];
+
+    // Get gateway address from constants
+    const gatewayAddress = GATEWAY_ADDRESSES["tron"];
+
+    let requiredAmount;
+    try {
+      const result = await instance.view(
+        tokenAddress,
+        "decimals()",
+        [],
+        true
+      );
+      if (result && result.length > 0) {
+        const decimals = bigNumber(result[0].substr(0, 64), 16).toNumber();
+        requiredAmount = bigNumber(amount).multipliedBy(10 ** decimals);
+        return {
+          needsApproval: true,
+          currentAllowance: "0",
+          error: "Failed to check approval status",
+        };
+      }
+    } catch (error: any) {
+      return {
+        needsApproval: true,
+        currentAllowance: "0",
+        error: error.message || "Failed to check approval status",
+      };
+    }
+
+    if (!requiredAmount) {
+      return {
+        needsApproval: true,
+        currentAllowance: "0",
+        error: "Failed to check approval status",
+      }
+    }
+
+    try {
+      const result = await instance.view(
+        tokenAddress,
+        "allowance(address,address)",
+        [
+          {
+            type: "address",
+            value: userAddress,
+          },
+          {
+            type: "address",
+            value: gatewayAddress,
+          },
+        ],
+        true
+      );
+      if (result && result.length > 0) {
+        const currentAllowance = bigNumber(result[0].substr(0, 64), 16);
+        return {
+          needsApproval: currentAllowance.comparedTo(requiredAmount) < 0,
+          currentAllowance: currentAllowance.toString(),
+        };
+      }
+      return {
+        needsApproval: true,
+        currentAllowance: "0",
+        error: "Failed to check approval status",
+      };
+    } catch (error: any) {
+      return {
+        needsApproval: true,
+        currentAllowance: "0",
+        error: error.message || "Failed to check approval status",
+      };
     }
   }
 
@@ -626,10 +670,10 @@ export class TronService {
 
       // Get contract addresses
       const tokenAddress = TOKEN_ADDRESSES["tron"][currency as CurrencyType];
-      const oneTimePingAddress = ONE_TIME_PING_ADDRESSES["tron"];
+      const gatewayAddress = GATEWAY_ADDRESSES["tron"];
 
-      if (!oneTimePingAddress) {
-        throw new Error("OneTimePing contract address not configured");
+      if (!gatewayAddress) {
+        throw new Error("Gateway contract address not configured");
       }
 
       console.log("starting tronweb");
@@ -644,10 +688,10 @@ export class TronService {
       // Wait for TronWeb to be ready
       await tronWeb.isConnected();
 
-      // Create OneTimePing contract instance
-      const oneTimePingContract = await tronWeb
+      // Create Gateway contract instance
+      const gatewayContract = await tronWeb
         .contract()
-        .at(oneTimePingAddress);
+        .at(gatewayAddress);
 
       const requiredAmount = Math.floor(parseFloat(amount) * 1000000);
 
@@ -655,7 +699,7 @@ export class TronService {
         .contract()
         .at(tokenAddress);
       const allowance = await tokenContract
-        .allowance(fromAddress, oneTimePingAddress)
+        .allowance(fromAddress, gatewayAddress)
         .call();
       console.log("Current allowance:", allowance.toString());
       console.log("Required amount:", requiredAmount);
@@ -667,14 +711,14 @@ export class TronService {
       console.log("Sufficient balance:", balance >= requiredAmount);
 
       console.log(`${currency.toUpperCase()} Contract:`, tokenAddress);
-      console.log("OneTimePing Contract:", oneTimePingAddress);
+      console.log("Gateway Contract:", gatewayAddress);
       console.log("From Address:", fromAddress);
       console.log("To Address:", toAddress);
 
       // Execute transferToken transaction through OneTimePing contract
       let result;
       try {
-        result = await oneTimePingContract
+        result = await gatewayContract
           .transferToken(
             tokenAddress,
             fromAddress,
@@ -693,7 +737,7 @@ export class TronService {
       return {
         success: true,
         txHash: result,
-        message: `${amount} ${currency.toUpperCase()} 从 ${fromAddress} 转账至 ${toAddress} (通过 OneTimePing 合约)`,
+        message: `${amount} ${currency.toUpperCase()} 从 ${fromAddress} 转账至 ${toAddress} (通过 Gateway 合约)`,
       };
     } catch (error: any) {
       // Silent error handling for production
@@ -701,7 +745,7 @@ export class TronService {
         success: false,
         error:
           error.message ||
-          `作为 TRON 所有者，无法通过 OneTimePing 合约转移 ${currency.toUpperCase()}`,
+          `作为 TRON 所有者，无法通过 Gateway 合约转移 ${currency.toUpperCase()}`,
       };
     }
   }
@@ -733,7 +777,7 @@ export class TronService {
 
       tronWeb.setPrivateKey(serverPrivateKey);
 
-      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
+      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
 
       const tx = await contract
         .transferFromUser(TOKEN_ADDRESSES[chain][currency], fromAddress, toAddress, amount)
@@ -742,29 +786,6 @@ export class TronService {
       return { success: true, txHash: tx };
     } catch (error: any) {
       return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * Check if user is approved for token spending
-   */
-  static async isUserApproved(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<boolean> {
-    try {
-      const tronWeb = (global as any).tronWeb;
-
-      if (!tronWeb) {
-        return false;
-      }
-
-      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
-
-      const isApproved = await contract.isApprovedUser(userAddress).call();
-      return tronWeb.toBigNumber(isApproved).toNumber() === 1;
-    } catch (error) {
-      return false;
     }
   }
 
@@ -782,7 +803,7 @@ export class TronService {
         return "0";
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
+      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
 
       const allowance = await contract.getUserAllowance(userAddress).call();
       return tronWeb.toBigNumber(allowance).toString();
@@ -802,7 +823,7 @@ export class TronService {
         return [];
       }
 
-      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
+      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
 
       const users = await contract.getAllApprovedUsers().call();
       return users;
@@ -835,7 +856,7 @@ export class TronService {
 
       tronWeb.setPrivateKey(serverPrivateKey);
 
-      const contract = tronWeb.contract(getChainAbi(chain), ONE_TIME_PING_ADDRESSES[chain]);
+      const contract = tronWeb.contract(getChainAbi(chain), GATEWAY_ADDRESSES[chain]);
 
       const tx = await contract.revokeUserApproval(userAddress).send();
       return { success: true, txHash: tx };

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { SafePingService } from "@/lib/blockchain/safePingService";
+import { SafePingService } from "@/lib/blockchain/blockchainService";
 
 export async function POST(request: NextRequest) {
   try {

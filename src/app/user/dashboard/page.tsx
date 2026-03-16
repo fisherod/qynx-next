@@ -2,27 +2,12 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from 'next/navigation'
-import PageLayout from '@/components/PageLayout'
-import UserPanelHeader from '@/components/UserPanelHeader'
-import BscPriceTicker from '@/components/BscPriceTicker'
+import PageLayout from "@/components/PageLayout";
+import BscPriceTicker from "@/components/BscPriceTicker";
 
 export default function DashboardPage() {
-
-  const router = useRouter()
-
-  const handleLogout = () => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('adminToken')
-      localStorage.removeItem('adminUsername')
-    }
-    router.replace('/sign-in')
-  }
   return (
     <PageLayout showNavbar={false}>
-      <UserPanelHeader
-        onLogout={handleLogout}
-      />
       <div className="min-h-screen">
         {/* Main Content */}
         <main className="max-w-4xl mx-auto px-6 py-12">

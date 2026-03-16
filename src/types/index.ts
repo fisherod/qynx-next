@@ -84,20 +84,6 @@ export interface WalletConnection {
   chain: ChainType;
 }
 
-export interface ContractConfig {
-  usdt: string;
-  oneTimePing?: string;
-  chainId: string;
-  decimals: number;
-  rpc?: string;
-}
-
-export interface ChainConfig {
-  bsc: ContractConfig;
-  ethereum: ContractConfig;
-  tron: ContractConfig;
-}
-
 export interface WalletBalance {
   balance: string;
   formatted: string;
@@ -154,15 +140,6 @@ export interface ApiError {
   details?: any;
 }
 
-// Configuration Types
-export interface AppConfig {
-  contracts: ChainConfig;
-  explorers: Record<ChainType, string>;
-  paymentExpiry: number;
-  maxAmount: number;
-  minAmount: number;
-}
-
 // Hook Return Types
 export interface UseWalletReturn {
   wallet: WalletConnection | null;
@@ -210,7 +187,6 @@ export interface BlockchainResult {
   error?: string;
   txHash?: string;
   message?: string;
-  approvalData?: ApprovalData;
 }
 
 export interface ApprovalData {
@@ -271,6 +247,14 @@ export interface SafePingConfig {
 
 export interface NonceCache {
   [key: string]: number;
+}
+
+export interface TreasuryWalletBalance {
+  address: string;
+  chain: ChainType;
+  nativeBalance: string;
+  tokenBalance: string;
+  lastUpdated: string;
 }
 
 // Extend Window interface for wallet providers

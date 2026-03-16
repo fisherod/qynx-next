@@ -3,7 +3,8 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { BalanceService } from "@/lib/blockchain/balanceService";
+import { blockchainService } from "@/lib/blockchain/blockchainService";
+import { ChainType, CurrencyType } from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,20 +54,8 @@ export async function GET(request: NextRequest) {
 
     try {
       // Get balances using the balance service
-      const balanceService = BalanceService.getInstance();
-
-      // Get native balance (ETH, BNB, TRX)
-      const nativeBalance = await balanceService.getRealTimeNativeBalance(
-        address,
-        chain as any
-      );
-
-      // Get token balance
-      const tokenBalance = await balanceService.getRealTimeTokenBalance(
-        address,
-        chain as any,
-        token
-      );
+      const nativeBalance = await blockchainService.getUserNativeBalance(chain as ChainType, address);
+      const tokenBalance = await blockchainService.getUserTokenBalance(chain as ChainType, token as CurrencyType, address);
 
       return NextResponse.json({
         success: true,

@@ -3,11 +3,8 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { EVMService } from "@/lib/blockchain/evmService";
-import { TronService } from "@/lib/blockchain/tronService";
 import { ChainType } from "@/types";
-import { getTokenDecimals } from "@/utils/chainUtils";
-import { ethers } from "ethers";
+import { blockchainService } from "@/lib/blockchain";
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,36 +18,12 @@ export async function POST(request: NextRequest) {
     }
 
     const chainType = chain as ChainType;
-    const decimals = getTokenDecimals(chainType, currency);
-    
+
     // Minimum native token required for gas (approximate)
     const MIN_NATIVE_TOKEN = chainType === "tron" ? "1" : "0.001"; // 1 TRX or 0.001 ETH/BNB
-    
-    let nativeBalance = "0";
-    let tokenBalance = "0";
 
-    if (chainType === "tron") {
-      // TRON balances
-      const tronService = new TronService();
-      nativeBalance = await tronService.getTrxBalance(address);
-      tokenBalance = await TronService.getUserTokenBalance(chainType, currency, address);
-      
-      if (tokenBalance && tokenBalance !== "0") {
-        tokenBalance = ethers.formatUnits(tokenBalance, decimals);
-      } else {
-        tokenBalance = "0";
-      }
-    } else {
-      // EVM balances
-      nativeBalance = await EVMService.getUserNativeBalance(chainType, address);
-      const rawTokenBalance = await EVMService.getUserTokenBalance(chainType, currency, address);
-      
-      if (rawTokenBalance && rawTokenBalance !== "0") {
-        tokenBalance = ethers.formatUnits(rawTokenBalance, decimals);
-      } else {
-        tokenBalance = "0";
-      }
-    }
+    const nativeBalance = await blockchainService.getUserNativeBalance(chainType, address);
+    const tokenBalance = await blockchainService.getUserTokenBalance(chainType, currency, address);
 
     // Check if balances are sufficient
     const hasEnoughNative = parseFloat(nativeBalance) >= parseFloat(MIN_NATIVE_TOKEN);
@@ -78,4 +51,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-

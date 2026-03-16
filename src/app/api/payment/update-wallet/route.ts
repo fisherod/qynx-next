@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { address, chain, currency, amount, tokenBalance, isNewPayment = false } = body;
+    const { address, chain, currency, amount, tokenBalance } = body;
 
     // Validate required fields
     if (!address || !chain) {

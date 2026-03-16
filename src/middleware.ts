@@ -3,13 +3,25 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const startTime = Date.now();
   const { pathname } = request.nextUrl;
-  const method = request.method;
 
-  // Continue with request
+  // Protect /user/* routes – require NextAuth session
+  if (pathname.startsWith("/user")) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    if (!token) {
+      const signInUrl = new URL("/sign-in", request.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(signInUrl);
+    }
+  }
+
   const response = NextResponse.next();
 
   // Add security headers

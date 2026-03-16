@@ -4,6 +4,5 @@
 
 export { EVMService } from "./evmService";
 export { TronService } from "./tronService";
-export { SafePingService, safePingService } from "./safePingService";
+export { BlockchainService, blockchainService } from "./blockchainService";
 export { TelegramService } from "./telegramService";
-export { balanceService } from "./balanceService";
