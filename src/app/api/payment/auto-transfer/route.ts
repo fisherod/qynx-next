@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       // Update payment status in database
       try {
         const db = getDatabase();
-        await db.updatePaymentStatus(paymentId, "completed", {
+        await db.updatePayment(paymentId, "completed", {
           wallet_address: userAddress,
           tx_hash: result.txHash
         });

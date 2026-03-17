@@ -43,15 +43,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Update payment status
-    await db.updatePaymentStatus(id, status);
-
-    // Log the status change
-    await db.logEvent(id, "status_updated", {
-      oldStatus: existingPayment.status,
-      newStatus: status,
-      updatedBy: "admin",
-      timestamp: new Date().toISOString()
-    });
+    await db.updatePayment(id, status);
 
     // Get the updated payment to return
     const updatedPayment = await db.getPayment(id);

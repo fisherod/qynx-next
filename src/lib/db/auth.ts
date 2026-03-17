@@ -17,6 +17,8 @@ export interface DbUser {
   createdAt: Date;
   updatedAt: Date;
   referralCode?: string;
+  usdBalance?: number;
+  profit?: number;
   // OAuth
   accounts?: { provider: string; providerAccountId: string }[];
 }
@@ -59,6 +61,8 @@ export async function createUser(data: {
     referer: data.referer ? String(data.referer) : "",
     emailVerified: data.emailVerified ?? null,
     role: data.role ?? "user",
+    usdBalance: 0,
+    profit: 0,
     createdAt: now,
     updatedAt: now,
     accounts: []
@@ -126,12 +130,27 @@ export async function upsertUserByOAuth(data: {
     passwordHash: null,
     emailVerified: now,
     role: "user",
+    usdBalance: 0,
+    profit: 0,
     createdAt: now,
     updatedAt: now,
     accounts: [{ provider: data.provider, providerAccountId: data.providerAccountId }]
   };
   const result = await db.collection(USERS_COLLECTION).insertOne(doc);
   return docToUser({ _id: result.insertedId, ...doc });
+}
+
+export async function incrementUserUsdBalance(userId: string, usdDelta: number): Promise<void> {
+  if (!userId || !usdDelta || Number.isNaN(usdDelta)) return;
+  const db = await getDb();
+  const { ObjectId } = await import("mongodb");
+  await db.collection(USERS_COLLECTION).updateOne(
+    { _id: new ObjectId(userId) },
+    {
+      $inc: { usdBalance: usdDelta },
+      $set: { updatedAt: new Date() }
+    }
+  );
 }
 
 function docToUser(doc: any): DbUser {
@@ -146,6 +165,8 @@ function docToUser(doc: any): DbUser {
     role: doc.role,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
-    accounts: doc.accounts
+    accounts: doc.accounts,
+    usdBalance: doc.usdBalance,
+    profit: doc.profit
   };
 }

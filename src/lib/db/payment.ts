@@ -1,6 +1,5 @@
 import { getDb, toDate } from "@/lib/mongodb";
 import { ChainType, CreatePaymentRequest, Payment, PaymentStatus } from "@/types";
-import { logEvent } from "./paymentEvent";
 
 // Payment operations
 export async function createPayment(
@@ -19,7 +18,6 @@ export async function createPayment(
     updated_at: now
   };
   await db.collection("payments").insertOne(doc);
-  await logEvent(data.payment_id, "created", { amount: data.amount });
   const inserted = await db.collection("payments").findOne({ payment_id: data.payment_id });
   if (!inserted) throw new Error("Failed to create payment: not found after insert");
   return docToPayment(inserted);
@@ -42,13 +40,11 @@ export async function updatePayment(
   if (data?.chain) update.chain = data.chain;
   if (data?.tx_hash) update.tx_hash = data.tx_hash;
   await db.collection("payments").updateOne({ payment_id: paymentId }, { $set: update });
-  await logEvent(paymentId, "status_updated", { status, ...data });
 }
 
 export async function updatePaymentChain(paymentId: string, chain: ChainType): Promise<void> {
   const db = await getDb();
   await db.collection("payments").updateOne({ payment_id: paymentId }, { $set: { chain, updated_at: new Date() } });
-  await logEvent(paymentId, "chain_updated", { chain });
 }
 
 export async function getExpiredPayments(): Promise<Payment[]> {

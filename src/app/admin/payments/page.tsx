@@ -602,26 +602,6 @@ export default function AdminPaymentsPage() {
                   )}
                 </div>
               </div>
-
-              {/* Optional description and webhook URL */}
-              {(selectedPayment.payment.description || selectedPayment.payment.webhook_url) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedPayment.payment.description && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-semibold text-gray-400 uppercase">Description</div>
-                      <div className="text-sm text-gray-200 whitespace-pre-wrap">
-                        {selectedPayment.payment.description}
-                      </div>
-                    </div>
-                  )}
-                  {selectedPayment.payment.webhook_url && (
-                    <div className="space-y-1">
-                      <div className="text-xs font-semibold text-gray-400 uppercase">Webhook URL</div>
-                      <div className="text-xs text-blue-400 break-all">{selectedPayment.payment.webhook_url}</div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>

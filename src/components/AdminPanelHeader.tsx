@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 const NAV = [
+  { href: "/admin/users", label: "Users" },
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/user-wallets", label: "User Wallets" },
   { href: "/admin/treasury-wallets", label: "Treasury Wallets" },

@@ -26,7 +26,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const expiresAt = new Date(payment.expires_at);
 
     if (payment.status === "pending" && now > expiresAt) {
-      await db.updatePaymentStatus(paymentId, "expired");
+      await db.updatePayment(paymentId, "expired");
       payment.status = "expired";
     }
 
@@ -44,18 +44,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       time_remaining: payment.status === "pending" ? Math.max(0, expiresAt.getTime() - now.getTime()) : 0
     };
 
-    // Get recent events for this payment
-    const events = await db.getPaymentEvents(paymentId);
-    const recentEvents = events.slice(0, 5); // Last 5 events
-
-    return NextResponse.json({
-      ...response,
-      recent_events: recentEvents.map(event => ({
-        type: event.event_type,
-        timestamp: event.created_at,
-        data: event.data ? JSON.parse(event.data) : null
-      }))
-    });
+    return NextResponse.json(response, { status: 200 });
   } catch (error: any) {
     console.error("Payment status error:", error);
 

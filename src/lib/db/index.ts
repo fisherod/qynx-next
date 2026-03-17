@@ -1,5 +1,4 @@
-import { getAutoTransferHistory, recordTransfer } from "./autoTransfer";
-import { getAutoTransferConfig, updateAutoTransferConfig } from "./autoTransferConfig";
+import { incrementUserUsdBalance } from "./auth";
 import {
   createPayment,
   getAllPayments,
@@ -13,7 +12,6 @@ import {
   updatePayment,
   updatePaymentChain
 } from "./payment";
-import { getPaymentEvents, logEvent } from "./paymentEvent";
 import {
   deleteTreasuryWallet,
   getTreasuryWallet,
@@ -22,20 +20,16 @@ import {
   updateTreasuryWallet
 } from "./treasuryWallet";
 import { getWalletBalances, saveWallet, updateWallet, updateWalletBalance } from "./wallet";
-import { getWebhookLogs, logWebhook } from "./webhookLog";
 
 export function getDatabase() {
   return {
+    incrementUserUsdBalance,
     createPayment,
     getPayment,
     updatePayment,
     updatePaymentChain,
     getExpiredPayments,
     markExpiredPayments,
-    logEvent,
-    getPaymentEvents,
-    logWebhook,
-    getWebhookLogs,
     getPaymentCount,
     getAllPayments,
     getUniqueWalletAddresses,
@@ -45,10 +39,6 @@ export function getDatabase() {
     saveWallet,
     updateWallet,
     updateWalletBalance,
-    recordTransfer,
-    getAutoTransferConfig,
-    updateAutoTransferConfig,
-    getAutoTransferHistory,
     getTreasuryWallets,
     getTreasuryWallet,
     saveTreasuryWallet,

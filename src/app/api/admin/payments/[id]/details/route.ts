@@ -29,17 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Payment not found" }, { status: 404 });
     }
 
-    // Get payment events
-    const events = await db.getPaymentEvents(paymentId);
-
-    // Get webhook logs
-    const webhookLogs = await db.getWebhookLogs(paymentId);
-
-    return NextResponse.json({
-      payment,
-      events,
-      webhookLogs
-    });
+    return NextResponse.json({ payment }, { status: 200 });
   } catch (error: any) {
     console.error("Admin payment details API error:", error);
     return NextResponse.json(

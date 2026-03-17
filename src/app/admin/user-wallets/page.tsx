@@ -7,12 +7,10 @@ interface Wallet {
   address: string;
   chain: string;
   currency: string;
-  investedAmount: string;
+  investedAmount: number;
   status: string;
-  paymentCount: number;
-  lastAmount: string;
+  lastAmount: number;
   lastActivity: string;
-  balance: string;
 }
 
 export default function AdminUserWalletsPage() {
@@ -21,56 +19,11 @@ export default function AdminUserWalletsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingWallets, setIsLoadingWallets] = useState(false);
   const [walletsRefreshInterval, setWalletsRefreshInterval] = useState<NodeJS.Timeout | null>(null);
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
-
-  // Helper function to format USDT balance based on chain
-  const formatUsdtBalance = (balance: string, chain: string): string => {
-    if (!balance || balance === "0" || balance === "0.00") {
-      return "0.00";
-    }
-
-    try {
-      const numBalance = parseFloat(balance);
-
-      // TRON USDT has 6 decimals
-      if (chain === "tron") {
-        return (numBalance / 1000000).toFixed(2);
-      }
-
-      // BSC USDT has 18 decimals
-      if (chain === "bsc") {
-        return (numBalance / 1000000000000000000).toFixed(2);
-      }
-
-      // Ethereum USDT has 6 decimals
-      if (chain === "eth") {
-        return (numBalance / 1000000).toFixed(2);
-      }
-
-      // Default: assume it's already in proper format
-      return numBalance.toFixed(2);
-    } catch (error) {
-      return "0.00";
-    }
-  };
 
   // Helper function to format payment amount (remove trailing zeros)
-  const formatPaymentAmount = (amount: number | string): string => {
-    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
-    if (isNaN(numAmount)) return "0.00";
-
-    // Format to 2 decimal places, then remove trailing zeros
-    const formatted = numAmount.toFixed(2);
-    return formatted.replace(/\.?0+$/, "") || "0";
+  const formatPaymentAmount = (amount: number): string => {
+    return amount.toFixed(2);
   };
-
-  // Cleanup intervals on unmount
-  useEffect(() => {
-    return () => {
-      stopWalletsAutoRefresh();
-    };
-  }, []);
 
   // Fetch wallet list with real-time balances
   const fetchWallets = async (showSuccessToast = false) => {
@@ -142,7 +95,7 @@ export default function AdminUserWalletsPage() {
                 />
               </svg>
             </div>
-            Wallet Management
+            User Wallet Monitoring
           </h2>
           <p className="text-gray-400 text-sm ml-13">
             Manage and monitor all connected wallet addresses and balances
@@ -199,15 +152,12 @@ export default function AdminUserWalletsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Last Activity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-700/50">
               {isLoadingWallets ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-gray-400">
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-400">
                     <div className="flex flex-col items-center justify-center space-y-3 py-8">
                       <div className="relative">
                         <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -221,7 +171,7 @@ export default function AdminUserWalletsPage() {
                 </tr>
               ) : wallets.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
                         <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -313,7 +263,7 @@ export default function AdminUserWalletsPage() {
                           }}
                         />
                         <span className="text-sm font-semibold text-gray-300 font-mono">
-                          {formatPaymentAmount(wallet.investedAmount || "0")}
+                          {formatPaymentAmount(wallet.investedAmount)}
                         </span>
                         <span className="text-xs text-gray-400">{wallet.currency.toUpperCase()}</span>
                       </div>
@@ -329,7 +279,7 @@ export default function AdminUserWalletsPage() {
                           }}
                         />
                         <span className="text-sm font-semibold text-gray-300 font-mono">
-                          {formatPaymentAmount(wallet.lastAmount || "0")}
+                          {formatPaymentAmount(wallet.lastAmount)}
                         </span>
                         <span className="text-xs text-gray-400">{wallet.currency.toUpperCase()}</span>
                       </div>
@@ -349,25 +299,6 @@ export default function AdminUserWalletsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {new Date(wallet.lastActivity).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => {
-                          setSelectedWallet(wallet);
-                          setShowTransferModal(true);
-                        }}
-                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg text-xs font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-blue-500/20"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                          />
-                        </svg>
-                        Transfer
-                      </button>
                     </td>
                   </tr>
                 ))

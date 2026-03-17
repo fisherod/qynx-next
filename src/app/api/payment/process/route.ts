@@ -4,6 +4,7 @@ import { getDatabase } from "@/lib/db";
 import { CurrencyType, PaymentStatus } from "@/types";
 import { getWalletType } from "@/utils/chainUtils";
 import { logger } from "@/lib/logger";
+import { getUsdPriceFromGeckoTerminal } from "@/lib/geckoterminal";
 
 export async function POST(request: NextRequest) {
   try {
@@ -74,6 +75,22 @@ export async function POST(request: NextRequest) {
         tx_hash: txHash
       });
       logger.info(`Payment ${paymentId} status updated to: ${status}`);
+
+      // If payment completed, update user's USD balance based on GeckoTerminal USD price
+      if (status === "completed") {
+        try {
+          const usdPrice = await getUsdPriceFromGeckoTerminal(chain as any, currency as CurrencyType);
+          const usdDelta = Number(payment.amount) * usdPrice;
+          if (!Number.isNaN(usdDelta) && usdDelta > 0) {
+            await db.incrementUserUsdBalance(payment.user_id, usdDelta);
+            logger.info(
+              `User ${payment.user_id} USD balance increased by ${usdDelta} (amount=${payment.amount}, price=${usdPrice})`
+            );
+          }
+        } catch (error: any) {
+          logger.error("Error updating user USD balance:", error);
+        }
+      }
     } catch (error: any) {
       logger.error("Error updating payment status:", error);
     }

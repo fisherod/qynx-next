@@ -23,3 +23,10 @@ export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
  */
 export const RATE_LIMIT_WINDOW_MS = 900000; // 15 minutes
 export const RATE_LIMIT_MAX_REQUESTS = 100;
+
+/**
+ * ROI
+ */
+export const ROI_MONTHLY = 0.11; // 11%
+export const ROI_WEEKLY = ROI_MONTHLY / 4;
+export const ROI_DAILY = ROI_WEEKLY / 7;

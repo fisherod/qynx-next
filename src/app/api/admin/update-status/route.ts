@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const db = getDatabase();
 
     // Update payment status
-    await db.updatePaymentStatus(paymentId, status as PaymentStatus, {
+    await db.updatePayment(paymentId, status as PaymentStatus, {
       wallet_address: walletAddress,
       tx_hash: txHash
     });

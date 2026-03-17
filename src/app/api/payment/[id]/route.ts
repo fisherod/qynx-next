@@ -27,7 +27,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     if (payment.status === "pending" && now > expiresAt) {
       // Mark as expired
-      await db.updatePaymentStatus(paymentId, "expired");
+      await db.updatePayment(paymentId, "expired");
       payment.status = "expired";
     }
 

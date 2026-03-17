@@ -147,7 +147,7 @@ export default function AdminTreasuryWalletsPage() {
                 />
               </svg>
             </div>
-            Treasury Wallets
+            Treasury Wallet Management
           </h2>
           <p className="text-gray-400 text-sm ml-13">
             Manage treasury wallet addresses per chain for receiving payments
