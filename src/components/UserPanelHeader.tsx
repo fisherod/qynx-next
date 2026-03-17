@@ -7,11 +7,8 @@ import { usePathname } from "next/navigation";
 import ToastMessage from "@/components/ToastMessage";
 
 const NAV = [
-  { href: "/user/dashboard", label: "Dashboard" },
-  // { href: '/user/trading', label: 'Trading' },
-  { href: "/user/referral", label: "Referral" },
   { href: "/user/investment", label: "Investment" },
-  { href: "/user/withdrawal", label: "Withdrawal" }
+  { href: "/user/referral", label: "Referral" }
 ] as const;
 
 interface UserPanelHeaderProps {

@@ -10,7 +10,7 @@ import { ChainType, CurrencyType } from "@/types";
  */
 export function getChainAbi(chain: ChainType) {
   switch (chain) {
-    case "ethereum":
+    case "eth":
       return require("@/abi/ether.json");
     case "bsc":
       return require("@/abi/bsc.json");
@@ -44,7 +44,7 @@ export function formatAmount(amount: string, decimals: number): string {
  * Validate chain type
  */
 export function isValidChain(chain: string): chain is ChainType {
-  return ["ethereum", "bsc", "tron"].includes(chain);
+  return ["eth", "bsc", "tron"].includes(chain);
 }
 
 /**
@@ -54,7 +54,7 @@ export function getWalletType(chain: ChainType): string {
   switch (chain) {
     case "tron":
       return "TronLink";
-    case "ethereum":
+    case "eth":
     case "bsc":
       return "MetaMask";
     default:
@@ -64,7 +64,7 @@ export function getWalletType(chain: ChainType): string {
 
 export function getTokenDecimals(chain: ChainType, currency: CurrencyType): number {
   switch (chain) {
-    case "ethereum":
+    case "eth":
       switch (currency) {
         case "usdt":
           return 6;
@@ -124,7 +124,7 @@ export function isValidAddress(address: string, chain: ChainType): boolean {
 
   switch (chain) {
     case "bsc":
-    case "ethereum":
+    case "eth":
       return /^0x[a-fA-F0-9]{40}$/.test(address);
     case "tron":
       // Use the new Tron address validation that handles both hex and base58 formats

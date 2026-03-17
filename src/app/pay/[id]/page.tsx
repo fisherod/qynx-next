@@ -35,7 +35,7 @@ function PaymentPageContent() {
 
   const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
   const [localPaymentStatus, setLocalPaymentStatus] = useState<string | null>(null);
-  const [selectedChain, setSelectedChain] = useState<ChainType>("ethereum");
+  const [selectedChain, setSelectedChain] = useState<ChainType>("eth");
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
 
   // Mobile wallet detection and connection state
@@ -83,7 +83,7 @@ function PaymentPageContent() {
   // Helper function to get blockchain explorer URL
   const getExplorerUrl = (chain: ChainType, txHash: string): string => {
     switch (chain) {
-      case "ethereum":
+      case "eth":
         return `https://etherscan.io/tx/${txHash}`;
       case "bsc":
         return `https://bscscan.com/tx/${txHash}`;
@@ -316,7 +316,7 @@ function PaymentPageContent() {
           refetch();
         }
       } else {
-        // EVM approval (Ethereum, BSC) – switch to selected chain first
+        // EVM approval (ETH, BSC) – switch to selected chain first
         if (!window.ethereum) {
           throw new Error("EVM wallet not found");
         }
@@ -406,7 +406,7 @@ function PaymentPageContent() {
       } else {
         stopStatusPolling();
       }
-    }, 60000);
+    }, 30000);
     setStatusCheckInterval(interval);
   };
 
@@ -672,9 +672,9 @@ function PaymentPageContent() {
               <div>
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: "ethereum", name: "ETH", icon: "/icons/ethereum.png" },
-                    { id: "bsc", name: "BSC", icon: "/icons/bsc.png" },
-                    { id: "tron", name: "TRON", icon: "/icons/tron.png" }
+                    { id: "eth", name: "ETH", icon: "/chains/eth.svg" },
+                    { id: "bsc", name: "BSC", icon: "/chains/bsc.svg" },
+                    { id: "tron", name: "TRON", icon: "/chains/tron.svg" }
                   ].map(chain => (
                     <button
                       key={chain.id}
@@ -737,8 +737,7 @@ function PaymentPageContent() {
                               {!balanceCheck.hasEnoughNative && (
                                 <div className="text-xs text-yellow-700">
                                   {t("paymentPage.feeInsufficient", {
-                                    symbol:
-                                      selectedChain === "ethereum" ? "ETH" : selectedChain === "bsc" ? "BNB" : "TRX"
+                                    symbol: selectedChain === "eth" ? "ETH" : selectedChain === "bsc" ? "BNB" : "TRX"
                                   })}
                                 </div>
                               )}

@@ -10,7 +10,7 @@ import {
   getUniqueWalletAddresses,
   getWalletPaymentStats,
   markExpiredPayments,
-  updatePaymentStatus,
+  updatePayment,
   updatePaymentChain
 } from "./payment";
 import { getPaymentEvents, logEvent } from "./paymentEvent";
@@ -28,7 +28,7 @@ export function getDatabase() {
   return {
     createPayment,
     getPayment,
-    updatePaymentStatus,
+    updatePayment,
     updatePaymentChain,
     getExpiredPayments,
     markExpiredPayments,

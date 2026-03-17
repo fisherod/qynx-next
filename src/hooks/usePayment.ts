@@ -129,7 +129,7 @@ export function usePayment(paymentId: string): UsePaymentReturn {
     }
 
     // Check status every 5 seconds for active payments
-    const interval = setInterval(checkStatus, 60000);
+    const interval = setInterval(checkStatus, 30000);
 
     return () => clearInterval(interval);
   }, [payment?.status, checkStatus]);

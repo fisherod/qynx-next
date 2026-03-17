@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Simple network info since blockchainService.getNetworkInfo() no longer exists
     const networkInfo = {
       isMainnet: process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet",
-      networks: ["ethereum", "bsc", "tron"]
+      networks: ["eth", "bsc", "tron"]
     };
 
     // System health

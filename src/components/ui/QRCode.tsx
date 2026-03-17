@@ -15,7 +15,7 @@ interface QRCodeProps {
   className?: string;
   showValue?: boolean;
   onError?: (error: Error) => void;
-  chain?: "ethereum" | "bsc" | "tron";
+  chain?: "eth" | "bsc" | "tron";
 }
 
 export function QRCode({ value, size = 200, className, showValue = false, onError, chain }: QRCodeProps) {

@@ -115,10 +115,10 @@ export default function Navbar() {
                 <>
                   {!isAdmin && (
                     <Link
-                      href="/user/dashboard"
+                      href="/user/investment"
                       className="px-2.5 py-1.5 rounded-lg text-[#c44dbf] text-sm font-medium border border-[#c44dbf] hover:bg-white/5 hover:text-[#E866E7] transition-colors whitespace-nowrap"
                     >
-                      To Dashboard
+                      To Investment
                     </Link>
                   )}
                   {isAdmin && (
@@ -232,12 +232,12 @@ export default function Navbar() {
                 <>
                   {!isAdmin && (
                     <Link
-                      href="/user/dashboard"
+                      href="/user/investment"
                       onClick={() => setMobileOpen(false)}
                       className="flex flex-row justify-center items-center gap-2 px-5 py-3 rounded-[35px] text-white text-fluid-base font-medium transition-all duration-200 hover:opacity-90 border-t border-white/10 mt-2 pt-4"
                       style={{ background: "linear-gradient(99.75deg, #40429F 3.51%, #E866E7 138.39%), #FFFFFF" }}
                     >
-                      User Dashboard
+                      User Investment
                     </Link>
                   )}
                   {isAdmin && (

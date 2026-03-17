@@ -10,12 +10,12 @@ const CURRENCY_OPTIONS = [
   {
     value: "usdt",
     label: "USDT",
-    icon: "/usdt.png"
+    icon: "/coins/usdt.svg"
   },
   {
     value: "usdc",
     label: "USDC",
-    icon: "/usdc.png"
+    icon: "/coins/usdc.svg"
   }
 ] as const;
 
@@ -101,9 +101,9 @@ export default function InvestmentPage() {
       <div className="min-h-screen">
         <main className="max-w-4xl mx-auto px-6 py-12">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">Generate payment link</h2>
+            <h2 className="text-3xl font-bold text-white mb-4">Start your crypto investment</h2>
             <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-              Create a USDT payment link with custom amount and callback options.
+              Choose your coin, set the amount, and instantly generate a secure payment link to fund your investment.
             </p>
           </div>
 

@@ -44,7 +44,7 @@ export default function AdminUserWalletsPage() {
       }
 
       // Ethereum USDT has 6 decimals
-      if (chain === "ethereum") {
+      if (chain === "eth") {
         return (numBalance / 1000000).toFixed(2);
       }
 
@@ -207,7 +207,7 @@ export default function AdminUserWalletsPage() {
             <tbody className="divide-y divide-gray-700/50">
               {isLoadingWallets ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-4 text-center text-gray-400">
+                  <td colSpan={7} className="px-6 py-4 text-center text-gray-400">
                     <div className="flex flex-col items-center justify-center space-y-3 py-8">
                       <div className="relative">
                         <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
@@ -283,7 +283,7 @@ export default function AdminUserWalletsPage() {
                       <div className="flex items-center gap-2">
                         <div
                           className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                            wallet.chain === "ethereum"
+                            wallet.chain === "eth"
                               ? "bg-blue-500/10 border border-blue-500/20"
                               : wallet.chain === "bsc"
                                 ? "bg-yellow-500/10 border border-yellow-500/20"
@@ -291,7 +291,7 @@ export default function AdminUserWalletsPage() {
                           }`}
                         >
                           <img
-                            src={`/icons/${wallet.chain}.png`}
+                            src={`/chains/${wallet.chain}.svg`}
                             alt={wallet.chain}
                             className="w-5 h-5"
                             onError={e => {
@@ -304,6 +304,14 @@ export default function AdminUserWalletsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
+                        <img
+                          src={`/coins/${wallet.currency.toLowerCase()}.svg`}
+                          alt={wallet.currency}
+                          className="w-4 h-4"
+                          onError={e => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
                         <span className="text-sm font-semibold text-gray-300 font-mono">
                           {formatPaymentAmount(wallet.investedAmount || "0")}
                         </span>
@@ -312,6 +320,14 @@ export default function AdminUserWalletsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
+                        <img
+                          src={`/coins/${wallet.currency.toLowerCase()}.svg`}
+                          alt={wallet.currency}
+                          className="w-4 h-4"
+                          onError={e => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
                         <span className="text-sm font-semibold text-gray-300 font-mono">
                           {formatPaymentAmount(wallet.lastAmount || "0")}
                         </span>

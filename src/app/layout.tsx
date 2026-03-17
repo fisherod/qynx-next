@@ -24,18 +24,8 @@ export const viewport = {
 
 export const metadata: Metadata = {
   title: "QYNX",
-  description: "Secure USDT multi-chain payment platform supporting BSC, Ethereum and Tron networks",
-  keywords: [
-    "cryptocurrency",
-    "digital currency payment",
-    "USDT",
-    "BSC",
-    "Ethereum",
-    "Tron",
-    "blockchain payment",
-    "crypto",
-    "payment"
-  ],
+  description: "Secure crypto investment platform supporting Ethereum, BSC and Tron networks",
+  keywords: ["cryptocurrency", "crypto investment", "Ethereum", "BSC", "Tron"],
   authors: [{ name: "Crypto Payment Platform" }],
 
   robots: "index, follow",

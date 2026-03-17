@@ -207,7 +207,7 @@ export default function AdminOperatorWalletsPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        chain === "ethereum"
+                        chain === "eth"
                           ? "bg-blue-500/20 border border-blue-500/30"
                           : chain === "bsc"
                             ? "bg-yellow-500/20 border border-yellow-500/30"
@@ -215,7 +215,7 @@ export default function AdminOperatorWalletsPage() {
                       }`}
                     >
                       <img
-                        src={`/icons/${chain}.png`}
+                        src={`/chains/${chain}.svg`}
                         alt={chain}
                         className="w-8 h-8"
                         onError={e => {
@@ -225,7 +225,7 @@ export default function AdminOperatorWalletsPage() {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-white">
-                        {chain === "ethereum" ? "Ethereum" : chain === "bsc" ? "Binance Smart Chain" : "TRON"}
+                        {chain === "eth" ? "Ethereum" : chain === "bsc" ? "Binance Smart Chain" : "TRON"}
                       </h3>
                       <p className="text-xs text-gray-400">Operator Wallet</p>
                     </div>
@@ -287,7 +287,7 @@ export default function AdminOperatorWalletsPage() {
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <img
-                          src={`/icons/${chain}.png`}
+                          src={`/chains/${chain}.svg`}
                           alt={chain}
                           className="w-5 h-5"
                           onError={e => {

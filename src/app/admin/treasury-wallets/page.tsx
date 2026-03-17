@@ -29,7 +29,7 @@ export default function AdminTreasuryWalletsPage() {
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const [expandedWalletId, setExpandedWalletId] = useState<string | null>(null);
   const [form, setForm] = useState({
-    chain: "ethereum" as ChainType,
+    chain: "eth" as ChainType,
     address: "",
     name: "",
     description: ""
@@ -76,7 +76,7 @@ export default function AdminTreasuryWalletsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to save");
       showToast("Treasury wallet saved", "success");
-      setForm({ chain: "ethereum", address: "", name: "", description: "" });
+      setForm({ chain: "eth", address: "", name: "", description: "" });
       setShowForm(false);
       await fetchWallets();
     } catch (e: any) {
@@ -228,7 +228,7 @@ export default function AdminTreasuryWalletsPage() {
                     type="button"
                     onClick={() => {
                       setShowForm(false);
-                      setForm({ chain: "ethereum", address: "", name: "", description: "" });
+                      setForm({ chain: "eth", address: "", name: "", description: "" });
                     }}
                     className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
                   >
@@ -306,14 +306,24 @@ export default function AdminTreasuryWalletsPage() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
-                          <img
-                            src={`/icons/${w.chain}.png`}
-                            alt=""
-                            className="w-6 h-6 rounded"
-                            onError={e => {
-                              e.currentTarget.style.display = "none";
-                            }}
-                          />
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                              w.chain === "eth"
+                                ? "bg-blue-500/10 border border-blue-500/20"
+                                : w.chain === "bsc"
+                                  ? "bg-yellow-500/10 border border-yellow-500/20"
+                                  : "bg-red-500/10 border border-red-500/20"
+                            }`}
+                          >
+                            <img
+                              src={`/chains/${w.chain}.svg`}
+                              alt={w.chain}
+                              className="w-5 h-5"
+                              onError={e => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          </div>
                           <span className="text-sm font-medium text-white">{chainDisplay(w.chain)}</span>
                         </div>
                       </td>

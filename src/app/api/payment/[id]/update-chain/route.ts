@@ -8,7 +8,7 @@ import { z } from "zod";
 
 // Validation schema
 const updateChainSchema = z.object({
-  chain: z.enum(["bsc", "ethereum", "tron"])
+  chain: z.enum(["eth", "bsc", "tron"])
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

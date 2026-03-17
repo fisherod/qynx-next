@@ -7,7 +7,6 @@ const COINGECKO_IDS: Record<string, string> = {
   USDT: "tether",
   USDC: "usd-coin",
   DAI: "dai",
-  CAKE: "pancakeswap-token",
   WBNB: "binancecoin",
   BNB: "binancecoin",
   WBTC: "wrapped-bitcoin",
@@ -16,18 +15,17 @@ const COINGECKO_IDS: Record<string, string> = {
   QYNX: "qynx"
 };
 
-const TICKER_ORDER = ["USDT", "USDC", "DAI", "CAKE", "WBNB", "BNB", "WBTC", "ETH", "WETH", "QYNX"] as const;
+const TICKER_ORDER = ["USDT", "USDC", "DAI", "WBNB", "BNB", "WBTC", "ETH", "WETH", "QYNX"] as const;
 
 const TOKEN_IMAGES: Record<string, string> = {
-  BNB: "/bnb.png",
-  USDT: "/usdt.png",
-  USDC: "/usdc.png",
-  CAKE: "/cake.webp",
-  DAI: "/dai.png",
-  WBTC: "/wbtc.png",
-  WBNB: "/wbnb.png",
-  ETH: "/eth.png",
-  WETH: "/weth.png",
+  BNB: "/coins/bnb.svg",
+  USDT: "/coins/usdt.svg",
+  USDC: "/coins/usdc.svg",
+  DAI: "/coins/dai.svg",
+  WBTC: "/coins/wbtc.svg",
+  WBNB: "/coins/wbnb.svg",
+  ETH: "/coins/eth.svg",
+  WETH: "/coins/weth.svg",
   QYNX: "/qynx.png"
 };
 

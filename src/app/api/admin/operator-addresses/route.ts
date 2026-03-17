@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (process.env.EVM_OPERATOR_PRIVATE_KEY) {
       try {
         const wallet = new ethers.Wallet(process.env.EVM_OPERATOR_PRIVATE_KEY);
-        addresses.ethereum = wallet.address;
+        addresses.eth = wallet.address;
         addresses.bsc = wallet.address;
         console.log("✅ EVM addresses derived successfully");
       } catch (error) {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       }
     } else {
       warnings.push("EVM_OPERATOR_PRIVATE_KEY environment variable not set - EVM addresses unavailable");
-      addresses.ethereum = "NOT_CONFIGURED";
+      addresses.eth = "NOT_CONFIGURED";
       addresses.bsc = "NOT_CONFIGURED";
     }
 

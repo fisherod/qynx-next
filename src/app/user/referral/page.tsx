@@ -5,7 +5,7 @@ import Link from "next/link";
 import PageLayout from "@/components/PageLayout";
 import BscPriceTicker from "@/components/BscPriceTicker";
 
-export default function DashboardPage() {
+export default function ReferralPage() {
   return (
     <PageLayout showNavbar={false}>
       <div className="min-h-screen">
@@ -54,11 +54,11 @@ export default function DashboardPage() {
               <div className="text-2xl mb-3">🌐</div>
               <h3 className="text-lg font-semibold text-white mb-2">Multi-chain support</h3>
               <p className="text-gray-400 text-sm mb-4">
-                Supports USDT payments on the three major blockchain networks: BSC, Ethereum, and Tron.
+                Supports USDT payments on the three major blockchain networks: Ethereum, BSC and Tron.
               </p>
               <div className="flex space-x-2">
-                <span className="text-xs text-yellow-400 bg-gray-900 px-2 py-1 rounded">BSC</span>
                 <span className="text-xs text-blue-400 bg-gray-900 px-2 py-1 rounded">ETH</span>
+                <span className="text-xs text-yellow-400 bg-gray-900 px-2 py-1 rounded">BSC</span>
                 <span className="text-xs text-red-400 bg-gray-900 px-2 py-1 rounded">TRON</span>
               </div>
             </div>

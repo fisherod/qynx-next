@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
+import { getExplorerAddressUrl, getExplorerUrl } from "@/utils/chainUtils";
 
 interface Project {
   id: string;
   payment_id: string;
-  service_name: string;
   amount: number;
   status: string;
+  chain?: string;
+  currency?: string;
   created_at: string;
 }
 
@@ -16,15 +18,14 @@ interface PaymentDetails {
   payment: {
     id: string;
     payment_id: string;
-    service_name: string;
     description?: string;
     amount: number;
-    chain?: string;
     status: string;
+    chain?: string;
+    currency?: string;
     wallet_address?: string;
     tx_hash?: string;
     webhook_url?: string;
-    language?: string;
     created_at: string;
     updated_at: string;
     expires_at: string;
@@ -186,7 +187,7 @@ export default function AdminPaymentsPage() {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden shadow-xl">
+      <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-700/50">
@@ -195,7 +196,7 @@ export default function AdminPaymentsPage() {
                   Payment ID
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Amount (USDT)
+                  Amount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Status
@@ -286,8 +287,8 @@ export default function AdminPaymentsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <img
-                          src="/icons/tether.svg"
-                          alt="USDT"
+                          src={`/coins/${project.currency?.toLowerCase()}.svg`}
+                          alt={project.currency?.toUpperCase()}
                           className="w-4 h-4"
                           onError={e => {
                             e.currentTarget.style.display = "none";
@@ -296,7 +297,7 @@ export default function AdminPaymentsPage() {
                         <span className="text-sm font-bold text-blue-400 font-mono">
                           {formatPaymentAmount(project.amount)}
                         </span>
-                        <span className="text-xs text-gray-400">USDT</span>
+                        <span className="text-xs text-gray-400">{project.currency?.toUpperCase()}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -374,7 +375,6 @@ export default function AdminPaymentsPage() {
             </tbody>
           </table>
         </div>
-
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="bg-gradient-to-r from-gray-800/50 to-gray-900/50 backdrop-blur-sm px-6 py-4 flex items-center justify-between border-t border-gray-700/50">
@@ -442,6 +442,190 @@ export default function AdminPaymentsPage() {
           </div>
         )}
       </div>
+
+      {/* Payment Details Modal (rendered above everything) */}
+      {showPaymentModal && selectedPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+              <div>
+                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                  Payment Details
+                  <span className="text-xs font-mono text-gray-400">{selectedPayment.payment.payment_id}</span>
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">
+                  Created at {new Date(selectedPayment.payment.created_at).toLocaleString()}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="px-6 py-5 space-y-6">
+              {/* Basic Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-gray-400 uppercase">Amount</div>
+                  <div className="text-base font-mono text-emerald-300">
+                    {formatPaymentAmount(selectedPayment.payment.amount)}{" "}
+                    <span className="text-xs text-gray-400">{selectedPayment.payment.currency?.toUpperCase()}</span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-gray-400 uppercase">Status</div>
+                  <div className="text-sm">
+                    <span
+                      className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg border ${
+                        selectedPayment.payment.status === "completed"
+                          ? "bg-green-500/10 text-green-400 border-green-500/30"
+                          : selectedPayment.payment.status === "pending"
+                            ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/30"
+                            : selectedPayment.payment.status === "processing"
+                              ? "bg-blue-500/10 text-blue-400 border-blue-500/30"
+                              : selectedPayment.payment.status === "failed"
+                                ? "bg-red-500/10 text-red-400 border-red-500/30"
+                                : selectedPayment.payment.status === "expired"
+                                  ? "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                                  : "bg-gray-500/10 text-gray-400 border-gray-500/30"
+                      }`}
+                    >
+                      {selectedPayment.payment.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-gray-400 uppercase">Wallet Address</div>
+                  {selectedPayment.payment.wallet_address ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-gray-200 break-all">
+                          {selectedPayment.payment.wallet_address}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedPayment.payment.wallet_address || "");
+                            showToast("Wallet address copied", "success");
+                          }}
+                          className="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      {selectedPayment.payment.chain && (
+                        <a
+                          href={getExplorerAddressUrl(
+                            selectedPayment.payment.chain as any,
+                            selectedPayment.payment.wallet_address
+                          )}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300"
+                        >
+                          View in explorer
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">Not available</div>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xs font-semibold text-gray-400 uppercase">Transaction Hash</div>
+                  {selectedPayment.payment.tx_hash ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-gray-200 break-all">
+                          {selectedPayment.payment.tx_hash}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedPayment.payment.tx_hash || "");
+                            showToast("Tx hash copied", "success");
+                          }}
+                          className="p-1 rounded hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                      {selectedPayment.payment.chain && (
+                        <a
+                          href={getExplorerUrl(selectedPayment.payment.chain as any, selectedPayment.payment.tx_hash)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300"
+                        >
+                          View in explorer
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">Not available</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Optional description and webhook URL */}
+              {(selectedPayment.payment.description || selectedPayment.payment.webhook_url) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedPayment.payment.description && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-semibold text-gray-400 uppercase">Description</div>
+                      <div className="text-sm text-gray-200 whitespace-pre-wrap">
+                        {selectedPayment.payment.description}
+                      </div>
+                    </div>
+                  )}
+                  {selectedPayment.payment.webhook_url && (
+                    <div className="space-y-1">
+                      <div className="text-xs font-semibold text-gray-400 uppercase">Webhook URL</div>
+                      <div className="text-xs text-blue-400 break-all">{selectedPayment.payment.webhook_url}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

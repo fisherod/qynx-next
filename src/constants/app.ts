@@ -19,17 +19,6 @@ export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 export const DEFAULT_LANGUAGE: SupportedLanguage = "en";
 
 /**
- * Payment status colors
- */
-export const STATUS_COLORS = {
-  pending: "yellow",
-  processing: "blue",
-  completed: "green",
-  failed: "red",
-  expired: "gray"
-} as const;
-
-/**
  * Rate limiting
  */
 export const RATE_LIMIT_WINDOW_MS = 900000; // 15 minutes

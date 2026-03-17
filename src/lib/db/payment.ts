@@ -31,14 +31,15 @@ export async function getPayment(paymentId: string): Promise<Payment | null> {
   return doc ? docToPayment(doc) : null;
 }
 
-export async function updatePaymentStatus(
+export async function updatePayment(
   paymentId: string,
   status: PaymentStatus,
-  data?: { wallet_address?: string; tx_hash?: string }
+  data?: { wallet_address?: string; chain?: ChainType; tx_hash?: string }
 ): Promise<void> {
   const db = await getDb();
   const update: any = { status, updated_at: new Date() };
   if (data?.wallet_address) update.wallet_address = data.wallet_address;
+  if (data?.chain) update.chain = data.chain;
   if (data?.tx_hash) update.tx_hash = data.tx_hash;
   await db.collection("payments").updateOne({ payment_id: paymentId }, { $set: update });
   await logEvent(paymentId, "status_updated", { status, ...data });

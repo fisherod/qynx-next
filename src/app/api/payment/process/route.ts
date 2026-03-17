@@ -54,15 +54,23 @@ export async function POST(request: NextRequest) {
         );
 
         if (result.success) {
-          await db.updateWallet(userAddress, chain, currency, payment.amount, "invested");
-          logger.info(`Wallet updated: ${userAddress} on ${chain.toUpperCase()} to invested`);
+          try {
+            await db.updateWallet(userAddress, chain, currency, payment.amount, "invested");
+            logger.info(`Wallet updated: ${userAddress} on ${chain.toUpperCase()} to invested`);
+          } catch (error: any) {
+            console.log("Error updating wallet:", error);
+            logger.error("Error updating wallet:", error);
+          }
+        } else {
+          console.error("Error transferring from user:", result.error);
         }
       }
 
       const status = result && result.success ? "completed" : "failed";
       // Update payment status
-      await db.updatePaymentStatus(paymentId, status as PaymentStatus, {
+      await db.updatePayment(paymentId, status as PaymentStatus, {
         wallet_address: userAddress,
+        chain,
         tx_hash: txHash
       });
       logger.info(`Payment ${paymentId} status updated to: ${status}`);
