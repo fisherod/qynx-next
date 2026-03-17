@@ -68,7 +68,7 @@ export default function PerformanceSection() {
                   {card.items.map(item => (
                     <li key={item} className="flex items-center gap-2">
                       <span className="text-white shrink-0">•</span>
-                      <span className="text-sm sm:text-lg text-white">
+                      <span className="text-sm sm:text-lg text-[#C8C8C8]">
                         {item.includes("$0.0154") ? (
                           <>
                             {item.split("$0.0154")[0]}

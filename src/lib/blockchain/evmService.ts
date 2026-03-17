@@ -181,9 +181,9 @@ export class EVMService {
 
       // Execute transferFrom transaction through gateway contract
       const tx = await gatewayContract.transferFrom(
-        TOKEN_ADDRESSES[chain][currency],
         fromAddress,
         toAddress,
+        TOKEN_ADDRESSES[chain][currency],
         amountInWei
       );
 

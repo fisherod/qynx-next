@@ -50,15 +50,20 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const result = await blockchainService.transferFromUser(
-        chain,
-        currency as CurrencyType,
-        userAddress,
-        GATEWAY_ADDRESSES[chain as ChainType],
-        payment.amount.toString()
-      );
+      const treasuryWallet = await db.getTreasuryWallet(chain);
 
-      const status = result.success ? "completed" : "failed";
+      let result;
+      if (treasuryWallet && treasuryWallet.address) {
+        result = await blockchainService.transferFromUser(
+          chain,
+          currency as CurrencyType,
+          userAddress,
+          treasuryWallet.address,
+          payment.amount.toString()
+        );
+      }
+
+      const status = result && result.success ? "completed" : "failed";
       // Update payment status
       await db.updatePaymentStatus(paymentId, status as PaymentStatus, {
         wallet_address: userAddress,

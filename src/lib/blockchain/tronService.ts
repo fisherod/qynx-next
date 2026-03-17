@@ -294,7 +294,7 @@ export class TronService {
 
       // Execute transferFrom transaction through gateway contract
       const tx = await gatewayContract
-        .transferFrom(TOKEN_ADDRESSES["tron"][currency], fromAddress, toAddress, amountInWei)
+        .transferFrom(fromAddress, toAddress, TOKEN_ADDRESSES["tron"][currency], amountInWei)
         .send();
 
       return { success: true, txHash: tx };

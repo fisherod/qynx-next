@@ -1,0 +1,374 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/Toast";
+import { getExplorerAddressUrl } from "@/utils/chainUtils";
+import { formatAddress } from "@/utils/chainUtils";
+import { CHAINS, CHAIN_NAMES } from "@/constants";
+import type { ChainType } from "@/types";
+
+interface TreasuryWallet {
+  id: string;
+  chain: string;
+  address: string;
+  name?: string;
+  description?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  ownerNativeBalance?: string;
+  ownerTokenBalance?: string;
+  lastBalanceUpdate?: string;
+}
+
+export default function AdminTreasuryWalletsPage() {
+  const { showToast } = useToast();
+  const [wallets, setWallets] = useState<TreasuryWallet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    chain: "ethereum" as ChainType,
+    address: "",
+    name: "",
+    description: ""
+  });
+
+  const fetchWallets = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/treasury", { method: "GET" });
+      if (!res.ok) throw new Error("Failed to fetch treasury wallets");
+      const data = await res.json();
+      setWallets(data.data || []);
+    } catch (e: any) {
+      showToast(e.message || "Failed to load treasury wallets", "error");
+      setWallets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWallets();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = form.address.trim();
+    if (!trimmed) {
+      showToast("Address is required", "error");
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/treasury", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chain: form.chain,
+          address: trimmed,
+          name: form.name.trim() || undefined,
+          description: form.description.trim() || undefined
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save");
+      showToast("Treasury wallet saved", "success");
+      setForm({ chain: "ethereum", address: "", name: "", description: "" });
+      setShowForm(false);
+      await fetchWallets();
+    } catch (e: any) {
+      showToast(e.message || "Failed to save", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this treasury wallet? This cannot be undone.")) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/treasury?id=${encodeURIComponent(id)}`, {
+        method: "DELETE"
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to delete");
+      }
+      showToast("Treasury wallet deleted", "success");
+      await fetchWallets();
+    } catch (e: any) {
+      showToast(e.message || "Failed to delete", "error");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const chainDisplay = (chain: string) => CHAIN_NAMES[chain as ChainType] || chain;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center">
+              <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                />
+              </svg>
+            </div>
+            Treasury Wallets
+          </h2>
+          <p className="text-gray-400 text-sm ml-13">
+            Manage treasury wallet addresses per chain for receiving payments
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Treasury Wallet
+        </button>
+      </div>
+
+      {/* Add/Edit form modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-gray-900 border border-gray-700 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Add Treasury Wallet</h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Chain</label>
+                  <select
+                    value={form.chain}
+                    onChange={e => setForm(f => ({ ...f, chain: e.target.value as ChainType }))}
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    {CHAINS.map(c => (
+                      <option key={c} value={c}>
+                        {CHAIN_NAMES[c]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Address *</label>
+                  <input
+                    type="text"
+                    value={form.address}
+                    onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                    placeholder="0x... or T..."
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Name (optional)</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="e.g. Main Treasury"
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">Description (optional)</label>
+                  <textarea
+                    value={form.description}
+                    onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                    placeholder="Short description"
+                    rows={2}
+                    className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowForm(false);
+                      setForm({ chain: "ethereum", address: "", name: "", description: "" });
+                    }}
+                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-700/50 overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-700/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Chain
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Address
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Native
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">USDT</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700/50">
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3 py-8">
+                      <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin" />
+                      <div className="text-sm font-medium text-gray-300">Loading treasury wallets...</div>
+                    </div>
+                  </td>
+                </tr>
+              ) : wallets.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-lg font-medium text-gray-300">No treasury wallets</p>
+                      <p className="text-sm text-gray-500">Add a wallet to start receiving payments per chain.</p>
+                      <button
+                        type="button"
+                        onClick={() => setShowForm(true)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium"
+                      >
+                        Add Treasury Wallet
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                wallets.map(w => (
+                  <tr key={w.id} className="hover:bg-gray-700/30 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={`/icons/${w.chain}.png`}
+                          alt=""
+                          className="w-6 h-6 rounded"
+                          onError={e => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        <span className="text-sm font-medium text-white">{chainDisplay(w.chain)}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{w.name || "—"}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm font-mono text-gray-300 truncate max-w-[180px]" title={w.address}>
+                          {formatAddress(w.address)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(w.address);
+                            showToast("Address copied", "success");
+                          }}
+                          className="p-1 rounded hover:bg-gray-600 text-gray-400 hover:text-white shrink-0"
+                          title="Copy"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </button>
+                        <a
+                          href={getExplorerAddressUrl(w.chain as ChainType, w.address)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1 rounded hover:bg-gray-600 text-gray-400 hover:text-emerald-400 shrink-0"
+                          title="View on explorer"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                            />
+                          </svg>
+                        </a>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-300">
+                      {w.ownerNativeBalance ?? "—"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-300">
+                      {w.ownerTokenBalance ?? "—"} USDT
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2.5 py-1 text-xs font-medium rounded-lg ${
+                          w.is_active !== false
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                            : "bg-gray-500/10 text-gray-400 border border-gray-500/30"
+                        }`}
+                      >
+                        {w.is_active !== false ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(w.id)}
+                        disabled={deletingId === w.id}
+                        className="px-3 py-1.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-red-500/30 transition-colors disabled:opacity-50"
+                      >
+                        {deletingId === w.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}

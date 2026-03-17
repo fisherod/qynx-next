@@ -16,6 +16,7 @@ export interface DbUser {
   role?: string;
   createdAt: Date;
   updatedAt: Date;
+  referralCode?: string;
   // OAuth
   accounts?: { provider: string; providerAccountId: string }[];
 }
@@ -44,6 +45,7 @@ export async function createUser(data: {
   name?: string | null;
   image?: string | null;
   passwordHash?: string | null;
+  referer?: string | null;
   emailVerified?: Date | null;
   role?: string;
 }): Promise<DbUser> {
@@ -54,14 +56,19 @@ export async function createUser(data: {
     name: data.name ?? null,
     image: data.image ?? null,
     passwordHash: data.passwordHash ?? null,
+    referer: data.referer ? String(data.referer) : "",
     emailVerified: data.emailVerified ?? null,
     role: data.role ?? "user",
     createdAt: now,
     updatedAt: now,
     accounts: []
   };
-  const result = await db.collection(USERS_COLLECTION).insertOne(doc);
-  return docToUser({ _id: result.insertedId, ...doc });
+  const user = await db.collection(USERS_COLLECTION).insertOne(doc);
+  const referralCode = user.insertedId?.toString().slice(-5);
+  if (referralCode) {
+    await db.collection(USERS_COLLECTION).updateOne({ _id: user.insertedId }, { $set: { referralCode } });
+  }
+  return docToUser({ _id: user.insertedId, ...user });
 }
 
 export async function updateUserOAuthAccount(

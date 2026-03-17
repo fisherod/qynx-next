@@ -12,7 +12,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, name } = body;
+    const { email, password, name, referer } = body;
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
       email: emailTrim,
       name: name?.trim() || null,
       passwordHash,
-      role: "user"
+      role: "user",
+      referer: referer ? String(referer) : ""
     });
 
     return NextResponse.json({

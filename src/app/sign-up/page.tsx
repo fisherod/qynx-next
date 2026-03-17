@@ -30,7 +30,9 @@ export default function SignUpPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const refParam = params.get("ref");
-    if (refParam?.trim()) setReferralCode(refParam.trim());
+    if (refParam && refParam.trim() !== "") {
+      setReferralCode(refParam.trim());
+    }
   }, []);
 
   const validate = () => {
@@ -70,6 +72,7 @@ export default function SignUpPage() {
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           password,
+          referer: referralCode?.trim() || "",
           name: name.trim() || undefined
         })
       });

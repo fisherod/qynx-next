@@ -153,16 +153,13 @@ function PaymentPageContent() {
     const checkBalances = async () => {
       setIsCheckingBalance(true);
       try {
-        const response = await fetch("/api/payment/check-balances", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            address: walletAddress,
-            chain: selectedChain,
-            currency: payment.currency,
-            amount: payment.amount
-          })
-        });
+        const response = await fetch(
+          `/api/blockchain/check-balance?address=${walletAddress}&chain=${selectedChain}&currency=${payment.currency}&amount=${payment.amount}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+          }
+        );
 
         if (response.ok) {
           const data = await response.json();

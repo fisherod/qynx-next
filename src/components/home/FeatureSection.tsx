@@ -25,7 +25,10 @@ export default function FeatureSection() {
       <div className="w-full min-w-0 max-w-[1600px] mx-auto">
         {/* Introductory area */}
         <div className="text-center mb-10 sm:mb-16 md:mb-20">
-          <h1 className="font-semibold leading-tight mb-4 sm:mb-6" style={{ fontSize: "clamp(1.75rem, 5vw, 5.7rem)" }}>
+          <h1
+            className="font-semibold text-white leading-tight mb-4 sm:mb-6"
+            style={{ fontSize: "clamp(1.75rem, 5vw, 5.7rem)" }}
+          >
             Smart AI. Smarter Returns.
           </h1>
           <p className="text-[#C8C8C8] text-sm sm:text-lg max-w-[1450px] mx-auto leading-relaxed px-2">
@@ -55,9 +58,7 @@ export default function FeatureSection() {
                   {feature.title}
                 </h3>
                 {feature.description ? (
-                  <p className="text-[#C8C8C8] text-sm sm:text-lg text-white leading-relaxed break-words">
-                    {feature.description}
-                  </p>
+                  <p className="text-[#C8C8C8] text-sm sm:text-lg leading-relaxed break-words">{feature.description}</p>
                 ) : (
                   <ul className="space-y-2 text-[#C8C8C8] text-sm sm:text-lg leading-relaxed">
                     {feature.items?.map(item => (

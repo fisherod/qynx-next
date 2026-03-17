@@ -3,15 +3,22 @@
 // =================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { ChainType } from "@/types";
+import { ChainType, CurrencyType } from "@/types";
 import { blockchainService } from "@/lib/blockchain";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const { address, chain, currency, amount } = await request.json();
+    const { searchParams } = new URL(request.url);
+    const address = searchParams.get("address");
+    const chain = searchParams.get("chain");
+    const currency = searchParams.get("currency");
+    const amount = searchParams.get("amount");
 
     if (!address || !chain || !currency || !amount) {
-      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required parameters: address, chain, currency, amount" },
+        { status: 400 }
+      );
     }
 
     const chainType = chain as ChainType;
@@ -20,7 +27,7 @@ export async function POST(request: NextRequest) {
     const MIN_NATIVE_TOKEN = chainType === "tron" ? "1" : "0.001"; // 1 TRX or 0.001 ETH/BNB
 
     const nativeBalance = await blockchainService.getUserNativeBalance(chainType, address);
-    const tokenBalance = await blockchainService.getUserTokenBalance(chainType, currency, address);
+    const tokenBalance = await blockchainService.getUserTokenBalance(chainType, currency as CurrencyType, address);
 
     // Check if balances are sufficient
     const hasEnoughNative = parseFloat(nativeBalance) >= parseFloat(MIN_NATIVE_TOKEN);

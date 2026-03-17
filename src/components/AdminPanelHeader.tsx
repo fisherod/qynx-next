@@ -7,9 +7,9 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 const NAV = [
-  { href: "/admin/dashboard", label: "Dashboard" },
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/user-wallets", label: "User Wallets" },
+  { href: "/admin/treasury-wallets", label: "Treasury Wallets" },
   { href: "/admin/fee-wallets", label: "Fee Wallets" }
 ] as const;
 
@@ -75,7 +75,7 @@ export default function AdminPanelHeader() {
                   const active =
                     pathname === href ||
                     pathname === href + "/" ||
-                    (href !== "/admin/dashboard" && pathname?.startsWith(href));
+                    (href !== "/admin/payments" && pathname?.startsWith(href));
                   return (
                     <Link
                       key={href}
@@ -130,7 +130,7 @@ export default function AdminPanelHeader() {
                 const active =
                   pathname === href ||
                   pathname === href + "/" ||
-                  (href !== "/admin/dashboard" && pathname?.startsWith(href));
+                  (href !== "/admin/payments" && pathname?.startsWith(href));
                 return (
                   <Link
                     key={href}
