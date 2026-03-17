@@ -26,8 +26,8 @@ export async function GET(request: NextRequest) {
     // Minimum native token required for gas (approximate)
     const MIN_NATIVE_TOKEN = chainType === "tron" ? "1" : "0.001"; // 1 TRX or 0.001 ETH/BNB
 
-    const nativeBalance = await blockchainService.getUserNativeBalance(chainType, address);
-    const tokenBalance = await blockchainService.getUserTokenBalance(chainType, currency as CurrencyType, address);
+    const nativeBalance = await blockchainService.getNativeBalance(chainType, address);
+    const tokenBalance = await blockchainService.getTokenBalance(chainType, currency as CurrencyType, address);
 
     // Check if balances are sufficient
     const hasEnoughNative = parseFloat(nativeBalance) >= parseFloat(MIN_NATIVE_TOKEN);

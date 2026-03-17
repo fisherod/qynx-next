@@ -96,7 +96,7 @@ export class TronService {
   /**
    * Get user's token balance (alias for backward compatibility)
    */
-  static async getUserTokenBalance(currency: CurrencyType, userAddress: string): Promise<string> {
+  static async getTokenBalance(currency: CurrencyType, userAddress: string): Promise<string> {
     // Create instance to call instance method
     const instance = new TronService();
 
@@ -147,7 +147,7 @@ export class TronService {
   /**
    * Get user's TRX balance
    */
-  static async getUserNativeBalance(userAddress: string): Promise<string> {
+  static async getNativeBalance(userAddress: string): Promise<string> {
     try {
       // Use direct TRON API call instead of TronWeb
       const response = await fetch(`https://api.trongrid.io/v1/accounts/${userAddress}`);

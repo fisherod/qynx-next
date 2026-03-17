@@ -10,7 +10,7 @@ const NAV = [
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/user-wallets", label: "User Wallets" },
   { href: "/admin/treasury-wallets", label: "Treasury Wallets" },
-  { href: "/admin/fee-wallets", label: "Fee Wallets" }
+  { href: "/admin/operator-wallets", label: "Operator Wallets" }
 ] as const;
 
 export default function AdminPanelHeader() {

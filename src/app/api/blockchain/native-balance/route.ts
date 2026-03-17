@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     try {
       // Get balances using the balance service
-      const nativeBalance = await blockchainService.getUserNativeBalance(chain as ChainType, owner);
+      const nativeBalance = await blockchainService.getNativeBalance(chain as ChainType, owner);
 
       return NextResponse.json({
         success: true,

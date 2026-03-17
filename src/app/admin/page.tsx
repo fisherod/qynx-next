@@ -22,13 +22,13 @@ export default function AdminLogin() {
         username,
         password,
         redirect: false,
-        callbackUrl: "/admin/dashboard"
+        callbackUrl: "/admin/payments"
       });
 
       if (res?.error) {
         setError("Invalid username or password. Please try again.");
       } else if (res?.ok) {
-        router.push(res.url || "/admin/dashboard");
+        router.push(res.url || "/admin/payments");
         return;
       } else {
         setError("Login failed, please try again.");

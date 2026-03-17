@@ -14,8 +14,14 @@ import {
   updatePaymentChain
 } from "./payment";
 import { getPaymentEvents, logEvent } from "./paymentEvent";
-import { deleteTreasuryWallet, getTreasuryWallet, getTreasuryWallets, saveTreasuryWallet } from "./treasuryWallet";
-import { getWalletBalances, getWalletByAddress, saveWallet, updateWalletBalance } from "./wallet";
+import {
+  deleteTreasuryWallet,
+  getTreasuryWallet,
+  getTreasuryWallets,
+  saveTreasuryWallet,
+  updateTreasuryWallet
+} from "./treasuryWallet";
+import { getWalletBalances, saveWallet, updateWallet, updateWalletBalance } from "./wallet";
 import { getWebhookLogs, logWebhook } from "./webhookLog";
 
 export function getDatabase() {
@@ -37,7 +43,7 @@ export function getDatabase() {
     getWalletPaymentStats,
     getWalletBalances,
     saveWallet,
-    getWalletByAddress,
+    updateWallet,
     updateWalletBalance,
     recordTransfer,
     getAutoTransferConfig,
@@ -46,6 +52,7 @@ export function getDatabase() {
     getTreasuryWallets,
     getTreasuryWallet,
     saveTreasuryWallet,
+    updateTreasuryWallet,
     deleteTreasuryWallet
   };
 }

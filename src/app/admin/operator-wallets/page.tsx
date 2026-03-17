@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/Toast";
 import { getExplorerAddressUrl } from "@/utils/chainUtils";
 import { ChainType } from "@/types";
 
-export default function AdminFeeWalletsPage() {
+export default function AdminOperatorWalletsPage() {
   const { showToast } = useToast();
   const [isLoadingOperatorBalances, setIsLoadingOperatorBalances] = useState(false);
   const [walletsRefreshInterval, setWalletsRefreshInterval] = useState<NodeJS.Timeout | null>(null);
@@ -144,10 +144,10 @@ export default function AdminFeeWalletsPage() {
                 />
               </svg>
             </div>
-            Fee Wallet Monitoring
+            Operator Wallet Monitoring
           </h2>
           <p className="text-gray-400 text-sm ml-13">
-            Monitor and manage the main wallet balances used for payment transaction fees
+            Monitor and manage native balances used for payment transaction fees
           </p>
         </div>
         <button
@@ -227,7 +227,7 @@ export default function AdminFeeWalletsPage() {
                       <h3 className="text-lg font-bold text-white">
                         {chain === "ethereum" ? "Ethereum" : chain === "bsc" ? "Binance Smart Chain" : "TRON"}
                       </h3>
-                      <p className="text-xs text-gray-400">Fee Wallet</p>
+                      <p className="text-xs text-gray-400">Operator Wallet</p>
                     </div>
                   </div>
                 </div>
@@ -363,7 +363,7 @@ export default function AdminFeeWalletsPage() {
               </svg>
             </div>
             <div className="text-center">
-              <p className="text-lg font-medium text-gray-300">Fee Wallet Not Configured</p>
+              <p className="text-lg font-medium text-gray-300">Operator Wallet Not Configured</p>
               <p className="text-sm text-gray-500 mt-1">
                 Please contact the administrator to configure the wallet address
               </p>

@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const treasuryWallets = await db.getTreasuryWallets();
 
     // Get real-time balances for each wallet
-    const walletsWithBalances = await blockchainService.getTreasuryWalletBalances(
+    const walletsWithBalances = await blockchainService.getNativeAndTokenBalances(
       treasuryWallets.map(wallet => ({
         chain: wallet.chain,
         address: wallet.address
@@ -22,9 +22,7 @@ export async function GET(request: NextRequest) {
       const balanceData = walletsWithBalances[index];
       return {
         ...wallet,
-        ownerNativeBalance: balanceData?.nativeBalance || "0.000000",
-        ownerTokenBalance: balanceData?.tokenBalance || "0.00",
-        lastBalanceUpdate: balanceData?.lastUpdated || new Date().toISOString()
+        balances: balanceData?.balances || { native: "0.000000" }
       };
     });
 
@@ -60,6 +58,34 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error("Error saving treasury wallet:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, isActive } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: "Treasury wallet ID is required" }, { status: 400 });
+    }
+
+    const db = getDatabase();
+
+    // Update treasury wallet
+    const result = await db.updateTreasuryWallet(id, isActive);
+    if (!result) {
+      return NextResponse.json({ error: "Treasury wallet not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: result,
+      message: "Treasury wallet updated successfully"
+    });
+  } catch (error: any) {
+    console.error("Error updating treasury wallet:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -6,13 +6,13 @@ import { useToast } from "@/components/ui/Toast";
 interface Wallet {
   address: string;
   chain: string;
-  usdtBalance: string;
-  amount: string;
-  realUsdtBalance?: string;
+  currency: string;
+  investedAmount: string;
+  status: string;
   paymentCount: number;
-  connectedAt: string;
+  lastAmount: string;
   lastActivity: string;
-  lastBalanceUpdate?: string;
+  balance: string;
 }
 
 export default function AdminUserWalletsPage() {
@@ -172,7 +172,7 @@ export default function AdminUserWalletsPage() {
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          {isLoadingWallets ? "Refreshing..." : "Refresh Balance"}
+          {isLoadingWallets ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -188,10 +188,16 @@ export default function AdminUserWalletsPage() {
                   Chain
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  USDT Balance
+                  Invested Amount
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                  Requested USDT Amount
+                  Last Amount
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  Last Activity
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                   Actions
@@ -215,7 +221,7 @@ export default function AdminUserWalletsPage() {
                 </tr>
               ) : wallets.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center space-y-4">
                       <div className="w-16 h-16 rounded-full bg-gray-700/50 flex items-center justify-center">
                         <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -298,27 +304,35 @@ export default function AdminUserWalletsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <img
-                          src="/icons/tether.svg"
-                          alt="USDT"
-                          className="w-5 h-5"
-                          onError={e => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                        <span className="text-sm font-bold text-blue-400 font-mono">
-                          {formatUsdtBalance(wallet.realUsdtBalance || "0", wallet.chain)}
+                        <span className="text-sm font-semibold text-gray-300 font-mono">
+                          {formatPaymentAmount(wallet.investedAmount || "0")}
                         </span>
-                        <span className="text-xs text-gray-400">USDT</span>
+                        <span className="text-xs text-gray-400">{wallet.currency.toUpperCase()}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-gray-300 font-mono">
-                          {formatPaymentAmount(wallet.amount || "0")}
+                          {formatPaymentAmount(wallet.lastAmount || "0")}
                         </span>
-                        <span className="text-xs text-gray-400">USDT</span>
+                        <span className="text-xs text-gray-400">{wallet.currency.toUpperCase()}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full ${
+                          wallet.status === "invested"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                            : wallet.status === "not_invested"
+                              ? "bg-gray-500/10 text-gray-300 border border-gray-500/30"
+                              : "bg-yellow-500/10 text-yellow-300 border border-yellow-500/30"
+                        }`}
+                      >
+                        {wallet.status.replace(/_/g, " ").toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {new Date(wallet.lastActivity).toLocaleString()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button

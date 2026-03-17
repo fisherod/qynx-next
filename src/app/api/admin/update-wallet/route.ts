@@ -20,13 +20,7 @@ export async function POST(request: NextRequest) {
     const db = getDatabase();
 
     // Add wallet (no need to check if it exists)
-    await db.saveWallet({
-      address,
-      chain,
-      currency,
-      tokenBalance: tokenBalance || "0.00",
-      amount: amount || "0.00"
-    });
+    await db.saveWallet(address, chain, currency, amount);
 
     logger.info(`Wallet added: ${address} on ${chain}`);
 

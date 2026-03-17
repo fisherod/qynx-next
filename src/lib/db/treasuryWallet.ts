@@ -69,6 +69,17 @@ export async function saveTreasuryWallet(
   };
 }
 
+export async function updateTreasuryWallet(id: string, isActive: boolean): Promise<any> {
+  const db = await getDb();
+  await db.collection("treasury_wallets").updateOne({ _id: new ObjectId(id) }, { $set: { is_active: isActive } });
+  const doc = await db.collection("treasury_wallets").findOne({ _id: new ObjectId(id) });
+  if (!doc) throw new Error("Treasury wallet not found after update");
+  return {
+    ...doc,
+    id: doc._id?.toString()
+  };
+}
+
 export async function deleteTreasuryWallet(id: number | string): Promise<void> {
   const db = await getDb();
   if (typeof id === "string" && /^[a-f0-9]{24}$/i.test(id)) {

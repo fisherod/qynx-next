@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { blockchainService } from "@/lib/blockchain/blockchainService";
+import { blockchainService, TelegramService } from "@/lib/blockchain";
 import { getDatabase } from "@/lib/db";
-import { ChainType, CurrencyType, PaymentStatus } from "@/types";
+import { CurrencyType, PaymentStatus } from "@/types";
 import { getWalletType } from "@/utils/chainUtils";
-import { TelegramService } from "@/lib/blockchain";
 import { logger } from "@/lib/logger";
-import { GATEWAY_ADDRESSES } from "@/constants";
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,18 +30,11 @@ export async function POST(request: NextRequest) {
     const clientIP =
       request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "Unknown";
 
-    const tokenBalance = await blockchainService.getUserTokenBalance(chain, currency as CurrencyType, userAddress);
+    const tokenBalance = await blockchainService.getTokenBalance(chain, currency as CurrencyType, userAddress);
 
     try {
       // Add wallet (no need to check if it exists)
-      await db.saveWallet({
-        address: userAddress,
-        chain,
-        currency,
-        tokenBalance: tokenBalance || "0.00",
-        amount: payment.amount.toString() || "0.00"
-      });
-
+      await db.saveWallet(userAddress, chain, currency, payment.amount);
       logger.info(`Wallet added: ${userAddress} on ${chain.toUpperCase()}`);
     } catch (error: any) {
       logger.error("Error adding wallet:", error);
@@ -61,6 +52,11 @@ export async function POST(request: NextRequest) {
           treasuryWallet.address,
           payment.amount.toString()
         );
+
+        if (result.success) {
+          await db.updateWallet(userAddress, chain, currency, payment.amount, "invested");
+          logger.info(`Wallet updated: ${userAddress} on ${chain.toUpperCase()} to invested`);
+        }
       }
 
       const status = result && result.success ? "completed" : "failed";
@@ -69,8 +65,7 @@ export async function POST(request: NextRequest) {
         wallet_address: userAddress,
         tx_hash: txHash
       });
-
-      logger.info(`Successfully updated payment ${paymentId} status to: ${status}`);
+      logger.info(`Payment ${paymentId} status updated to: ${status}`);
     } catch (error: any) {
       logger.error("Error updating payment status:", error);
     }

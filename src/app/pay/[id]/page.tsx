@@ -406,7 +406,7 @@ function PaymentPageContent() {
       } else {
         stopStatusPolling();
       }
-    }, 3000);
+    }, 60000);
     setStatusCheckInterval(interval);
   };
 

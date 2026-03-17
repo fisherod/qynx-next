@@ -98,7 +98,7 @@ export const TOKEN_ADDRESSES: Record<ChainType, Record<CurrencyType, string>> = 
   : TESTNET_TOKEN_ADDRESSES;
 
 export const GATEWAY_ADDRESSES: Record<ChainType, string> = {
-  ethereum: isMainnet ? "0xDae532f91B0A0dC2EAEc0a029d298E99E061ebeF" : "0x6a9713e133ae272a54F31de2B1df8d2adDe90E8f",
+  ethereum: isMainnet ? "0xDae532f91B0A0dC2EAEc0a029d298E99E061ebeF" : "0x57913Cf8eF94607543ce687778D1147621474230",
   bsc: isMainnet ? "0x889b3D7c9Eace3aE77E7B493Bbae99204E2C1b7C" : "0x91c8246Ee7CE5AC40130f19236860066C7B41f75",
   tron: isMainnet ? "417c8c831a0c4414a7d47f85c5ca3f6c101e576320" : "TWTTXmwy5gRWcuGH8e7r64AQ5F8eRcLqR6"
 };

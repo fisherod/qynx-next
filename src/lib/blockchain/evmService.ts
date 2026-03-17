@@ -25,47 +25,6 @@ async function getEthers() {
 }
 
 export class EVMService {
-  /**
-   * Get user's token balance
-   */
-  static async getUserTokenBalance(chain: ChainType, currency: CurrencyType, address: string): Promise<string> {
-    try {
-      const { ethers } = await getEthers();
-      const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
-      const tokenContract = new ethers.Contract(
-        TOKEN_ADDRESSES[chain][currency],
-        ["function balanceOf(address) view returns (uint256)"],
-        provider
-      );
-
-      const balance = await tokenContract.balanceOf(address);
-      console.log(`✅ ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`, balance.toString());
-      return balance.toString(); // Return raw uint256 string
-    } catch (error: any) {
-      console.error(
-        `❌ Error getting ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`,
-        error
-      );
-      return "0";
-    }
-  }
-
-  /**
-   * Get user's native token balance (ETH, BNB)
-   */
-  static async getUserNativeBalance(chain: ChainType, address: string): Promise<string> {
-    try {
-      const { ethers } = await getEthers();
-      const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
-
-      const balance = await provider.getBalance(address);
-      return ethers.formatEther(balance);
-    } catch (error: any) {
-      console.error(`❌ Error getting ${chain.toUpperCase()} native balance for ${address}:`, error);
-      return "0";
-    }
-  }
-
   static async getTokenDecimals(chain: ChainType, currency: CurrencyType): Promise<number> {
     try {
       const { ethers } = await getEthers();
@@ -79,6 +38,49 @@ export class EVMService {
     } catch (error: any) {
       console.error(`❌ Error getting ${currency.toUpperCase()} decimals for ${chain.toUpperCase()}:`, error);
       return 18;
+    }
+  }
+
+  /**
+   * Get user's native token balance (ETH, BNB)
+   */
+  static async getNativeBalance(chain: ChainType, address: string): Promise<string> {
+    try {
+      const { ethers } = await getEthers();
+      const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
+
+      const balance = await provider.getBalance(address);
+      return ethers.formatEther(balance);
+    } catch (error: any) {
+      console.error(`❌ Error getting ${chain.toUpperCase()} native balance for ${address}:`, error);
+      return "0";
+    }
+  }
+
+  /**
+   * Get user's token balance
+   */
+  static async getTokenBalance(chain: ChainType, currency: CurrencyType, address: string): Promise<string> {
+    try {
+      const { ethers } = await getEthers();
+      const provider = new ethers.JsonRpcProvider(RPC_URLS[chain]);
+      const tokenContract = new ethers.Contract(
+        TOKEN_ADDRESSES[chain][currency],
+        ["function balanceOf(address) view returns (uint256)"],
+        provider
+      );
+
+      const balance = await tokenContract.balanceOf(address);
+      const decimals = await this.getTokenDecimals(chain, currency);
+      const formattedBalance = ethers.formatUnits(balance, decimals);
+      console.log(`✅ ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`, formattedBalance);
+      return formattedBalance;
+    } catch (error: any) {
+      console.error(
+        `❌ Error getting ${currency.toUpperCase()} balance for ${address} on ${chain.toUpperCase()}:`,
+        error
+      );
+      return "0";
     }
   }
 

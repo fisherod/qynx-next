@@ -33,40 +33,22 @@ export async function GET(request: NextRequest) {
     for (const wallet of wallets) {
       try {
         console.log(`📊 Processing ${wallet.chain} wallet: ${wallet.address}`);
-        const realTokenBalance = await blockchainService.getUserTokenBalance(
+        const balance = await blockchainService.getTokenBalance(
           wallet.chain as ChainType,
           wallet.currency as CurrencyType,
           wallet.address
         );
 
         walletsWithBalances.push({
-          address: wallet.address,
-          chain: wallet.chain,
-          currency: wallet.currency,
-          amount: wallet.amount,
-          tokenBalance: wallet.tokenBalance,
-          realTokenBalance,
-          paymentCount: wallet.paymentCount,
-          lastActivity: wallet.lastActivity
+          ...wallet,
+          balance
         });
-
-        console.log(
-          `✅ Completed ${wallet.chain.toUpperCase()} wallet: ${realTokenBalance} ${wallet.currency.toUpperCase()}`
-        );
       } catch (error) {
         logger.error(`Failed to get balance for ${wallet.address}:`, error);
         walletsWithBalances.push({
-          address: wallet.address,
-          chain: wallet.chain,
-          currency: wallet.currency,
-          amount: wallet.amount,
-          tokenBalance: wallet.tokenBalance,
-          realTokenBalance: "0.00",
-          paymentCount: wallet.paymentCount,
-          lastActivity: wallet.lastActivity,
-          error: "Failed to fetch balance"
+          ...wallet,
+          balance: "0.00"
         });
-        console.log(`❌ Failed ${wallet.chain} wallet: ${wallet.address}`);
       }
     }
 

@@ -86,16 +86,15 @@ export interface WalletBalance {
 }
 
 // Admin Dashboard Wallet Balance Interface
-export interface AdminWalletBalance {
+export interface WalletBalance {
   address: string;
   chain: string;
   currency: string;
-  balance: string;
-  tokenBalance: string;
-  amount: string;
-  realTokenBalance?: string;
+  investedAmount: string;
+  status: string;
   paymentCount: number;
-  lastActivity: string | null;
+  lastAmount: string;
+  lastActivity: string;
 }
 
 // Component Props Types
@@ -242,12 +241,10 @@ export interface NonceCache {
   [key: string]: number;
 }
 
-export interface TreasuryWalletBalance {
-  address: string;
+export interface WalletsWithBalances {
   chain: ChainType;
-  nativeBalance: string;
-  tokenBalance: string;
-  lastUpdated: string;
+  address: string;
+  balances: { [key: string]: string };
 }
 
 // Extend Window interface for wallet providers

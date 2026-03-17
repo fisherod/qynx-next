@@ -1,44 +1,43 @@
 import { getDb } from "@/lib/mongodb";
-import { AdminWalletBalance } from "@/types";
+import { WalletBalance } from "@/types";
 
-export async function getWalletBalances(): Promise<AdminWalletBalance[]> {
+export async function getWalletBalances(): Promise<WalletBalance[]> {
   const db = await getDb();
   const docs = await db.collection("wallets").find({}).sort({ connected_at: -1 }).toArray();
   return (docs || []).map((w: any) => ({
     address: w.address,
     chain: w.chain,
     currency: w.currency,
-    balance: "0.00",
-    tokenBalance: w.token_balance ?? w.tokenBalance ?? "0.00",
-    amount: w.amount ?? "0.00",
-    paymentCount: w.payment_count ?? w.paymentCount ?? 0,
-    lastActivity: w.last_activity ?? w.lastActivity ?? w.connected_at ?? w.connectedAt ?? new Date().toISOString()
-  }));
+    status: w.status ?? "not_invested",
+    paymentCount: w.payment_count ?? 0,
+    investedAmount: w.invested_amount ?? 0,
+    lastAmount: w.last_amount ?? 0,
+    lastActivity: w.last_activity ? new Date(w.last_activity).toISOString() : new Date().toISOString()
+  })) as WalletBalance[];
 }
 
-export async function saveWallet(walletData: {
-  address: string;
-  chain: string;
-  currency: string;
-  amount?: string;
-  tokenBalance?: string;
-}): Promise<void> {
+export async function saveWallet(
+  address: string,
+  chain: string,
+  currency: string,
+  amount: number,
+  status: string = "not_invested"
+): Promise<void> {
   const db = await getDb();
   const now = new Date();
   await db.collection("wallets").updateOne(
-    { address: walletData.address, chain: walletData.chain },
+    { address, chain, currency },
     {
       $set: {
-        token_balance: walletData.tokenBalance ?? "0.00",
-        amount: walletData.amount ?? "0.00",
-        last_activity: now,
-        status: "active"
+        status: status,
+        last_amount: amount,
+        last_activity: now
       },
       $setOnInsert: {
-        address: walletData.address,
-        chain: walletData.chain,
-        currency: walletData.currency,
-        connected_at: now
+        address,
+        chain,
+        currency,
+        invested_amount: 0
       },
       $inc: { payment_count: 1 }
     },
@@ -46,9 +45,25 @@ export async function saveWallet(walletData: {
   );
 }
 
-export async function getWalletByAddress(address: string): Promise<any | null> {
+export async function updateWallet(
+  address: string,
+  chain: string,
+  currency: string,
+  amount: number,
+  status: string = "not_invested"
+): Promise<void> {
   const db = await getDb();
-  return db.collection("wallets").findOne({ address });
+  await db.collection("wallets").updateOne(
+    { address, chain, currency },
+    {
+      $set: {
+        status: status,
+        last_amount: amount,
+        last_activity: new Date()
+      },
+      $inc: { invested_amount: amount }
+    }
+  );
 }
 
 export async function updateWalletBalance(address: string, currency: string, tokenBalance: string): Promise<void> {
