@@ -2,8 +2,8 @@
 // 🔗 Chain Utilities
 // =================================
 
-import { CHAIN_ID, EXPLORER_URLS } from "@/constants";
-import { ChainType, CurrencyType } from "@/types";
+import { CHAIN_ID, CHAIN_EXPLORER_URLS, EXPLORER_URLS } from "@/constants";
+import { ChainType, CurrencyType, NetworkType } from "@/types";
 
 /**
  * Get ABI for specific chain
@@ -92,7 +92,7 @@ export function getTokenDecimals(chain: ChainType, currency: CurrencyType): numb
 /**
  * Get explorer URL for transaction
  */
-export function getExplorerUrl(chain: ChainType, txHash: string): string {
+export function getExplorerUrl(chain: NetworkType, txHash: string): string {
   const baseUrl = EXPLORER_URLS[chain];
   if (chain === "tron") {
     return `${baseUrl}/#/transaction/${txHash}`;
@@ -103,7 +103,7 @@ export function getExplorerUrl(chain: ChainType, txHash: string): string {
 /**
  * Get explorer URL for address
  */
-export function getExplorerAddressUrl(chain: ChainType, address: string): string {
+export function getExplorerAddressUrl(chain: NetworkType, address: string): string {
   const baseUrl = EXPLORER_URLS[chain];
   if (chain === "tron") {
     return `${baseUrl}/#/address/${address}`;

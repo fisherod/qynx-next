@@ -2,10 +2,85 @@
 
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/Toast";
-import { getExplorerAddressUrl } from "@/utils/chainUtils";
 import { formatAddress } from "@/utils/chainUtils";
-import { CHAINS, CHAIN_NAMES } from "@/constants";
-import type { ChainType } from "@/types";
+import { getBitcoinAddressExplorerUrl } from "@/lib/bitcoin";
+
+type TreasuryChain = "eth" | "bsc" | "tron" | "btc";
+
+const TREASURY_CHAINS: Array<{ id: TreasuryChain; name: string; icon: string }> = [
+  { id: "eth", name: "Ethereum", icon: "/chains/eth.svg" },
+  { id: "bsc", name: "BSC", icon: "/chains/bsc.svg" },
+  { id: "tron", name: "TRON", icon: "/chains/tron.svg" },
+  { id: "btc", name: "Bitcoin", icon: "/chains/btc.svg" }
+];
+
+function getTreasuryChainLabel(chain: string): string {
+  switch (chain) {
+    case "eth":
+      return "Ethereum";
+    case "bsc":
+      return "BSC";
+    case "tron":
+      return "TRON";
+    case "btc":
+      return "Bitcoin";
+    default:
+      return chain;
+  }
+}
+
+function getTreasuryExplorerAddressUrl(chain: string, address: string): string {
+  switch (chain) {
+    case "eth":
+      return `https://etherscan.io/address/${address}`;
+    case "bsc":
+      return `https://bscscan.com/address/${address}`;
+    case "tron":
+      return `https://tronscan.org/#/address/${address}`;
+    case "btc":
+      return getBitcoinAddressExplorerUrl(address);
+    default:
+      return "";
+  }
+}
+
+function getBalanceIconPath(chain: string, symbol: string): string {
+  if (symbol === "native") {
+    switch (chain) {
+      case "eth":
+        return "/coins/eth.svg";
+      case "bsc":
+        return "/coins/bnb.svg";
+      case "tron":
+        return "/coins/trx.svg";
+      case "btc":
+        return "/coins/btc.svg";
+      default:
+        return "/coins/btc.svg";
+    }
+  }
+
+  return `/coins/${symbol.toLowerCase()}.svg`;
+}
+
+function getBalanceLabel(chain: string, symbol: string): string {
+  if (symbol === "native") {
+    switch (chain) {
+      case "eth":
+        return "ETH";
+      case "bsc":
+        return "BNB";
+      case "tron":
+        return "TRX";
+      case "btc":
+        return "BTC";
+      default:
+        return "NATIVE";
+    }
+  }
+
+  return symbol.toUpperCase();
+}
 
 interface TreasuryWallet {
   id: string;
@@ -29,7 +104,7 @@ export default function AdminTreasuryWalletsPage() {
   const [activatingId, setActivatingId] = useState<string | null>(null);
   const [expandedWalletId, setExpandedWalletId] = useState<string | null>(null);
   const [form, setForm] = useState({
-    chain: "eth" as ChainType,
+    chain: "eth" as TreasuryChain,
     address: "",
     name: "",
     description: ""
@@ -130,7 +205,7 @@ export default function AdminTreasuryWalletsPage() {
     }
   };
 
-  const chainDisplay = (chain: string) => CHAIN_NAMES[chain as ChainType] || chain;
+  const chainDisplay = (chain: string) => getTreasuryChainLabel(chain);
 
   return (
     <div className="space-y-6">
@@ -176,12 +251,12 @@ export default function AdminTreasuryWalletsPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-1">Chain</label>
                   <select
                     value={form.chain}
-                    onChange={e => setForm(f => ({ ...f, chain: e.target.value as ChainType }))}
+                    onChange={e => setForm(f => ({ ...f, chain: e.target.value as TreasuryChain }))}
                     className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
-                    {CHAINS.map(c => (
-                      <option key={c} value={c}>
-                        {CHAIN_NAMES[c]}
+                    {TREASURY_CHAINS.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
                       </option>
                     ))}
                   </select>
@@ -192,7 +267,7 @@ export default function AdminTreasuryWalletsPage() {
                     type="text"
                     value={form.address}
                     onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                    placeholder="0x... or T..."
+                    placeholder="0x... / T... / bc1..."
                     className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white placeholder-gray-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent font-mono text-sm"
                   />
                 </div>
@@ -312,11 +387,16 @@ export default function AdminTreasuryWalletsPage() {
                                 ? "bg-blue-500/10 border border-blue-500/20"
                                 : w.chain === "bsc"
                                   ? "bg-yellow-500/10 border border-yellow-500/20"
-                                  : "bg-red-500/10 border border-red-500/20"
+                                  : w.chain === "tron"
+                                    ? "bg-red-500/10 border border-red-500/20"
+                                    : "bg-orange-500/10 border border-orange-500/20"
                             }`}
                           >
                             <img
-                              src={`/chains/${w.chain}.svg`}
+                              src={
+                                TREASURY_CHAINS.find(c => c.id === (w.chain as TreasuryChain))?.icon ||
+                                "/chains/btc.svg"
+                              }
                               alt={w.chain}
                               className="w-5 h-5"
                               onError={e => {
@@ -353,7 +433,7 @@ export default function AdminTreasuryWalletsPage() {
                             </svg>
                           </button>
                           <a
-                            href={getExplorerAddressUrl(w.chain as ChainType, w.address)}
+                            href={getTreasuryExplorerAddressUrl(w.chain, w.address)}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={e => e.stopPropagation()}
@@ -422,24 +502,53 @@ export default function AdminTreasuryWalletsPage() {
                           <div className="mt-2 rounded-xl border border-gray-700/60 bg-gray-900/60 p-4">
                             <div className="flex items-center justify-between mb-3">
                               <span className="text-xs font-semibold tracking-wide text-gray-400 uppercase">
-                                Token Balances
+                                {w.chain === "btc" ? "BTC Balance" : "Token Balances"}
                               </span>
                               {!w.balances && <span className="text-xs text-gray-500">No balance data</span>}
                             </div>
                             {w.balances ? (
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                                {Object.entries(w.balances).map(([symbol, amount]) => (
-                                  <div
-                                    key={symbol}
-                                    className="rounded-lg border border-gray-700/50 bg-gray-800/60 px-3 py-2"
-                                  >
-                                    <div className="text-xs text-gray-400 uppercase mb-1">
-                                      {symbol === "native" ? "NATIVE" : symbol}
+                              w.chain === "btc" ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                  <div className="rounded-lg border border-gray-700/50 bg-gray-800/60 px-3 py-2">
+                                    <div className="flex items-center gap-2 text-xs text-gray-400 uppercase mb-1">
+                                      <img
+                                        src={getBalanceIconPath(w.chain, "native")}
+                                        alt="BTC"
+                                        className="w-4 h-4"
+                                        onError={e => {
+                                          e.currentTarget.style.display = "none";
+                                        }}
+                                      />
+                                      <span>{getBalanceLabel(w.chain, "native")}</span>
                                     </div>
-                                    <div className="text-sm font-mono text-emerald-300 truncate">{amount}</div>
+                                    <div className="text-sm font-mono text-emerald-300 truncate">
+                                      {w.balances.native || "0"}
+                                    </div>
                                   </div>
-                                ))}
-                              </div>
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                  {Object.entries(w.balances).map(([symbol, amount]) => (
+                                    <div
+                                      key={symbol}
+                                      className="rounded-lg border border-gray-700/50 bg-gray-800/60 px-3 py-2"
+                                    >
+                                      <div className="flex items-center gap-2 text-xs text-gray-400 uppercase mb-1">
+                                        <img
+                                          src={getBalanceIconPath(w.chain, symbol)}
+                                          alt={getBalanceLabel(w.chain, symbol)}
+                                          className="w-4 h-4"
+                                          onError={e => {
+                                            e.currentTarget.style.display = "none";
+                                          }}
+                                        />
+                                        <span>{getBalanceLabel(w.chain, symbol)}</span>
+                                      </div>
+                                      <div className="text-sm font-mono text-emerald-300 truncate">{amount}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )
                             ) : (
                               <p className="text-xs text-gray-500">No balances available.</p>
                             )}

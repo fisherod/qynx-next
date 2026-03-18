@@ -4,9 +4,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/db";
-import { logger } from "../../../../lib/logger";
-import { blockchainService } from "@/lib/blockchain";
-import { ChainType, CurrencyType } from "@/types";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,39 +24,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get real USDT balances from blockchain (sequential for clear logging)
-    console.log(`🔄 Fetching balances for ${wallets.length} wallets...`);
-    const walletsWithBalances = [];
-
-    for (const wallet of wallets) {
-      try {
-        console.log(`📊 Processing ${wallet.chain} wallet: ${wallet.address}`);
-        const balance = await blockchainService.getTokenBalance(
-          wallet.chain as ChainType,
-          wallet.currency as CurrencyType,
-          wallet.address
-        );
-
-        walletsWithBalances.push({
-          ...wallet,
-          balance
-        });
-      } catch (error) {
-        logger.error(`Failed to get balance for ${wallet.address}:`, error);
-        walletsWithBalances.push({
-          ...wallet,
-          balance: "0.00"
-        });
-      }
-    }
-
-    logger.info(`Successfully processed ${walletsWithBalances.length} wallets`);
+    logger.info(`Successfully processed ${wallets.length} wallets`);
 
     return NextResponse.json(
       {
-        balances: walletsWithBalances,
+        balances: wallets,
         timestamp: new Date().toISOString(),
-        totalWallets: walletsWithBalances.length
+        totalWallets: wallets.length
       },
       {
         headers: {

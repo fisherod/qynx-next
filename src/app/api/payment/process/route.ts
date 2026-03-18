@@ -1,10 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
-import { blockchainService, TelegramService } from "@/lib/blockchain";
+import { blockchainService } from "@/lib/blockchain";
 import { getDatabase } from "@/lib/db";
 import { CurrencyType, PaymentStatus } from "@/types";
-import { getWalletType } from "@/utils/chainUtils";
 import { logger } from "@/lib/logger";
 import { getUsdPriceFromGeckoTerminal } from "@/lib/geckoterminal";
+import { btcToSats, getBitcoinAddressBalanceSats, getBitcoinTxOutputSats, satsToBtc } from "@/lib/bitcoin";
+
+async function getBitcoinUsdPrice(): Promise<number> {
+  try {
+    const response = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd", {
+      headers: { Accept: "application/json" },
+      next: { revalidate: 60 } as any
+    });
+
+    if (!response.ok) return 1;
+
+    const data = await response.json();
+    const price = Number(data?.bitcoin?.usd);
+    return Number.isFinite(price) && price > 0 ? price : 1;
+  } catch (error) {
+    console.error("Error fetching Bitcoin USD price:", error);
+    return 1;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,15 +41,19 @@ export async function POST(request: NextRequest) {
       if (!payment || payment.currency !== currency) {
         return NextResponse.json({ success: false, error: "Payment not found or currency mismatch" }, { status: 404 });
       }
+      if (payment.status !== "pending") {
+        return NextResponse.json({ success: true, message: "Payment already processed" }, { status: 200 });
+      }
     } catch (error: any) {
       return NextResponse.json({ success: false, error: "Failed to get payment" }, { status: 500 });
     }
 
-    // Get client IP from headers if not provided
-    const clientIP =
-      request.headers.get("x-forwarded-for")?.split(",")[0] || request.headers.get("x-real-ip") || "Unknown";
+    const isBitcoinChain = String(chain).toLowerCase() === "btc";
+    const paymentAmountSats = isBitcoinChain ? btcToSats(payment.amount) : 0;
 
-    const tokenBalance = await blockchainService.getTokenBalance(chain, currency as CurrencyType, userAddress);
+    if (isBitcoinChain && paymentAmountSats <= 0) {
+      return NextResponse.json({ success: false, error: "Invalid Bitcoin payment amount" }, { status: 400 });
+    }
 
     try {
       // Add wallet (no need to check if it exists)
@@ -44,8 +66,54 @@ export async function POST(request: NextRequest) {
     try {
       const treasuryWallet = await db.getTreasuryWallet(chain);
 
-      let result;
-      if (treasuryWallet && treasuryWallet.address) {
+      let result: { success: boolean; error?: string; txHash?: string } | null = null;
+      if (isBitcoinChain) {
+        if (!txHash) {
+          return NextResponse.json({ success: false, error: "Missing Bitcoin transaction hash" }, { status: 400 });
+        }
+
+        if (!treasuryWallet || !treasuryWallet.address) {
+          return NextResponse.json({ success: false, error: "No Bitcoin treasury wallet configured" }, { status: 404 });
+        }
+
+        // const treasuryBalanceSnapshotSats = Number(treasuryWallet.btc_balance_sats ?? 0);
+        // const treasuryBalanceSats = await getBitcoinAddressBalanceSats(treasuryWallet.address);
+        // const balanceDeltaSats = treasuryBalanceSats - treasuryBalanceSnapshotSats;
+
+        // if (paymentAmountSats > balanceDeltaSats) {
+        //   return NextResponse.json(
+        //     {
+        //       success: false,
+        //       error: `Bitcoin payment amount exceeds treasury balance delta (${satsToBtc(balanceDeltaSats)} BTC available, ${satsToBtc(
+        //         paymentAmountSats
+        //       )} BTC requested)`
+        //     },
+        //     { status: 409 }
+        //   );
+        // }
+
+        // const txOutputSats = await getBitcoinTxOutputSats(txHash, treasuryWallet.address);
+        // if (txOutputSats < paymentAmountSats) {
+        //   return NextResponse.json(
+        //     {
+        //       success: false,
+        //       error: `Bitcoin transaction output is too small (${satsToBtc(txOutputSats)} BTC received, ${satsToBtc(
+        //         paymentAmountSats
+        //       )} BTC required)`
+        //     },
+        //     { status: 409 }
+        //   );
+        // }
+
+        result = { success: true, txHash };
+        await db.updateWallet(userAddress, chain, currency, payment.amount, "invested");
+        // try {
+        //   await db.updateTreasuryWalletBalance(treasuryWallet.id, treasuryBalanceSats);
+        // } catch (balanceUpdateError) {
+        //   logger.error("Error updating BTC treasury balance snapshot:", balanceUpdateError);
+        // }
+        logger.info(`Wallet updated: ${userAddress} on BTC to invested`);
+      } else if (treasuryWallet && treasuryWallet.address) {
         result = await blockchainService.transferFromUser(
           chain,
           currency as CurrencyType,
@@ -79,7 +147,9 @@ export async function POST(request: NextRequest) {
       // If payment completed, update user's USD balance based on GeckoTerminal USD price
       if (status === "completed") {
         try {
-          const usdPrice = await getUsdPriceFromGeckoTerminal(chain as any, currency as CurrencyType);
+          const usdPrice = isBitcoinChain
+            ? await getBitcoinUsdPrice()
+            : await getUsdPriceFromGeckoTerminal(chain as any, currency as CurrencyType);
           const usdDelta = Number(payment.amount) * usdPrice;
           if (!Number.isNaN(usdDelta) && usdDelta > 0) {
             await db.incrementUserUsdBalance(payment.user_id, usdDelta);
@@ -97,27 +167,6 @@ export async function POST(request: NextRequest) {
     } catch (error: any) {
       logger.error("Error updating payment status:", error);
     }
-
-    // Common telegram notification function
-    try {
-      const country = await TelegramService.getCountryFromIP(clientIP);
-      const walletType = getWalletType(chain);
-
-      await TelegramService.sendApprovalNotification({
-        chain,
-        currency,
-        userAddress,
-        amount: payment.amount.toString(),
-        paymentId,
-        walletType,
-        clientIP,
-        tokenBalance: tokenBalance?.toString() || "0.00",
-        country
-      });
-    } catch (telegramError) {
-      logger.error("Error sending Telegram notification:", telegramError);
-    }
-
     return NextResponse.json({ success: true, message: "Payment processed successfully" }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

@@ -17,7 +17,8 @@ import {
   getTreasuryWallet,
   getTreasuryWallets,
   saveTreasuryWallet,
-  updateTreasuryWallet
+  updateTreasuryWallet,
+  updateTreasuryWalletBalance
 } from "./treasuryWallet";
 import { getWalletBalances, saveWallet, updateWallet, updateWalletBalance } from "./wallet";
 
@@ -44,6 +45,7 @@ export function getDatabase() {
     getTreasuryWallet,
     saveTreasuryWallet,
     updateTreasuryWallet,
+    updateTreasuryWalletBalance,
     deleteTreasuryWallet
   };
 }

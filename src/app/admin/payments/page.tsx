@@ -67,7 +67,7 @@ export default function AdminPaymentsPage() {
     if (isNaN(numAmount)) return "0.00";
 
     // Format to 2 decimal places, then remove trailing zeros
-    const formatted = numAmount.toFixed(2);
+    const formatted = numAmount.toFixed(8);
     return formatted.replace(/\.?0+$/, "") || "0";
   };
 

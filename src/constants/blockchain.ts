@@ -1,4 +1,4 @@
-import { ChainType, CurrencyType } from "@/types";
+import { ChainType, CurrencyType, NetworkType } from "@/types";
 
 // Network mode detection - default to testnet for now to avoid mainnet contract issues
 const isMainnet = process.env.NEXT_PUBLIC_NETWORK_MODE === "mainnet";
@@ -55,10 +55,15 @@ const TESTNET_RPC_URLS = {
 // RPC urls
 export const RPC_URLS: Record<ChainType, string> = isMainnet ? MAINNET_RPC_URLS : TESTNET_RPC_URLS;
 
-export const EXPLORER_URLS: Record<ChainType, string> = {
+export const CHAIN_EXPLORER_URLS: Record<ChainType, string> = {
   eth: isMainnet ? "https://etherscan.io" : "https://sepolia.etherscan.io",
   bsc: isMainnet ? "https://bscscan.com" : "https://testnet.bscscan.com",
   tron: isMainnet ? "https://tronscan.org" : "https://shasta.tronscan.org"
+};
+
+export const EXPLORER_URLS: Record<NetworkType, string> = {
+  ...CHAIN_EXPLORER_URLS,
+  btc: isMainnet ? "https://mempool.space" : "https://mempool.space/testnet"
 };
 
 export const TOKENS: CurrencyType[] = ["usdt", "usdc"];

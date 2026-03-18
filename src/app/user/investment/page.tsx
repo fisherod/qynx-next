@@ -16,6 +16,11 @@ const CURRENCY_OPTIONS = [
     value: "usdc",
     label: "USDC",
     icon: "/coins/usdc.svg"
+  },
+  {
+    value: "btc",
+    label: "BTC",
+    icon: "/coins/btc.svg"
   }
 ] as const;
 
@@ -95,6 +100,7 @@ export default function InvestmentPage() {
 
   const inputClass =
     "w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30";
+  const isBitcoin = formData.currency === "btc";
 
   return (
     <PageLayout showNavbar={false}>
@@ -191,14 +197,17 @@ export default function InvestmentPage() {
                 <input
                   type="number"
                   required
-                  min="0.01"
+                  min={isBitcoin ? "0.00000001" : "0.01"}
                   max="10000"
-                  step="0.01"
+                  step={isBitcoin ? "0.00000001" : "0.01"}
                   className={inputClass}
-                  placeholder="e.g. 100"
+                  placeholder={isBitcoin ? "e.g. 0.001" : "e.g. 100"}
                   value={formData.amount}
                   onChange={e => setFormData({ ...formData, amount: e.target.value })}
                 />
+                {isBitcoin && (
+                  <p className="mt-2 text-xs text-gray-400">Bitcoin payments support up to 8 decimal places.</p>
+                )}
               </div>
 
               {/* Submit Button */}

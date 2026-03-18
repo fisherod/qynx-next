@@ -4,6 +4,7 @@
 
 // Blockchain Networks
 export type ChainType = "eth" | "bsc" | "tron";
+export type NetworkType = ChainType | "btc";
 
 // Currency Types
 export type CurrencyType = "usdt" | "usdc";

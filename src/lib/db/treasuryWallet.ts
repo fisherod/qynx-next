@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { getDb, toDate } from "@/lib/mongodb";
+import { getBitcoinAddressBalanceSats } from "@/lib/bitcoin";
 
 export async function getTreasuryWallets(): Promise<any[]> {
   const db = await getDb();
@@ -12,6 +13,8 @@ export async function getTreasuryWallets(): Promise<any[]> {
     name: d.name,
     description: d.description,
     is_active: d.is_active,
+    btc_balance_sats: d.btc_balance_sats,
+    btc_balance_updated_at: d.btc_balance_updated_at ? toDate(d.btc_balance_updated_at) : undefined,
     created_at: d.created_at ? toDate(d.created_at) : undefined,
     updated_at: d.updated_at ? toDate(d.updated_at) : undefined
   }));
@@ -25,7 +28,9 @@ export async function getTreasuryWallet(chain: string): Promise<any | null> {
     ...doc,
     id: doc._id?.toString(),
     address: doc.address,
-    chain: doc.chain
+    chain: doc.chain,
+    btc_balance_sats: doc.btc_balance_sats,
+    btc_balance_updated_at: doc.btc_balance_updated_at ? toDate(doc.btc_balance_updated_at) : undefined
   };
 }
 
@@ -38,6 +43,16 @@ export async function saveTreasuryWallet(
   const db = await getDb();
   const now = new Date();
   await db.collection("treasury_wallets").updateMany({ chain }, { $set: { is_active: false, updated_at: now } });
+
+  let btcBalanceSats: number | undefined;
+  if (chain === "btc") {
+    try {
+      btcBalanceSats = await getBitcoinAddressBalanceSats(address);
+    } catch (error) {
+      btcBalanceSats = undefined;
+    }
+  }
+
   await db.collection("treasury_wallets").updateOne(
     { chain, address },
     {
@@ -45,7 +60,13 @@ export async function saveTreasuryWallet(
         name: name ?? `${chain.toUpperCase()} Treasury`,
         description: description ?? `Default ${chain.toUpperCase()} treasury wallet`,
         is_active: true,
-        updated_at: now
+        updated_at: now,
+        ...(btcBalanceSats !== undefined
+          ? {
+              btc_balance_sats: btcBalanceSats,
+              btc_balance_updated_at: now
+            }
+          : {})
       },
       $setOnInsert: {
         chain,
@@ -65,7 +86,30 @@ export async function saveTreasuryWallet(
     ...doc,
     id: doc._id?.toString(),
     address: doc.address,
-    chain: doc.chain
+    chain: doc.chain,
+    btc_balance_sats: doc.btc_balance_sats,
+    btc_balance_updated_at: doc.btc_balance_updated_at ? toDate(doc.btc_balance_updated_at) : undefined
+  };
+}
+
+export async function updateTreasuryWalletBalance(id: string, btcBalanceSats: number): Promise<any> {
+  const db = await getDb();
+  const now = new Date();
+  await db
+    .collection("treasury_wallets")
+    .updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { btc_balance_sats: btcBalanceSats, btc_balance_updated_at: now, updated_at: now } }
+    );
+
+  const doc = await db.collection("treasury_wallets").findOne({ _id: new ObjectId(id) });
+  if (!doc) throw new Error("Treasury wallet not found after balance update");
+
+  return {
+    ...doc,
+    id: doc._id?.toString(),
+    btc_balance_sats: doc.btc_balance_sats,
+    btc_balance_updated_at: doc.btc_balance_updated_at ? toDate(doc.btc_balance_updated_at) : undefined
   };
 }
 

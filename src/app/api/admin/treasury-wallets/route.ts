@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/db";
 import { blockchainService } from "@/lib/blockchain";
+import { getBitcoinAddressBalanceSats, satsToBtc } from "@/lib/bitcoin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,22 +10,31 @@ export async function GET(request: NextRequest) {
     // Get treasury wallets from database
     const treasuryWallets = await db.getTreasuryWallets();
 
-    // Get real-time balances for each wallet
-    const walletsWithBalances = await blockchainService.getNativeAndTokenBalances(
-      treasuryWallets.map(wallet => ({
-        chain: wallet.chain,
-        address: wallet.address
-      }))
-    );
+    const enrichedWallets = await Promise.all(
+      treasuryWallets.map(async wallet => {
+        if (wallet.chain === "btc") {
+          const btcBalanceSats = await getBitcoinAddressBalanceSats(wallet.address);
+          return {
+            ...wallet,
+            balances: {
+              native: satsToBtc(btcBalanceSats)
+            }
+          };
+        }
 
-    // Merge database data with real-time balances
-    const enrichedWallets = treasuryWallets.map((wallet, index) => {
-      const balanceData = walletsWithBalances[index];
-      return {
-        ...wallet,
-        balances: balanceData?.balances || { native: "0.000000" }
-      };
-    });
+        const balanceData = await blockchainService.getNativeAndTokenBalances([
+          {
+            chain: wallet.chain,
+            address: wallet.address
+          }
+        ]);
+
+        return {
+          ...wallet,
+          balances: balanceData[0]?.balances || { native: "0.000000" }
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,

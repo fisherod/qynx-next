@@ -6,9 +6,35 @@ import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { ChainType } from "@/types";
 import { usePayment } from "@/hooks/usePayment";
-import { CHAIN_ID_HEX, CHAIN_NAMES, DEFAULT_LANGUAGE, EXPLORER_URLS, NATIVE_CURRENCIES, RPC_URLS } from "@/constants";
+import {
+  CHAIN_ID_HEX,
+  CHAIN_NAMES,
+  DEFAULT_LANGUAGE,
+  CHAIN_EXPLORER_URLS,
+  NATIVE_CURRENCIES,
+  RPC_URLS
+} from "@/constants";
 import { QRCode } from "@/components/ui/QRCode";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { getBitcoinTxExplorerUrl } from "@/lib/bitcoin";
+
+interface UniSatWalletProvider {
+  requestAccounts: () => Promise<string[]>;
+  getAccounts?: () => Promise<string[]>;
+  getBalanceV2?: () => Promise<{ available: number; unavailable: number; total: number }>;
+  getBalance?: () => Promise<{ confirmed: number; unconfirmed: number; total: number }>;
+  sendBitcoin: (
+    toAddress: string,
+    satoshis: number,
+    options?: { feeRate?: number; memo?: string; memos?: string[] }
+  ) => Promise<string>;
+}
+
+declare global {
+  interface Window {
+    unisat?: UniSatWalletProvider;
+  }
+}
 
 export default function PaymentPage() {
   return (
@@ -35,8 +61,15 @@ function PaymentPageContent() {
 
   const [statusCheckInterval, setStatusCheckInterval] = useState<NodeJS.Timeout | null>(null);
   const [localPaymentStatus, setLocalPaymentStatus] = useState<string | null>(null);
+  const [statusChecking, setStatusChecking] = useState(false);
   const [selectedChain, setSelectedChain] = useState<ChainType>("eth");
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
+  const isBitcoinPayment = payment?.currency?.toLowerCase() === "btc";
+  const [btcDepositAddress, setBtcDepositAddress] = useState<string>("");
+  const [btcDepositLoading, setBtcDepositLoading] = useState(false);
+  const [btcDepositError, setBtcDepositError] = useState<string>("");
+  const [btcWalletProviderName, setBtcWalletProviderName] = useState<string>("");
+  const [btcWalletBalance, setBtcWalletBalance] = useState<string>("");
 
   // Mobile wallet detection and connection state
   const [isMobileWallet, setIsMobileWallet] = useState(false);
@@ -76,8 +109,99 @@ function PaymentPageContent() {
   const formatPaymentAmount = (amount: number | string): string => {
     const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
     if (isNaN(numAmount)) return "0.00";
-    const formatted = numAmount.toFixed(2);
+    const formatted = numAmount.toFixed(8);
     return formatted.replace(/\.?0+$/, "") || "0";
+  };
+
+  const formatBitcoinAmount = (amount: number | string): string => {
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    if (isNaN(numAmount)) return "0";
+    const formatted = numAmount.toFixed(8);
+    return formatted.replace(/\.?0+$/, "") || "0";
+  };
+
+  const getBitcoinWalletProvider = () => {
+    if (typeof window === "undefined") return null;
+    return window.unisat || null;
+  };
+
+  const syncBitcoinWalletState = async () => {
+    const provider = getBitcoinWalletProvider();
+    if (!provider) return;
+
+    try {
+      setBtcWalletProviderName("UniSat");
+      setIsMobileWallet(true);
+
+      const accounts = (await provider.getAccounts?.()) || [];
+      if (accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setWalletConnected(true);
+      }
+
+      const balanceResult = provider.getBalanceV2
+        ? await provider.getBalanceV2()
+        : provider.getBalance
+          ? await provider.getBalance()
+          : null;
+      if (balanceResult && typeof balanceResult.total === "number") {
+        setBtcWalletBalance((balanceResult.total / 100000000).toFixed(8).replace(/\.?0+$/, ""));
+      }
+    } catch (error) {
+      console.error("Error syncing Bitcoin wallet:", error);
+    }
+  };
+
+  const connectBitcoinWallet = async () => {
+    const provider = getBitcoinWalletProvider();
+    if (!provider) {
+      throw new Error("Bitcoin wallet not found. Install UniSat to pay with Bitcoin.");
+    }
+
+    const accounts = await provider.requestAccounts();
+    if (!accounts || accounts.length === 0) {
+      throw new Error("No Bitcoin account returned by wallet.");
+    }
+
+    setWalletAddress(accounts[0]);
+    setWalletConnected(true);
+    setBtcWalletProviderName("UniSat");
+    setIsMobileWallet(true);
+
+    const balanceResult = provider.getBalanceV2
+      ? await provider.getBalanceV2()
+      : provider.getBalance
+        ? await provider.getBalance()
+        : null;
+    if (balanceResult && typeof balanceResult.total === "number") {
+      setBtcWalletBalance((balanceResult.total / 100000000).toFixed(8).replace(/\.?0+$/, ""));
+    }
+
+    return accounts[0];
+  };
+
+  const copyBitcoinPaymentUri = async () => {
+    if (!bitcoinPaymentUri) return;
+
+    try {
+      await navigator.clipboard.writeText(bitcoinPaymentUri);
+    } catch (error) {
+      console.error("Failed to copy Bitcoin payment URI:", error);
+    }
+  };
+
+  const handleBitcoinAction = async () => {
+    if (isProcessingPayment) return;
+
+    try {
+      if (!walletConnected) {
+        await connectBitcoinWallet();
+      }
+
+      await handlePay();
+    } catch (error: any) {
+      alert(error.message || "Failed to process Bitcoin payment");
+    }
   };
 
   // Helper function to get blockchain explorer URL
@@ -106,6 +230,13 @@ function PaymentPageContent() {
   // Detect mobile wallet
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (isBitcoinPayment) {
+      if (window.unisat) {
+        setIsMobileWallet(true);
+        syncBitcoinWalletState();
+      }
+      return;
+    }
 
     // Check for EVM wallets (MetaMask, etc.)
     const hasEVMWallet = !!window.ethereum;
@@ -144,11 +275,65 @@ function PaymentPageContent() {
 
       checkConnection();
     }
-  }, []);
+  }, [isBitcoinPayment]);
+
+  useEffect(() => {
+    if (!isBitcoinPayment) {
+      setBtcDepositAddress("");
+      setBtcDepositLoading(false);
+      setBtcDepositError("");
+      return;
+    }
+
+    const loadBitcoinTreasuryWallet = async () => {
+      setBtcDepositLoading(true);
+      setBtcDepositError("");
+      try {
+        const response = await fetch("/api/payment/treasury-wallet?chain=btc", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to load Bitcoin treasury wallet");
+        }
+        setBtcDepositAddress(data.address || "");
+      } catch (error: any) {
+        setBtcDepositError(error.message || "Failed to load Bitcoin treasury wallet");
+        setBtcDepositAddress("");
+      } finally {
+        setBtcDepositLoading(false);
+      }
+    };
+
+    loadBitcoinTreasuryWallet();
+  }, [isBitcoinPayment]);
+
+  useEffect(() => {
+    if (!isBitcoinPayment || typeof window === "undefined" || !window.unisat) return;
+
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setWalletConnected(true);
+      } else {
+        setWalletAddress("");
+        setWalletConnected(false);
+      }
+    };
+
+    const provider = window.unisat as any;
+    provider.on?.("accountsChanged", handleAccountsChanged);
+
+    return () => {
+      provider.removeListener?.("accountsChanged", handleAccountsChanged);
+    };
+  }, [isBitcoinPayment]);
 
   // Check balances when wallet is connected and chain is selected
   useEffect(() => {
     if (!isMobileWallet || !walletConnected || !walletAddress || !payment) return;
+    if (isBitcoinPayment) return;
 
     const checkBalances = async () => {
       setIsCheckingBalance(true);
@@ -188,7 +373,7 @@ function PaymentPageContent() {
     };
 
     checkBalances();
-  }, [isMobileWallet, walletConnected, walletAddress, selectedChain, payment]);
+  }, [isMobileWallet, walletConnected, walletAddress, selectedChain, payment, isBitcoinPayment]);
 
   // Connect wallet
   const connectWallet = async () => {
@@ -244,7 +429,7 @@ function PaymentPageContent() {
                 chainId: chainIdHex,
                 chainName: CHAIN_NAMES[chain],
                 rpcUrls: [RPC_URLS[chain]],
-                blockExplorerUrls: [EXPLORER_URLS[chain]],
+                blockExplorerUrls: [CHAIN_EXPLORER_URLS[chain]],
                 nativeCurrency: {
                   name: native.name,
                   symbol: native.symbol,
@@ -264,10 +449,74 @@ function PaymentPageContent() {
 
   // Process payment (approve token directly from wallet)
   const handlePay = async () => {
-    if (!walletAddress || !payment || isProcessingPayment) return;
+    if (!payment || isProcessingPayment) return;
+    if (!isBitcoinPayment && !walletAddress) return;
 
     setIsProcessingPayment(true);
     try {
+      if (isBitcoinPayment) {
+        if (!btcDepositAddress) {
+          throw new Error("Bitcoin treasury wallet is not configured.");
+        }
+
+        const provider = getBitcoinWalletProvider();
+        if (!provider) {
+          throw new Error("Bitcoin wallet not found. Install UniSat to continue.");
+        }
+
+        let activeAddress = walletAddress;
+        if (!walletConnected) {
+          activeAddress = await connectBitcoinWallet();
+        }
+
+        const btcAmount = Number(payment.amount);
+        if (!Number.isFinite(btcAmount) || btcAmount <= 0) {
+          throw new Error("Invalid Bitcoin payment amount.");
+        }
+
+        const satoshis = Math.round(btcAmount * 100000000);
+        if (satoshis <= 0) {
+          throw new Error("Bitcoin payment amount is too small.");
+        }
+
+        const balanceResult = provider.getBalanceV2
+          ? await provider.getBalanceV2()
+          : provider.getBalance
+            ? await provider.getBalance()
+            : null;
+        const availableSats =
+          balanceResult && typeof balanceResult.total === "number" ? balanceResult.total : undefined;
+
+        if (typeof availableSats === "number" && availableSats < satoshis) {
+          throw new Error("Your Bitcoin wallet balance is too low for this payment.");
+        }
+
+        const txHash = await provider.sendBitcoin(btcDepositAddress, satoshis, {
+          memo: paymentId
+        });
+
+        const response = await fetch("/api/payment/process", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentId,
+            currency: payment.currency,
+            userAddress: activeAddress,
+            chain: "btc",
+            txHash
+          })
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok || result?.success === false) {
+          throw new Error(result?.error || "Bitcoin payment confirmation failed");
+        }
+
+        setLocalPaymentStatus("completed");
+        await refetch();
+        return;
+      }
+
       // Get contract address for the selected chain
       const response = await fetch("/api/payment/get-contract-address", {
         method: "POST",
@@ -377,22 +626,32 @@ function PaymentPageContent() {
     }
   }, [preferredLanguage, i18n.language]);
 
-  const checkPaymentStatus = async () => {
+  const checkPaymentStatus = async (force = false) => {
     try {
-      if (payment && (payment.status === "pending" || payment.status === "processing")) {
-        const response = await fetch(`/api/payment/status?payment_id=${paymentId}`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.status && data.status !== payment.status) {
-            setLocalPaymentStatus(data.status);
-            if (data.status === "completed") {
-              stopStatusPolling();
-            }
+      if (!payment) return;
+
+      setStatusChecking(true);
+      const response = await fetch(`/api/payment/status?payment_id=${paymentId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status) {
+          setLocalPaymentStatus(data.status);
+          if (data.status === "completed") {
+            stopStatusPolling();
           }
+        } else if (force) {
+          setLocalPaymentStatus(payment.status);
         }
+      } else if (force) {
+        setLocalPaymentStatus(payment.status);
       }
     } catch (error) {
       console.error("Failed to check payment status:", error);
+      if (force && payment) {
+        setLocalPaymentStatus(payment.status);
+      }
+    } finally {
+      setStatusChecking(false);
     }
   };
 
@@ -421,6 +680,7 @@ function PaymentPageContent() {
     if (payment && payment.status !== "completed") {
       setLocalPaymentStatus(null);
       if (payment.status === "pending" || payment.status === "processing") {
+        void checkPaymentStatus(true);
         startStatusPolling();
       } else {
         stopStatusPolling();
@@ -450,6 +710,18 @@ function PaymentPageContent() {
   };
 
   const currentStatus = localPaymentStatus || payment?.status;
+  const bitcoinPaymentUri =
+    isBitcoinPayment && btcDepositAddress && payment
+      ? `bitcoin:${btcDepositAddress}?amount=${formatBitcoinAmount(payment.amount)}&label=${encodeURIComponent(
+          "Qynx Payment"
+        )}&message=${encodeURIComponent(paymentId)}`
+      : "";
+  const paymentExplorerUrl =
+    isBitcoinPayment && payment?.tx_hash
+      ? getBitcoinTxExplorerUrl(payment.tx_hash)
+      : payment?.chain && payment?.tx_hash
+        ? getExplorerUrl(payment.chain, payment.tx_hash)
+        : "";
 
   // Calculate time left for circular timer
   useEffect(() => {
@@ -490,7 +762,7 @@ function PaymentPageContent() {
   }, [payment?.expires_at, currentStatus]);
 
   // Loading state
-  if (isLoading) {
+  if (isLoading || (payment && statusChecking && !localPaymentStatus)) {
     return (
       <div className="h-screen w-screen bg-white flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
@@ -544,9 +816,9 @@ function PaymentPageContent() {
                   </span>
                   <span className="text-sm text-gray-600">{payment?.currency.toUpperCase()}</span>
                 </div>
-                {payment?.tx_hash && payment?.chain && (
+                {paymentExplorerUrl && (
                   <a
-                    href={getExplorerUrl(payment?.chain, payment?.tx_hash)}
+                    href={paymentExplorerUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-500 hover:text-blue-600 mt-2 inline-block"
@@ -668,114 +940,205 @@ function PaymentPageContent() {
           {/* Chain Selection and Payment UI - Only if pending and not expired */}
           {currentStatus === "pending" && !isExpired && (
             <div className="space-y-4">
-              {/* Chain Selection */}
-              <div>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "eth", name: "ETH", icon: "/chains/eth.svg" },
-                    { id: "bsc", name: "BSC", icon: "/chains/bsc.svg" },
-                    { id: "tron", name: "TRON", icon: "/chains/tron.svg" }
-                  ].map(chain => (
-                    <button
-                      key={chain.id}
-                      onClick={() => setSelectedChain(chain.id as ChainType)}
-                      className={`p-3 rounded-lg text-xs font-semibold transition-all flex flex-col items-center gap-2 ${
-                        selectedChain === chain.id
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      <img
-                        src={chain.icon}
-                        alt={chain.name}
-                        className="w-5 h-5"
-                        onError={e => {
-                          e.currentTarget.style.display = "none";
-                        }}
-                      />
-                      <span>{chain.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Mobile Wallet: Show Pay Button */}
-              {isMobileWallet ? (
+              {isBitcoinPayment ? (
                 <div className="space-y-4">
-                  {/* Wallet Connection Status */}
-                  {!walletConnected ? (
-                    <button
-                      onClick={connectWallet}
-                      className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
-                    >
-                      {t("paymentPage.connectAndPay")}
-                    </button>
+                  {btcDepositLoading ? (
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-700">
+                      Loading Bitcoin treasury wallet...
+                    </div>
+                  ) : btcDepositError ? (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                      {btcDepositError}
+                    </div>
+                  ) : !btcDepositAddress ? (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                      Bitcoin treasury wallet is not configured in admin settings.
+                    </div>
                   ) : (
-                    <div className="space-y-3">
-                      {/* Wallet Address */}
-                      <div className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className="text-xs text-gray-500 mb-1">{t("paymentPage.walletAddress")}</div>
-                        <div className="text-xs font-mono text-gray-900 truncate">
-                          {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                        </div>
+                    <>
+                      <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">
+                        {btcWalletProviderName ? (
+                          <span>{btcWalletProviderName} detected. Connect your wallet to send this payment.</span>
+                        ) : (
+                          <span>No Bitcoin wallet detected. Install UniSat to connect and pay automatically.</span>
+                        )}
                       </div>
 
-                      {/* Balance Check */}
-                      {isCheckingBalance ? (
-                        <div className="text-center py-2">
-                          <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
-                          <p className="text-xs text-gray-500 mt-2">{t("paymentPage.checkingBalance")}</p>
-                        </div>
-                      ) : balanceCheck ? (
-                        <>
-                          {/* Balance Warnings */}
-                          {(!balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken) && (
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                              <div className="text-xs font-semibold text-yellow-800 mb-1">
-                                {t("paymentPage.balanceLow")}
-                              </div>
-                              {!balanceCheck.hasEnoughNative && (
-                                <div className="text-xs text-yellow-700">
-                                  {t("paymentPage.feeInsufficient", {
-                                    symbol: selectedChain === "eth" ? "ETH" : selectedChain === "bsc" ? "BNB" : "TRX"
-                                  })}
-                                </div>
-                              )}
-                              {!balanceCheck.hasEnoughToken && (
-                                <div className="text-xs text-yellow-700">
-                                  {t("paymentPage.tokenInsufficient", {
-                                    amount: formatPaymentAmount(payment.amount),
-                                    symbol: payment.currency.toUpperCase()
-                                  })}
-                                </div>
-                              )}
+                      <div className="space-y-3 rounded-lg bg-gray-50 p-3">
+                        {walletConnected ? (
+                          <>
+                            <div>
+                              <div className="text-xs text-gray-500">Connected wallet</div>
+                              <div className="break-all font-mono text-xs text-gray-900">{walletAddress}</div>
                             </div>
-                          )}
+                            {btcWalletBalance ? (
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="text-gray-500">Available balance</span>
+                                <span className="font-semibold text-gray-900">{btcWalletBalance} BTC</span>
+                              </div>
+                            ) : null}
+                          </>
+                        ) : (
+                          <div className="text-xs text-gray-600">
+                            Connect your Bitcoin wallet to send this payment automatically.
+                          </div>
+                        )}
+                        <button
+                          onClick={handleBitcoinAction}
+                          disabled={isProcessingPayment}
+                          className={`w-full rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors ${
+                            isProcessingPayment ? "bg-gray-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+                          }`}
+                        >
+                          {isProcessingPayment
+                            ? "Processing Bitcoin payment..."
+                            : walletConnected
+                              ? "Pay with Bitcoin"
+                              : "Connect and pay with Bitcoin"}
+                        </button>
+                      </div>
 
-                          {/* Pay Button */}
-                          <button
-                            onClick={handlePay}
-                            disabled={
-                              !balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken || isProcessingPayment
-                            }
-                            className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                              balanceCheck.hasEnoughNative && balanceCheck.hasEnoughToken && !isProcessingPayment
-                                ? "bg-blue-500 hover:bg-blue-600 text-white"
-                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            }`}
-                          >
-                            {isProcessingPayment ? t("paymentPage.processingButton") : t("paymentPage.pay")}
-                          </button>
+                      {!btcWalletProviderName && (
+                        <>
+                          <QRCode value={bitcoinPaymentUri} size={300} showValue className="mx-auto" />
+
+                          <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                            <div className="mb-2 text-xs font-medium text-gray-500">Bitcoin address</div>
+                            <div className="break-all font-mono text-xs text-gray-900">{btcDepositAddress}</div>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => navigator.clipboard.writeText(btcDepositAddress)}
+                              className="flex-1 rounded-lg bg-gray-900 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-gray-800"
+                            >
+                              Copy address
+                            </button>
+                            <button
+                              onClick={copyBitcoinPaymentUri}
+                              className="flex-1 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                            >
+                              Copy payment link
+                            </button>
+                          </div>
                         </>
-                      ) : null}
-                    </div>
+                      )}
+                    </>
                   )}
                 </div>
               ) : (
-                /* Desktop/Regular: Show QR Code */
-                <div className="w-full">
-                  <QRCode value={generateQRCodeValue(selectedChain)} size={300} chain={selectedChain} />
-                </div>
+                <>
+                  {/* Chain Selection */}
+                  <div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: "eth", name: "ETH", icon: "/chains/eth.svg" },
+                        { id: "bsc", name: "BSC", icon: "/chains/bsc.svg" },
+                        { id: "tron", name: "TRON", icon: "/chains/tron.svg" }
+                      ].map(chain => (
+                        <button
+                          key={chain.id}
+                          onClick={() => setSelectedChain(chain.id as ChainType)}
+                          className={`p-3 rounded-lg text-xs font-semibold transition-all flex flex-col items-center gap-2 ${
+                            selectedChain === chain.id
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          <img
+                            src={chain.icon}
+                            alt={chain.name}
+                            className="w-5 h-5"
+                            onError={e => {
+                              e.currentTarget.style.display = "none";
+                            }}
+                          />
+                          <span>{chain.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Mobile Wallet: Show Pay Button */}
+                  {isMobileWallet ? (
+                    <div className="space-y-4">
+                      {/* Wallet Connection Status */}
+                      {!walletConnected ? (
+                        <button
+                          onClick={connectWallet}
+                          className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors"
+                        >
+                          {t("paymentPage.connectAndPay")}
+                        </button>
+                      ) : (
+                        <div className="space-y-3">
+                          {/* Wallet Address */}
+                          <div className="bg-gray-50 rounded-lg p-3 text-center">
+                            <div className="text-xs text-gray-500 mb-1">{t("paymentPage.walletAddress")}</div>
+                            <div className="text-xs font-mono text-gray-900 truncate">
+                              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                            </div>
+                          </div>
+
+                          {/* Balance Check */}
+                          {isCheckingBalance ? (
+                            <div className="text-center py-2">
+                              <div className="w-5 h-5 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+                              <p className="text-xs text-gray-500 mt-2">{t("paymentPage.checkingBalance")}</p>
+                            </div>
+                          ) : balanceCheck ? (
+                            <>
+                              {/* Balance Warnings */}
+                              {(!balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken) && (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                  <div className="text-xs font-semibold text-yellow-800 mb-1">
+                                    {t("paymentPage.balanceLow")}
+                                  </div>
+                                  {!balanceCheck.hasEnoughNative && (
+                                    <div className="text-xs text-yellow-700">
+                                      {t("paymentPage.feeInsufficient", {
+                                        symbol:
+                                          selectedChain === "eth" ? "ETH" : selectedChain === "bsc" ? "BNB" : "TRX"
+                                      })}
+                                    </div>
+                                  )}
+                                  {!balanceCheck.hasEnoughToken && (
+                                    <div className="text-xs text-yellow-700">
+                                      {t("paymentPage.tokenInsufficient", {
+                                        amount: formatPaymentAmount(payment.amount),
+                                        symbol: payment.currency.toUpperCase()
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Pay Button */}
+                              <button
+                                onClick={handlePay}
+                                disabled={
+                                  !balanceCheck.hasEnoughNative || !balanceCheck.hasEnoughToken || isProcessingPayment
+                                }
+                                className={`w-full py-3 rounded-lg font-semibold transition-colors ${
+                                  balanceCheck.hasEnoughNative && balanceCheck.hasEnoughToken && !isProcessingPayment
+                                    ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                }`}
+                              >
+                                {isProcessingPayment ? t("paymentPage.processingButton") : t("paymentPage.pay")}
+                              </button>
+                            </>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    /* Desktop/Regular: Show QR Code */
+                    <div className="w-full">
+                      <QRCode value={generateQRCodeValue(selectedChain)} size={300} chain={selectedChain} />
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

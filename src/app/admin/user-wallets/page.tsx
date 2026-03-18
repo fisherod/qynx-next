@@ -21,8 +21,13 @@ export default function AdminUserWalletsPage() {
   const [walletsRefreshInterval, setWalletsRefreshInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Helper function to format payment amount (remove trailing zeros)
-  const formatPaymentAmount = (amount: number): string => {
-    return amount.toFixed(2);
+  const formatPaymentAmount = (amount: number | string): string => {
+    const numAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+    if (isNaN(numAmount)) return "0.00";
+
+    // Format to 2 decimal places, then remove trailing zeros
+    const formatted = numAmount.toFixed(8);
+    return formatted.replace(/\.?0+$/, "") || "0";
   };
 
   // Fetch wallet list with real-time balances
