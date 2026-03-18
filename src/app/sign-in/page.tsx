@@ -22,7 +22,7 @@ function SignInContent() {
   const [submitting, setSubmitting] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
   const fromRegistration = searchParams.get("registered") === "1";
-  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("redirect") || "/user/investment";
+  const callbackUrl = searchParams.get("callbackUrl") || searchParams.get("redirect") || "/user/dashboard";
 
   const validate = () => {
     const next: { email?: string; password?: string } = {};

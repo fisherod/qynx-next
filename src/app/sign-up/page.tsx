@@ -96,7 +96,7 @@ export default function SignUpPage() {
   const handleOAuth = async (provider: "google" | "apple") => {
     setOauthLoading(provider);
     try {
-      await signIn(provider, { callbackUrl: "/user/investment" });
+      await signIn(provider, { callbackUrl: "/user/dashboard" });
     } finally {
       setOauthLoading(null);
     }

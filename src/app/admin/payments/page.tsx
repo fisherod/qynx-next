@@ -331,19 +331,7 @@ export default function AdminPaymentsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col">
-                        <span className="text-sm text-white font-medium">
-                          {new Date(project.created_at).toLocaleDateString("zh-CN", {
-                            year: "numeric",
-                            month: "2-digit",
-                            day: "2-digit"
-                          })}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(project.created_at).toLocaleTimeString("zh-CN", {
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })}
-                        </span>
+                        <span className="text-sm text-gray-400">{new Date(project.created_at).toLocaleString()}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

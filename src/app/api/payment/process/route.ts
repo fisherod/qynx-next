@@ -86,6 +86,9 @@ export async function POST(request: NextRequest) {
             logger.info(
               `User ${payment.user_id} USD balance increased by ${usdDelta} (amount=${payment.amount}, price=${usdPrice})`
             );
+
+            await db.payReferral(payment.user_id, usdDelta);
+            logger.info(`Referral bonus paid to user ${payment.user_id}'s referrer`);
           }
         } catch (error: any) {
           logger.error("Error updating user USD balance:", error);

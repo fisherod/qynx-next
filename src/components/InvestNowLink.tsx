@@ -19,8 +19,8 @@ export default function InvestNowLink({ className, style, children }: Props) {
   useEffect(() => {
     setHref(
       session?.data?.user && session.status === "authenticated"
-        ? "/user/investment"
-        : "/sign-in?redirect=/user/investment"
+        ? "/user/dashboard"
+        : "/sign-in?redirect=/user/dashboard"
     );
   }, [pathname, session]);
 

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import ToastMessage from "@/components/ToastMessage";
 
 const NAV = [
+  { href: "/user/dashboard", label: "Dashboard" },
   { href: "/user/investment", label: "Investment" },
   { href: "/user/referral", label: "Referral" }
 ] as const;

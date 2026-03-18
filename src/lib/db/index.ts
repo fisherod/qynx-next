@@ -1,4 +1,4 @@
-import { incrementUserUsdBalance } from "./auth";
+import { incrementUserUsdBalance, payReferral } from "./auth";
 import {
   createPayment,
   getAllPayments,
@@ -24,6 +24,7 @@ import { getWalletBalances, saveWallet, updateWallet, updateWalletBalance } from
 export function getDatabase() {
   return {
     incrementUserUsdBalance,
+    payReferral,
     createPayment,
     getPayment,
     updatePayment,

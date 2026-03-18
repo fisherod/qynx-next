@@ -1,7 +1,10 @@
 /**
  * Auth user storage in MongoDB (used by NextAuth and signup API).
  */
+import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/mongodb";
+import { logger } from "@/lib/logger";
+import { REFERRAL_RATIO } from "@/constants";
 
 const USERS_COLLECTION = "users";
 
@@ -17,6 +20,7 @@ export interface DbUser {
   createdAt: Date;
   updatedAt: Date;
   referralCode?: string;
+  referer?: string;
   usdBalance?: number;
   profit?: number;
   // OAuth
@@ -153,6 +157,37 @@ export async function incrementUserUsdBalance(userId: string, usdDelta: number):
   );
 }
 
+export async function payReferral(userId: string, usdDelta: number): Promise<void> {
+  // Referral bonus: if this is referee's first completed investment, give referrer a bonus
+  const db = await getDb();
+  const userDoc = await db.collection("users").findOne({ _id: new ObjectId(userId) }, { projection: { referer: 1 } });
+
+  const refererCode = (userDoc as any)?.referer;
+  if (refererCode) {
+    const referrerDoc = await db.collection("users").findOne({ referralCode: refererCode });
+    if (referrerDoc?._id) {
+      // Check if this is first completed payment for the referee
+      const completedCount = await db.collection("payments").countDocuments({
+        user_id: userId,
+        status: "completed"
+      });
+      if (completedCount === 1) {
+        const bonus = usdDelta * REFERRAL_RATIO;
+        if (bonus > 0) {
+          await db.collection("users").updateOne(
+            { _id: referrerDoc._id },
+            {
+              $inc: { usdBalance: bonus },
+              $set: { updatedAt: new Date() }
+            }
+          );
+          logger.info(`Referral bonus: user ${referrerDoc._id.toString()} got +${bonus} USD from referee ${userId}`);
+        }
+      }
+    }
+  }
+}
+
 function docToUser(doc: any): DbUser {
   return {
     _id: doc._id,
@@ -167,6 +202,8 @@ function docToUser(doc: any): DbUser {
     updatedAt: doc.updatedAt,
     accounts: doc.accounts,
     usdBalance: doc.usdBalance,
-    profit: doc.profit
+    profit: doc.profit,
+    referralCode: doc.referralCode,
+    referer: doc.referer
   };
 }
